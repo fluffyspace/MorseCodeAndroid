@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Playground"
+    android:orientation="vertical">
+
+    <com.example.morsecode.CustomProgressBarView
+        android:id="@+id/custom_progress_down"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        app:first="0"
+        app:second="200"
+        app:forwhat="down"
+        app:progress="0"
+        app:first_text="dot"
+        app:second_text="dash"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/black"/>
+
+    <com.example.morsecode.CustomProgressBarView
+        android:id="@+id/custom_progress_up"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        app:first="130"
+        app:second="200"
+        app:forwhat="up"
+        app:first_text="new character"
+        app:second_text="space"
+        app:third_text="send"/>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/black"/>
+
+    <TextView
+        android:id="@+id/timer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:padding="10dp"
+        tools:text="100"/>
+    <Button
+        android:id="@+id/tap"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TAP"
+        android:textSize="30sp"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:padding="30dp"/>
+
+    <TextView
+        android:id="@+id/playground_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        tools:text="haha"
+        android:padding="20dp"/>
+    <TextView
+        android:id="@+id/all_timers_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        tools:text="haha"
+        android:padding="20dp"/>
+</LinearLayout>

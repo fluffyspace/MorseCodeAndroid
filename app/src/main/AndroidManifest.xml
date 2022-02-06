@@ -12,21 +12,26 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MorseCode">
-        <!--<receiver
+        <activity
+            android:name=".Playground"
+            android:exported="true" >
+
+        </activity>
+        <!--
+        <receiver
             android:name=".MyReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
-        </receiver>-->
-
+        </receiver>
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

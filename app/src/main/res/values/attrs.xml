@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CustomProgressBarView">
+        <attr name="first" format="integer" />
+        <attr name="second" format="integer"/>
+        <attr name="third" format="integer"/>
+        <attr name="first_text" format="string" />
+        <attr name="second_text" format="string"/>
+        <attr name="third_text" format="string"/>
+        <attr name="progress" format="integer"/>
+        <attr name="forwhat" format="enum">
+            <enum name="down" value="0"/>
+            <enum name="up" value="1"/>
+        </attr>
+    </declare-styleable>
+</resources>

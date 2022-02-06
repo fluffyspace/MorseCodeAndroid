@@ -1,7 +1,10 @@
 <resources>
     <string name="app_name">MorseCode</string>
-    <string name="power">Power</string>
+    <string name="power">MorseCode ON</string>
     <string name="volume">Vol +</string>
     <string name="scroll">Scroll</string>
     <string name="swipe">Swipe</string>
+    <string name="aaa">PWM on duration: </string>
+    <string name="sss">PWM off duration: </string>
+    <string name="otu">One time unit: </string>
 </resources>
