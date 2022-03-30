@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:context=".SettingsActivity"
+        android:id="@+id/timing_configuration"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_margin="10dp">
+        <TextView
+            android:id="@+id/service_not_started"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Service not started!"
+            android:textSize="20sp"
+            android:gravity="center"
+            android:background="#ff0000"
+            android:textColor="@color/white"
+            android:padding="20dp"
+            android:visibility="gone"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Timing configuration: "
+            android:layout_gravity="center"
+            android:textSize="25sp"
+            android:padding="10dp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:orientation="horizontal"
+            android:background="@drawable/obrub">
+            <TextView
+                android:id="@+id/aaa_status"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="wrap_content"
+                android:text="@string/aaa"
+                android:textSize="20sp"
+                android:padding="10dp"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+            <ImageButton
+                android:id="@+id/aaa_up"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_keyboard_arrow_up_24"
+                android:scaleType="fitCenter"/>
+            <ImageButton
+                android:id="@+id/aaa_down"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_keyboard_arrow_down_24"
+                android:scaleType="fitCenter" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:orientation="horizontal"
+            android:background="@drawable/obrub">
+            <TextView
+                android:id="@+id/sss_status"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="wrap_content"
+                android:text="@string/sss"
+                android:textSize="20sp"
+                android:padding="10dp"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+            <ImageButton
+                android:id="@+id/sss_up"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_keyboard_arrow_up_24"
+                android:scaleType="fitCenter"/>
+            <ImageButton
+                android:id="@+id/sss_down"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_keyboard_arrow_down_24"
+                android:scaleType="fitCenter" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:orientation="horizontal"
+            android:background="@drawable/obrub">
+            <TextView
+                android:id="@+id/otu_status"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="wrap_content"
+                android:text="@string/otu"
+                android:textSize="20sp"
+                android:padding="10dp"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+            <ImageButton
+                android:id="@+id/otu_up"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_keyboard_arrow_up_24"
+                android:scaleType="fitCenter"/>
+            <ImageButton
+                android:id="@+id/otu_down"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_keyboard_arrow_down_24"
+                android:scaleType="fitCenter" />
+        </LinearLayout>
+        <TextView
+            android:id="@+id/morse_timing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="Timing:"
+            android:gravity="left"
+            android:textSize="15sp"
+            android:padding="10dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Token: "
+            android:layout_gravity="center"
+            android:textSize="25sp"
+            android:padding="10dp"/>
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Token number (length=6)">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/token"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
+
+        </com.google.android.material.textfield.TextInputLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:orientation="horizontal"
+            android:layout_marginVertical="10dp">
+            <Button
+                android:id="@+id/save_settings"
+                android:layout_gravity="center"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="Save settings"/>
+            <Button
+                android:id="@+id/reset_settings"
+                android:layout_gravity="center"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="Reset settings"
+                android:layout_marginLeft="10dp"/>
+        </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/obrub"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Sample text to test:"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:padding="10dp"/>
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter some text">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/vibrate_letters"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    />
+
+            </com.google.android.material.textfield.TextInputLayout>
+            <!--<EditText
+                android:id="@+id/vibrate_letters"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="20dp"
+                android:textSize="20sp"
+                android:text="test"
+                android:gravity="center"/>-->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginVertical="10dp">
+            <Button
+                android:id="@+id/vibrate_button"
+                android:layout_gravity="center"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="test vibration"
+                android:paddingVertical="20dp"/>
+            <Button
+                android:id="@+id/vibrate_stop_button"
+                android:layout_gravity="center"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="stop vibration"
+                android:paddingVertical="20dp"
+                android:layout_marginLeft="10dp"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

@@ -5,9 +5,11 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
+import com.example.morsecode.moodel.Postavke
 import kotlinx.coroutines.*
 import java.lang.StringBuilder
 
@@ -18,6 +20,8 @@ class Playground : AppCompatActivity() {
     lateinit var all_timers_text: TextView
     lateinit var progressbar_down:CustomProgressBarView
     lateinit var progressbar_up:CustomProgressBarView
+    lateinit var service_not_started:TextView
+
     lateinit var korutina: Job
     var all_timers = mutableListOf<Int>()
 
@@ -29,23 +33,24 @@ class Playground : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_playground)
-        mAccessibilityService = GlobalActionBarService.getSharedInstance();
-        mAccessibilityService?.toggleTesting()
-        val aaa = 10//intent.getStringExtra("aaa")?.toLong()
-        val sss = 1//intent.getStringExtra("sss")?.toLong()
-        oneTimeUnit = intent.getStringExtra("oneTimeUnit")?.toInt() ?: 0
-
-        val width = findViewById<CustomProgressBarView>(R.id.custom_progress_down).width
+        service_not_started = findViewById(R.id.service_not_started)
+        service_not_started.setOnClickListener {
+            checkService();
+        }
+        tap_button = findViewById(R.id.tap)
         progressbar_down = findViewById<CustomProgressBarView>(R.id.custom_progress_down)
         progressbar_up = findViewById<CustomProgressBarView>(R.id.custom_progress_up)
-        progressbar_down.updateThings(0, oneTimeUnit, -1)
-        progressbar_up.updateThings(oneTimeUnit, oneTimeUnit*3, oneTimeUnit*7)
-        //customProgressBarView.updateThings(200, -1, -1)
-
         playground_text = findViewById(R.id.playground_text)
         timer_text = findViewById(R.id.timer)
         all_timers_text = findViewById(R.id.all_timers_text)
-        tap_button = findViewById(R.id.tap)
+
+        val aaa = 10//intent.getStringExtra("aaa")?.toLong()
+        val sss = 1//intent.getStringExtra("sss")?.toLong()
+
+        val width = findViewById<CustomProgressBarView>(R.id.custom_progress_down).width
+
+
+        checkService();
         tap_button.setOnTouchListener { v, event ->
             when (event?.action) {
                 MotionEvent.ACTION_DOWN -> down()//Do Something
@@ -56,6 +61,22 @@ class Playground : AppCompatActivity() {
             }
 
             true
+        }
+    }
+
+    fun checkService(){
+        mAccessibilityService = GlobalActionBarService.getSharedInstance();
+        if(mAccessibilityService == null) {
+            service_not_started.visibility = View.VISIBLE
+            tap_button.isEnabled = false
+        } else {
+            service_not_started.visibility = View.GONE
+            tap_button.isEnabled = true
+            toggleTesting(true)
+            val (aaaa, sssa, oneTimeUnitLong) = mAccessibilityService?.getPostavke() ?: Postavke(-1, -1, -1)
+            oneTimeUnit = oneTimeUnitLong.toInt()
+            progressbar_down.updateThings(0, oneTimeUnit, -1)
+            progressbar_up.updateThings(oneTimeUnit, oneTimeUnit*3, oneTimeUnit*7)
         }
     }
 
@@ -92,13 +113,13 @@ class Playground : AppCompatActivity() {
 
     fun refreshText(){
         if(mAccessibilityService?.buttonHistory?.size!! >= 2) {
-            playground_text.text = mAccessibilityService?.getMessage()
+            playground_text.text = "Text: " + mAccessibilityService?.getMessage()
         }
     }
 
     fun updateGraphics(progress: Int){
-        timer_text.text = progress.toString()
-        all_timers_text.text = all_timers.drop(1).toString()
+        timer_text.text = progress.toString() + " ms"
+        all_timers_text.text = "Morse: " + mAccessibilityService?.getMorse()//all_timers.drop(1).toString()
         if(up_or_down){
             // down
             progressbar_down.setNewProgress(progress)
@@ -133,11 +154,25 @@ class Playground : AppCompatActivity() {
         println("Hello") // main coroutine continues while a previous one is delayed
     }
 
+    override fun onResume() {
+        toggleTesting(true)
+        super.onResume()
+    }
+
+    override fun onPause() {
+        toggleTesting(false)
+        super.onPause()
+    }
+
     override fun onDestroy() {
-        mAccessibilityService?.toggleTesting()
+        toggleTesting(false)
+        super.onDestroy()
+    }
+
+    fun toggleTesting(testing:Boolean){
+        mAccessibilityService?.toggleTesting(testing)
         if(::korutina.isInitialized && korutina.isActive) {
             korutina.cancel()
         }
-        super.onDestroy()
     }
 }

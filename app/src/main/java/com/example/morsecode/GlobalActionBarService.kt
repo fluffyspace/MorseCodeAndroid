@@ -1,6 +1,10 @@
 package com.example.morsecode
 
 import android.accessibilityservice.AccessibilityService
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PixelFormat
@@ -18,6 +22,8 @@ import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
 import com.example.morsecode.moodel.Poruka
@@ -34,11 +40,13 @@ private val ALPHANUM:String = "abcdefghijklmnopqrstuvwxyz1234567890"
 // ABCDEFGHIJKLMNOPQRSTUVWXYZ
 
 class GlobalActionBarService: AccessibilityService(), CoroutineScope{
+    val CHANNEL_ID = "MorseTalk"
     var mLayout: FrameLayout? = null
     var buttonHistory:MutableList<Int> = mutableListOf()
     var lastTimeMillis:Long = 0L
     lateinit var korutina:Job
     var oneTimeUnit: Long = 400
+    var token: String = ""
     lateinit var vibrator:Vibrator
     var lastMessage: String = ""
     var aaa:Long = 5
@@ -58,6 +66,7 @@ class GlobalActionBarService: AccessibilityService(), CoroutineScope{
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onServiceConnected() {
+        createNotificationChannel()
         // Create an overlay and display the action bar
         val wm = getSystemService(WINDOW_SERVICE) as WindowManager
         mLayout = FrameLayout(this)
@@ -87,8 +96,9 @@ class GlobalActionBarService: AccessibilityService(), CoroutineScope{
         aaa = PreferenceManager.getDefaultSharedPreferences(this).getLong("aaa", 5)
         sss = PreferenceManager.getDefaultSharedPreferences(this).getLong("sss", 1)
         oneTimeUnit = PreferenceManager.getDefaultSharedPreferences(this).getLong("oneTimeUnit", 400)
+        token = PreferenceManager.getDefaultSharedPreferences(this).getString("token", "").toString()
 
-
+        createNotification()
     }
 
     fun makeWaveformFromText(text: String): List<Long>{
@@ -212,7 +222,49 @@ class GlobalActionBarService: AccessibilityService(), CoroutineScope{
         //Log.d("ingo", lista.toString())
         vibrator.vibrate(VibrationEffect.createWaveform(nova_lista.toLongArray(), -1))
         //vibrator.vibrate(VIBRATE_PATTERN, 0)
+    }
 
+    fun createNotification(){
+        // Create an explicit intent for an Activity in your app
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        var builder = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_baseline_play_arrow_24)
+            .setContentTitle("Morse Talk")
+            .setContentText("Running...")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setContentIntent(pendingIntent)
+            /*.setStyle(NotificationCompat.MessagingStyle("Me")
+                .setConversationTitle("Team lunch")
+                .addMessage("Hi", timestamp1, null) // Pass in null for user.
+                .addMessage("What's up?", timestamp2, "Coworker")
+                .addMessage("Not much", timestamp3, null)
+                .addMessage("How about lunch?", timestamp4, "Coworker"))*/
+
+        with(NotificationManagerCompat.from(this)) {
+            // notificationId is a unique int for each notification that you must define
+            notify(1, builder.build())
+        }
+    }
+
+    private fun createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = getString(R.string.channel_name)
+            val descriptionText = getString(R.string.channel_description)
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
+                description = descriptionText
+            }
+            // Register the channel with the system
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 
     override fun onDestroy() {
@@ -273,62 +325,28 @@ class GlobalActionBarService: AccessibilityService(), CoroutineScope{
     fun isNumeric(str: String) = str.all { it in '0'..'9' }
 
     @RequiresApi(Build.VERSION_CODES.S)
-    suspend fun sendMessage(moje:String){
-        /*withContext(Dispatchers.IO) {
-
-        }*/
-        //thread { // this: CoroutineScope
-        //    launch {
-                try {
-                    //val stt:String = MarsApi.retrofitService.sendMessage(getMessage())
-
-                    val poruka:Poruka = MarsApi.retrofitService.sendMessage(moje)
-
-                    buttonHistory.clear()
-                    databaseAddNewPoruka(poruka)
-                    if(poruka.vibrate != null && poruka.vibrate != ""){
-                        Log.d("ingo", "vibrira")
-                        lastMessage = poruka.vibrate
-                        vibrateee(makeWaveformFromText(poruka.vibrate) )
-                    }
-                    //stringCall.enqueue()
-                    /*stringCall.enqueue( object: Callback<String> {
-                        override fun onResponse(call: Call<String>, response: Response<String>) {
-                            if (response.isSuccessful()) {
-                                val responseString = response.body();
-                                Log.d("ingo", "responseString " + responseString.toString())
-                                // todo: do something with the response string
-                            } else {
-                                Log.d("ingo", "response not succ")
-                            }
-                        }
-                        override fun onFailure(call: Call<String>, t: Throwable) {
-                            t.printStackTrace()
-                            Log.d("ingo", "++++ fail " + t.message)
-                        }
-                    })*/
-                    if(poruka.poruka != null) Log.d("ingo", "poruka: " + poruka.poruka)
-
-
-                } catch (e: Exception) {
-                    Log.d("ingo", "greska " + e.stackTraceToString() + e.message.toString())
-                }
-
-            //}
-        //}
+    suspend fun sendMessage(stringZaPoslati:String){
+        try {
+            val poruka:Poruka = MarsApi.retrofitService.sendMessage(stringZaPoslati, token)
+            databaseAddNewPoruka(poruka)
+            if(poruka.vibrate != null && poruka.vibrate != ""){
+                Log.d("ingo", "vibrira")
+                lastMessage = poruka.vibrate
+                vibrateee(makeWaveformFromText(poruka.vibrate) )
+            }
+            if(poruka.poruka != null) Log.d("ingo", "poruka: " + poruka.poruka)
+            buttonHistory.clear()
+        } catch (e: Exception) {
+            Log.d("ingo", "greska " + e.stackTraceToString() + e.message.toString())
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
     suspend fun maian() { // this: CoroutineScope
-        //korutina = launch { // launch a new coroutine and continue
-            while(true) {
-                delay(1000L) // non-blocking delay for 1 second (default time unit is ms)
-                //Log.d("ingo", "test")
-                if(!testMode) maybeSendMessage()
-                /*maybeSendMessage()*/
-            }
-        //}
-        println("Hello") // main coroutine continues while a previous one is delayed
+        while(true) {
+            delay(1000L) // non-blocking delay for 1 second (default time unit is ms)
+            if(!testMode) maybeSendMessage()
+        }
     }
 
     fun databaseAddNewPoruka(poruka: Poruka) {
@@ -336,6 +354,28 @@ class GlobalActionBarService: AccessibilityService(), CoroutineScope{
         val db = AppDatabase.getInstance(this)
         val porukaDao: PorukaDao = db.porukaDao()
         porukaDao.insertAll(poruka)
+    }
+
+    fun getMorse():String{
+        var sb:StringBuilder = StringBuilder()
+        for(i: Int in buttonHistory.indices step 2){
+            if(buttonHistory.size <= i+1) break
+            val duration = buttonHistory[i+1]
+            val delay = if (i != 0) buttonHistory[i] else 0
+            if(delay > oneTimeUnit) {
+                sb.append(" ")
+            }
+            if(delay > oneTimeUnit*3) {
+                sb.append(" ")
+            }
+            if(duration < oneTimeUnit) {
+                sb.append("•")
+            } else {
+                sb.append("–")
+            }
+        }
+        Log.d("ingo", "mess->" + sb.toString()) // print after delay
+        return sb.toString()
     }
 
     fun getMessage():String{
@@ -350,7 +390,7 @@ class GlobalActionBarService: AccessibilityService(), CoroutineScope{
                 if(index != -1) {
                     message.append(ALPHANUM.get(index))
                 } else {
-                    message.append("-")
+                    message.append("?")
                 }
                 sb.clear()
             }
@@ -368,7 +408,7 @@ class GlobalActionBarService: AccessibilityService(), CoroutineScope{
             if(index != -1) {
                 message.append(ALPHANUM.get(index))
             } else {
-                message.append("-")
+                message.append("?")
             }
             sb.clear()
         }
@@ -405,22 +445,8 @@ class GlobalActionBarService: AccessibilityService(), CoroutineScope{
         return Postavke(aaa, sss, oneTimeUnit)
     }
 
-    fun setPostavke(postavke:Postavke){
-        aaa = postavke.aaa
-        sss = postavke.sss
-        oneTimeUnit = postavke.oneTimeUnit
-
-        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
-        val editor = preferences.edit()
-        editor.putLong("aaa", aaa)
-        editor.putLong("sss", sss)
-        editor.putLong("oneTimeUnit", oneTimeUnit)
-        editor.apply()
-
-    }
-
-    fun toggleTesting(){
-        testMode = !testMode
+    fun toggleTesting(testing: Boolean){
+        testMode = testing
         buttonHistory.clear()
         if(testMode){
             textView.setBackgroundColor(Color.parseColor("#FFA500"))
@@ -435,6 +461,7 @@ class GlobalActionBarService: AccessibilityService(), CoroutineScope{
         if(::korutina.isInitialized) korutina.cancel()
         Log.d("ingo", "onUnbind")
         sSharedInstance = null;
+        NotificationManagerCompat.from(this).cancelAll()
         super.onUnbind(intent)
         return true
     }

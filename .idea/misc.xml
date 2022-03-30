@@ -3,10 +3,16 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/drawable/border.xml" value="0.1425" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/drawable/obrub.xml" value="0.196" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/action_bar.xml" value="0.11302083333333333" />
-        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_main.xml" value="0.33" />
-        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_playground.xml" value="0.33" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_main.xml" value="0.36666666666666664" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_playground.xml" value="0.1" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_settings.xml" value="0.36666666666666664" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/fragment_visual_feedback.xml" value="0.17777777777777778" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/message_row.xml" value="0.36666666666666664" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/menu/menu.xml" value="0.36666666666666664" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.1425" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/xml/global_action_bar_service.xml" value="0.11302083333333333" />
       </map>
     </option>

@@ -13,10 +13,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MorseCode">
         <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:label="Settings"
+            android:parentActivityName=".MainActivity"/>
+        <activity
             android:name=".Playground"
-            android:exported="true" >
-
-        </activity>
+            android:exported="true"
+            android:label="Playground"
+            android:parentActivityName=".MainActivity"></activity>
         <!--
         <receiver
             android:name=".MyReceiver"
@@ -32,6 +37,7 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

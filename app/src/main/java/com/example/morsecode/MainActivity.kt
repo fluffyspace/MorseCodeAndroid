@@ -1,111 +1,55 @@
 package com.example.morsecode
 
 import android.content.Intent
-import android.opengl.Visibility
+import android.content.pm.ShortcutInfo
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
-import android.view.View
+import android.view.*
 import android.widget.Button
-import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.appcompat.widget.AppCompatImageButton
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
 import com.example.morsecode.moodel.Poruka
-import com.example.morsecode.moodel.Postavke
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.w3c.dom.Text
 
 class MainActivity : AppCompatActivity() {
 
-    var aaa:Long = 0
-    var sss:Long = 0
-    var oneTimeUnit:Long = 0
-    lateinit var aaa_status:TextView
-    lateinit var sss_status:TextView
-    lateinit var otu_status:TextView
-    lateinit var timing_status:TextView
     lateinit var lista_poruka:TextView
     var mAccessibilityService:GlobalActionBarService? = null
-    lateinit var vibration_settings:LinearLayout
     lateinit var service_not_started:TextView
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        service_not_started = findViewById(R.id.service_not_started)
+        service_not_started.setOnClickListener {
+            checkService();
+        }
 
-        mAccessibilityService = GlobalActionBarService.getSharedInstance();
         Log.d("ingo", mAccessibilityService.toString())
         fetchPostavkeFromService()
-        aaa_status = findViewById<TextView>(R.id.aaa_status)
-        sss_status = findViewById<TextView>(R.id.sss_status)
-        otu_status = findViewById<TextView>(R.id.otu_status)
-        timing_status = findViewById(R.id.morse_timing)
-        vibration_settings = findViewById(R.id.vibration_settings)
-        service_not_started = findViewById(R.id.service_not_started)
+        checkService();
 
-        refreshStatus()
-
-        val text = findViewById<EditText>(R.id.vibrate_letters)
-        findViewById<Button>(R.id.save_settings).setOnClickListener{
-            mAccessibilityService?.setPostavke(Postavke(aaa, sss, oneTimeUnit))
-        }
-        val button = findViewById<Button>(R.id.vibrate_button)
-        button.setOnClickListener{
-            mAccessibilityService?.vibrateee(mAccessibilityService!!.makeWaveformFromText(text.text.toString()))
-        }
         findViewById<Button>(R.id.reload_from_service).setOnClickListener(){
             mAccessibilityService = GlobalActionBarService.getSharedInstance();
             fetchPostavkeFromService()
-            refreshStatus()
+            Toast.makeText(this, "Messages reloaded.", Toast.LENGTH_SHORT).show()
         }
-        val timing_configuration = findViewById<LinearLayout>(R.id.timing_configuration)
-        findViewById<Button>(R.id.toggle_timing_configuration).setOnClickListener{
-            timing_configuration.visibility = if(timing_configuration.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-        }
-        findViewById<Button>(R.id.vibrate_stop_button).setOnClickListener(){
-            mAccessibilityService?.vibrator?.cancel()
-        }
-        findViewById<Button>(R.id.playground).setOnClickListener(){
-            val intent = Intent(this, Playground::class.java).apply {
-                putExtra("oneTimeUnit", oneTimeUnit.toString())
-            }
+        findViewById<LinearLayout>(R.id.playground).setOnClickListener(){
+            val intent = Intent(this, Playground::class.java)
             startActivity(intent)
-        }
-        findViewById<AppCompatImageButton>(R.id.aaa_up).setOnClickListener{
-            aaa++
-            refreshStatus()
-        }
-        findViewById<AppCompatImageButton>(R.id.aaa_down).setOnClickListener{
-            aaa--
-            if(aaa < 0) aaa = 0
-            refreshStatus()
-        }
-        findViewById<AppCompatImageButton>(R.id.sss_up).setOnClickListener{
-            sss++
-            refreshStatus()
-        }
-        findViewById<AppCompatImageButton>(R.id.sss_down).setOnClickListener{
-            sss--
-            if(sss < 0) sss = 0
-            refreshStatus()
-        }
-        findViewById<AppCompatImageButton>(R.id.otu_up).setOnClickListener{
-            oneTimeUnit += 50
-            refreshStatus()
-        }
-        findViewById<AppCompatImageButton>(R.id.otu_down).setOnClickListener{
-            oneTimeUnit -= 50
-            if(oneTimeUnit < 0) oneTimeUnit = 0
-            refreshStatus()
         }
         lista_poruka = findViewById<TextView>(R.id.lista_poruka)
         reloadListaPoruka()
@@ -115,7 +59,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             val poruke = databaseGetAll()
             withContext(Dispatchers.Main){
-                lista_poruka.setText("Povijest poruka: " + poruke.map { poruka -> poruka.poruka }.toString())
+                refreshMessages(poruke)
             }
         }
     }
@@ -127,29 +71,67 @@ class MainActivity : AppCompatActivity() {
         return porukaDao.getAll()
     }
 
-    fun refreshStatus(){
-        if(mAccessibilityService == null) {
-            vibration_settings.visibility = View.GONE
-            service_not_started.visibility = View.VISIBLE
-        } else {
-            vibration_settings.visibility = View.VISIBLE
-            service_not_started.visibility = View.GONE
-            aaa_status.text = getString(R.string.aaa) + aaa.toString()
-            sss_status.text = getString(R.string.sss) + sss.toString()
-            otu_status.text = getString(R.string.otu) + oneTimeUnit.toString()
-            timing_status.text = "Dit: up to 1 unit (<" + (oneTimeUnit).toString() + " ms)\n" +
-                    "Dah: from 1 unit up (>" + (oneTimeUnit).toString() + " ms)\n" +
-                    "Intra-character space (the gap between dits and dahs within a character): up to 1 unit (" + (oneTimeUnit).toString() + " ms)\n" +
-                    "Inter-character space (the gap between the characters of a word): from 1 unit up to 3 units (" + (oneTimeUnit).toString() + " - " + (oneTimeUnit * 3).toString() + " ms)\n" +
-                    "Word space (the gap between two words): from 3 units up (>" + (oneTimeUnit * 3).toString() + " ms)"
+    fun databaseClearMessages() {
+        val db = AppDatabase.getInstance(this)
+        val porukaDao: PorukaDao = db.porukaDao()
+        Log.d("ingo", "databaseClearMessages")
+        porukaDao.deleteAll()
+    }
+
+    fun clearMessages() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            databaseClearMessages()
+            withContext(Dispatchers.Main){
+                refreshMessages(listOf())
+            }
         }
     }
 
+    fun refreshMessages(poruke: List<Poruka>){
+        //lista_poruka.setText("Povijest poruka: " + poruke.map { poruka -> poruka.poruka }.toString())
+        val shortcutList: RecyclerView = findViewById(R.id.messagesList)
+        shortcutList.adapter = MessagesAdapter(this, poruke)
+        shortcutList.layoutManager = LinearLayoutManager(this)
+    }
+
     fun fetchPostavkeFromService(){
-        val (aaaa, sssa, oneTimeUnita) = mAccessibilityService?.getPostavke() ?: Postavke(-1, -1, -1)
-        aaa = aaaa
-        sss = sssa
-        oneTimeUnit = oneTimeUnita
         reloadListaPoruka()
+    }
+
+    fun checkService(){
+        mAccessibilityService = GlobalActionBarService.getSharedInstance();
+        if(mAccessibilityService == null) {
+            service_not_started.visibility = View.VISIBLE
+        } else {
+            service_not_started.visibility = View.GONE
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Handle item selection
+        return when (item.itemId) {
+            R.id.settings_button -> {
+                val intent = Intent(this, SettingsActivity::class.java)
+                startActivity(intent)
+                true
+            }
+            R.id.open_accessibility_settings -> {
+                val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(intent)
+                true
+            }
+            R.id.clear_messages -> {
+                clearMessages()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 }

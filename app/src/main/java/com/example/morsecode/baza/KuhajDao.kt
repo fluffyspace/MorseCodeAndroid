@@ -16,4 +16,7 @@ interface PorukaDao {
 
     @Delete
     fun delete(polje: Poruka)
+
+    @Query("DELETE FROM Poruka")
+    fun deleteAll()
 }

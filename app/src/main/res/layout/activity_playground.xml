@@ -1,72 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+<LinearLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".Playground"
     android:orientation="vertical">
+    <TextView
+        android:id="@+id/service_not_started"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/service_not_started_tap_to_try_again"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:background="#ff0000"
+        android:textColor="@color/white"
+        android:padding="20dp"
+        android:visibility="gone"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:orientation="vertical">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:lineSpacingExtra="4sp"
+        android:paddingBottom="10dp"
+        android:text="Ispod možete isprobati kako morsov kod funkcionira."
+        android:textAllCaps="false" />
 
-    <com.example.morsecode.CustomProgressBarView
-        android:id="@+id/custom_progress_down"
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        app:first="0"
-        app:second="200"
-        app:forwhat="down"
-        app:progress="0"
-        app:first_text="dot"
-        app:second_text="dash"/>
+        android:layout_height="wrap_content"
+        android:lineSpacingExtra="4sp"
+        android:paddingBottom="10dp"
+        android:text="Držući tipku se puni gornja traka, puštajući tipku se puni donja traka."
+        android:textAllCaps="false" />
 
-    <View
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/black"/>
+        android:layout_height="wrap_content"
+        android:lineSpacingExtra="4sp"
+        android:paddingBottom="10dp"
+        android:text="Vremenska ograničenja su ista kao kod pravog slanja morseovog koda, zato je bitno izvježbati se ovdje prije upotrebe aplikacije."
+        android:textAllCaps="false" />
 
-    <com.example.morsecode.CustomProgressBarView
-        android:id="@+id/custom_progress_up"
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        app:first="130"
-        app:second="200"
-        app:forwhat="up"
-        app:first_text="new character"
-        app:second_text="space"
-        app:third_text="send"/>
-    <View
+        android:layout_height="wrap_content"
+        android:lineSpacingExtra="4sp"
+        android:paddingBottom="15dp"
+        android:text="Vremenska ograničenja moguće je podesiti u postavkama aplikacije."
+        android:textAllCaps="false" />
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/black"/>
+        android:layout_height="wrap_content"
+        android:text="Dot or dash?"
+        android:gravity="center"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="1dp"
+        android:background="@drawable/obrub">
+
+        <com.example.morsecode.CustomProgressBarView
+            android:id="@+id/custom_progress_down"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            app:first="0"
+            app:second="200"
+            app:forwhat="down"
+            app:progress="0"
+            app:first_text="dot"
+            app:second_text="dash"/>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="New character, space or send message?"
+        android:gravity="center"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="1dp"
+        android:background="@drawable/obrub">
+        <com.example.morsecode.CustomProgressBarView
+            android:id="@+id/custom_progress_up"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            app:first="130"
+            app:second="200"
+            app:forwhat="up"
+            app:first_text="new character"
+            app:second_text="space"
+            app:third_text="message sent"/>
+    </LinearLayout>
 
     <TextView
         android:id="@+id/timer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="30sp"
-        android:padding="10dp"
-        tools:text="100"/>
-    <Button
-        android:id="@+id/tap"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TAP"
-        android:textSize="30sp"
-        android:gravity="center"
-        android:layout_gravity="center"
-        android:padding="30dp"/>
-
+        android:text="0 ms"
+        android:gravity="center"/>
     <TextView
         android:id="@+id/playground_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
-        tools:text="haha"
-        android:padding="20dp"/>
+        android:textSize="25sp"
+        tools:text="Text extracted from morse"
+        android:text="Text: "/>
     <TextView
         android:id="@+id/all_timers_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
-        tools:text="haha"
-        android:padding="20dp"/>
+        android:textSize="25sp"
+        tools:text="Detected morse code"
+        android:text="Morse: "/>
+    <Button
+        android:id="@+id/tap"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TAP/HOLD"
+        android:textSize="30sp"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:padding="30dp"
+        android:layout_marginTop="10dp"/>
 </LinearLayout>
+</LinearLayout>
+</androidx.core.widget.NestedScrollView>

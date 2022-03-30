@@ -9,7 +9,7 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 private const val BASE_URL =
-    "https://kodba.eu/"
+    "https://kodba.eu/morse/"
 
 /**
  * Build the Moshi object that Retrofit will be using, making sure to add the Kotlin adapter for
@@ -32,18 +32,10 @@ private val retrofit = Retrofit.Builder()
  * A public interface that exposes the [getPhotos] method
  */
 interface MarsApiService {
-    /**
-     * Returns a [List] of [MarsPhoto] and this method can be called from a Coroutine.
-     * The @GET annotation indicates that the "photos" endpoint will be requested with the GET
-     * HTTP method
-     */
-    @GET("photos")
-    suspend fun getPhotos(): List<MarsPhoto>
-
     //@Headers("Accept: text/html")
     //@Headers("Content-Type: application/json")
-    @GET("morse")
-    suspend fun sendMessage(@Query("poruka") poruka: String): Poruka
+    @GET("api")
+    suspend fun sendMessage(@Query("poruka") poruka: String, @Query("token") token: String): Poruka
 }
 
 /**
