@@ -51,6 +51,10 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, Playground::class.java)
             startActivity(intent)
         }
+        findViewById<LinearLayout>(R.id.tutorial).setOnClickListener(){
+            val intent = Intent(this, TutorialActivity::class.java)
+            startActivity(intent)
+        }
         lista_poruka = findViewById<TextView>(R.id.lista_poruka)
         reloadListaPoruka()
     }

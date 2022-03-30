@@ -22,6 +22,11 @@
             android:exported="true"
             android:label="Playground"
             android:parentActivityName=".MainActivity"></activity>
+        <activity
+            android:name=".TutorialActivity"
+            android:exported="true"
+            android:label="Tutorial"
+            android:parentActivityName=".MainActivity"></activity>
         <!--
         <receiver
             android:name=".MyReceiver"

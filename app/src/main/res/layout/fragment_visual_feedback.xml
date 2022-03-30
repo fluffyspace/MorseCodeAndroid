@@ -10,73 +10,75 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Dot or dash?"
-            android:gravity="center"/>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="1dp"
-            android:background="@drawable/obrub">
 
-            <com.example.morsecode.CustomProgressBarView
-                android:id="@+id/custom_progress_down"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                app:first="0"
-                app:second="200"
-                app:forwhat="down"
-                app:progress="0"
-                app:first_text="dot"
-                app:second_text="dash"/>
-        </LinearLayout>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Dot or dash?"
+        android:gravity="center"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="1dp"
+        android:background="@drawable/obrub">
 
-        <TextView
+        <com.example.morsecode.CustomProgressBarView
+            android:id="@+id/custom_progress_down"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="New character, space or send message?"
-            android:gravity="center"/>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="1dp"
-            android:background="@drawable/obrub">
-            <com.example.morsecode.CustomProgressBarView
-                android:id="@+id/custom_progress_up"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                app:first="130"
-                app:second="200"
-                app:forwhat="up"
-                app:first_text="new character"
-                app:second_text="space"
-                app:third_text="message sent"/>
-        </LinearLayout>
-        <TextView
-            android:id="@+id/timer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="30sp"
-            android:text="0 ms"
-            android:gravity="center"/>
-        <TextView
-            android:id="@+id/playground_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="25sp"
-            tools:text="Text extracted from morse"
-            android:text="Text: "/>
-        <TextView
-            android:id="@+id/all_timers_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="25sp"
-            tools:text="Detected morse code"
-            android:text="Morse: "/>
+            android:layout_height="50dp"
+            app:first="0"
+            app:second="200"
+            app:forwhat="down"
+            app:progress="0"
+            app:first_text="dot"
+            app:second_text="dash"/>
     </LinearLayout>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="New character, space or send message?"
+        android:gravity="center"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="1dp"
+        android:background="@drawable/obrub">
+        <com.example.morsecode.CustomProgressBarView
+            android:id="@+id/custom_progress_up"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            app:first="400"
+            app:second="800"
+            app:third="2000"
+            app:forwhat="up"
+            app:first_text="new character"
+            app:second_text="space"
+            app:third_text="message sent"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/timer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:text="0 ms"
+        android:gravity="center"/>
+    <TextView
+        android:id="@+id/playground_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="25sp"
+        tools:text="Text extracted from morse"
+        android:text="Text: "/>
+    <TextView
+        android:id="@+id/all_timers_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="25sp"
+        tools:text="Detected morse code"
+        android:text="Morse: "/>
+    </LinearLayout>
 </FrameLayout>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".Playground"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/service_not_started"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/service_not_started_tap_to_try_again"
+            android:textSize="20sp"
+            android:gravity="center"
+            android:background="#ff0000"
+            android:textColor="@color/white"
+            android:padding="20dp"
+            android:visibility="gone"/>
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:src="@drawable/international_morse_code"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+                android:orientation="vertical">
+            <TextView
+                android:id="@+id/tutorial_number_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="30sp"
+                android:text="Tutorial: 1/20"/>
+            <TextView
+                android:id="@+id/tutorial_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="25sp"
+                android:text="Pokušajte upisati: ingo kodba"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="@drawable/obrub"
+                android:padding="10dp">
+                <ImageView
+                    android:id="@+id/tutorial_status_image"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/ic_baseline_check_circle_24"/>
+                <TextView
+                    android:id="@+id/tutorial_status_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="So far so good"
+                    android:textSize="20sp"
+                    android:layout_gravity="center"
+                    android:paddingLeft="10dp"/>
+            </LinearLayout>
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/visual_feedback_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+            <Button
+                android:id="@+id/tap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TAP/HOLD"
+                android:textSize="30sp"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:padding="30dp"
+                android:layout_marginTop="10dp"/>
+        </LinearLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
