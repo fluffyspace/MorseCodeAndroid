@@ -21,7 +21,32 @@
             android:textColor="@color/white"
             android:padding="20dp"
             android:visibility="gone"/>
-
+        <LinearLayout
+            android:id="@+id/tutorial"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="50dp"
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="50dp"
+            android:layout_marginBottom="15dp">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:src="@drawable/elementary_classroom_in_alaska"
+                android:scaleType="fitXY"
+                android:adjustViewBounds="true"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Tutorial"
+                android:padding="10dp"/>
+        </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/obrub"/>
         <LinearLayout
             android:id="@+id/playground"
             android:layout_width="match_parent"
@@ -49,7 +74,7 @@
             android:layout_height="1dp"
             android:background="@color/obrub"/>
         <LinearLayout
-            android:id="@+id/tutorial"
+            android:id="@+id/morse_in_action"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -60,14 +85,14 @@
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:src="@drawable/elementary_classroom_in_alaska"
+                android:src="@drawable/defenceforcesmorse"
                 android:scaleType="fitXY"
                 android:adjustViewBounds="true"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:text="Tutorial"
+                android:text="Send Morse code to others"
                 android:padding="10dp"/>
         </LinearLayout>
         <View
@@ -79,16 +104,9 @@
             android:layout_gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Reload messages"
+            android:text="Reload local history"
             android:padding="20dp"
             android:layout_marginTop="10dp"/>
-        <TextView
-            android:id="@+id/lista_poruka"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Povijest poruka:"
-            android:layout_margin="10dp"
-            android:textSize="18sp"/>
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/messagesList"
             android:layout_width="match_parent"

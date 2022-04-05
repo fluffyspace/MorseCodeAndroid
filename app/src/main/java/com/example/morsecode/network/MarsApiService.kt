@@ -1,6 +1,7 @@
 package com.example.morsecode.network
 
 import com.example.morsecode.moodel.Poruka
+import com.example.morsecode.moodel.Zadatak
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import retrofit2.Retrofit
@@ -36,6 +37,9 @@ interface MarsApiService {
     //@Headers("Content-Type: application/json")
     @GET("api")
     suspend fun sendMessage(@Query("poruka") poruka: String, @Query("token") token: String): Poruka
+
+    @GET("api")
+    suspend fun getAll(@Query("poruka") poruka: String, @Query("token") token: String): List<Zadatak>
 }
 
 /**

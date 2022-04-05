@@ -31,6 +31,7 @@ import com.example.morsecode.moodel.Postavke
 import com.example.morsecode.network.MarsApi
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
+import kotlin.reflect.KFunction0
 
 
 private val VIBRATE_PATTERN: List<Long> = listOf(500, 500)
@@ -40,6 +41,7 @@ private val ALPHANUM:String = "abcdefghijklmnopqrstuvwxyz1234567890"
 // ABCDEFGHIJKLMNOPQRSTUVWXYZ
 
 class GlobalActionBarService: AccessibilityService(), CoroutineScope{
+    val MORSECODE_ON = "MorseCode ON"
     val CHANNEL_ID = "MorseTalk"
     var mLayout: FrameLayout? = null
     var buttonHistory:MutableList<Int> = mutableListOf()
@@ -56,6 +58,7 @@ class GlobalActionBarService: AccessibilityService(), CoroutineScope{
     var tonebr:Int = 0
     val scope = CoroutineScope(Job() + Dispatchers.IO)
     lateinit var textView: TextView
+    var messageReceiveCallback: KFunction0<Unit>? = null
 
     var testMode = false
 
@@ -183,11 +186,11 @@ class GlobalActionBarService: AccessibilityService(), CoroutineScope{
 
     fun onKeyPressed(){
         vibrator.cancel()
-        val currentTimeMillis:Long = System.currentTimeMillis()
-        val diff:Int = (currentTimeMillis-lastTimeMillis).toInt()
-        lastTimeMillis = currentTimeMillis
+        val diff:Int = getTimeDifference()
+        lastTimeMillis = System.currentTimeMillis()
         buttonHistory.add(diff)
         Log.d("ingo", diff.toString())
+        textView.setText(MORSECODE_ON + ": " + getMessage())
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -276,9 +279,8 @@ class GlobalActionBarService: AccessibilityService(), CoroutineScope{
 
     @RequiresApi(Build.VERSION_CODES.S)
     suspend fun maybeSendMessage(){
-        val currentTimeMillis:Long = System.currentTimeMillis()
-        val diff:Int = (currentTimeMillis-lastTimeMillis).toInt()
-
+        val diff:Int = getTimeDifference()
+        Log.d("ingo", "maybeSendMessage")
         if(buttonHistory.size > 0 && diff > oneTimeUnit*14){
             Log.d("ingo", "inside")
             //sendMessage()
@@ -293,31 +295,35 @@ class GlobalActionBarService: AccessibilityService(), CoroutineScope{
             } else if(moje[0] == 'l') {
                 Log.d("ingo", "aaa " + aaa.toString() + ", sss " + sss.toString())
 
-            } else if(moje[0] == 'i' && moje.length > 1) {
-                when(moje[1]){
-                    'e' -> oneTimeUnit = 100
-                    'i' -> oneTimeUnit = 200
-                    's' -> oneTimeUnit = 300
-                    'h' -> oneTimeUnit = 400 // najvise pase a 5 s 1
-                    '5' -> oneTimeUnit = 500
+            } else if(moje.length == 2) {
+                // specijalne naredbe koje ne rezultiraju slanjem na server
+                if(moje[0] == 'i') {
+                    when (moje[1]) {
+                        'e' -> oneTimeUnit = 100
+                        'i' -> oneTimeUnit = 200
+                        's' -> oneTimeUnit = 300
+                        'h' -> oneTimeUnit = 400 // najvise pase a 5 s 1
+                        '5' -> oneTimeUnit = 500
+                    }
+                    Log.d("ingo", "oneTimeUnit changed to " + oneTimeUnit)
+                    vibrateee(makeWaveformFromText("ee"))
+                } else if(moje[0] == 'a') {
+                    when(moje[1]){
+                        'e' -> {aaa = 10; sss=1}
+                        'i' -> {aaa = 5; sss=1}
+                        's' -> {aaa = 3; sss=1}
+                        'h' -> {aaa = 10; sss=2}
+                        '5' -> {aaa = 10; sss=4}
+                    }
+                    Log.d("ingo", "aaa to " + aaa.toString() + ", sss to " + sss.toString())
+                    vibrateee(makeWaveformFromText("ee"))
                 }
-                Log.d("ingo", "oneTimeUnit changed to " + oneTimeUnit)
-                vibrateee(makeWaveformFromText("ee"))
-            } else if(moje[0] == 'a' && moje.length > 1) {
-                when(moje[1]){
-                    'e' -> {aaa = 10; sss=1}
-                    'i' -> {aaa = 5; sss=1}
-                    's' -> {aaa = 3; sss=1}
-                    'h' -> {aaa = 10; sss=2}
-                    '5' -> {aaa = 10; sss=4}
-                }
-                Log.d("ingo", "aaa to " + aaa.toString() + ", sss to " + sss.toString())
-                vibrateee(makeWaveformFromText("ee"))
             } else {
                 Log.d("ingo", "Neispravna naredba.")
-                korutina = scope.launch {
+                scope.launch {
                     databaseAddNewPoruka(Poruka(id=null,poruka = "neispravna naredba: "+moje,vibrate = null))
                 }
+                textView.setText(MORSECODE_ON + ": neispravna naredba")
             }
         }
     }
@@ -329,6 +335,10 @@ class GlobalActionBarService: AccessibilityService(), CoroutineScope{
         try {
             val poruka:Poruka = MarsApi.retrofitService.sendMessage(stringZaPoslati, token)
             databaseAddNewPoruka(poruka)
+            withContext(Dispatchers.Main){
+                textView.setText(MORSECODE_ON + ": received " + poruka.poruka)
+                messageReceiveCallback?.let { it() }
+            }
             if(poruka.vibrate != null && poruka.vibrate != ""){
                 Log.d("ingo", "vibrira")
                 lastMessage = poruka.vibrate
@@ -374,8 +384,27 @@ class GlobalActionBarService: AccessibilityService(), CoroutineScope{
                 sb.append("–")
             }
         }
-        Log.d("ingo", "mess->" + sb.toString()) // print after delay
+        Log.d("ingo", "morse->" + sb.toString()) // print after delay
         return sb.toString()
+    }
+
+    fun setMessageFeedback(callback: KFunction0<Unit>?){
+        messageReceiveCallback = callback
+    }
+
+    fun isCharacterFinished():Boolean {
+        val diff:Int = getTimeDifference()
+        if(buttonHistory.size % 2 == 0 && buttonHistory.size > 0){
+            if(diff > oneTimeUnit){
+                return true
+            }
+        }
+        return false
+    }
+
+    fun getTimeDifference(): Int{
+        val currentTimeMillis:Long = System.currentTimeMillis()
+        return (currentTimeMillis-lastTimeMillis).toInt()
     }
 
     fun getMessage():String{
@@ -445,6 +474,13 @@ class GlobalActionBarService: AccessibilityService(), CoroutineScope{
         return Postavke(aaa, sss, oneTimeUnit)
     }
 
+    fun setPostavke(postavke: Postavke){
+        aaa = postavke.aaa
+        sss = postavke.sss
+        oneTimeUnit = postavke.oneTimeUnit
+        token = postavke.token
+    }
+
     fun toggleTesting(testing: Boolean){
         testMode = testing
         buttonHistory.clear()
@@ -453,7 +489,7 @@ class GlobalActionBarService: AccessibilityService(), CoroutineScope{
             textView.setText("MorseCode TESTING")
         } else {
             textView.setBackgroundColor(Color.parseColor("#03DAC5"))
-            textView.setText("MorseCode ON")
+            textView.setText(MORSECODE_ON)
         }
     }
 

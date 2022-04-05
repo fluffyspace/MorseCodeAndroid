@@ -1,7 +1,5 @@
 package com.example.morsecode
 
-import android.content.Intent
-import android.opengl.Visibility
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -11,21 +9,19 @@ import android.view.View
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.AppCompatImageButton
-import androidx.lifecycle.lifecycleScope
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
 import com.example.morsecode.moodel.Poruka
 import com.example.morsecode.moodel.Postavke
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.w3c.dom.Text
+import java.util.*
+import kotlin.random.Random
 
 class SettingsActivity : AppCompatActivity() {
 
     var aaa:Long = 0
     var sss:Long = 0
     var oneTimeUnit:Long = 0
+    var device_uuid:String = ""
     lateinit var aaa_status:TextView
     lateinit var sss_status:TextView
     lateinit var otu_status:TextView
@@ -42,6 +38,8 @@ class SettingsActivity : AppCompatActivity() {
         sss = PreferenceManager.getDefaultSharedPreferences(this).getLong("sss", 1)
         oneTimeUnit = PreferenceManager.getDefaultSharedPreferences(this).getLong("oneTimeUnit", 400)
         val token_value = PreferenceManager.getDefaultSharedPreferences(this).getString("token", "").toString()
+        device_uuid = PreferenceManager.getDefaultSharedPreferences(this).getString("device_uuid", "").toString()
+        if(device_uuid == "") setDeviceUuid()
 
         mAccessibilityService = GlobalActionBarService.getSharedInstance();
         Log.d("ingo", mAccessibilityService.toString())
@@ -60,6 +58,10 @@ class SettingsActivity : AppCompatActivity() {
             setPostavke(Postavke(aaa, sss, oneTimeUnit, token.text.toString()))
             Toast.makeText(this, "Settings saved.", Toast.LENGTH_SHORT).show()
             //finish()
+        }
+
+        findViewById<Button>(R.id.generate_token).setOnClickListener{
+            generateToken(token)
         }
         findViewById<Button>(R.id.reset_settings).setOnClickListener{
             aaa = 10
@@ -106,6 +108,22 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    fun generateToken(token_view:EditText){
+        var token = StringBuilder()
+        for (i in 1..10) {
+            val random_char = Random.nextInt(97, 123)
+            token.append(random_char.toChar())
+        }
+        token_view.setText(token)
+    }
+
+    fun setDeviceUuid(){
+        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val editor = preferences.edit()
+        editor.putString("device_uuid", UUID.randomUUID().toString())
+        editor.apply()
+    }
+
     fun setPostavke(postavke:Postavke){
         val preferences = PreferenceManager.getDefaultSharedPreferences(this)
         val editor = preferences.edit()
@@ -114,6 +132,7 @@ class SettingsActivity : AppCompatActivity() {
         editor.putLong("oneTimeUnit", postavke.oneTimeUnit)
         editor.putString("token", postavke.token)
         editor.apply()
+        mAccessibilityService?.setPostavke(postavke)
     }
 
     fun databaseGetAll(): List<Poruka> {

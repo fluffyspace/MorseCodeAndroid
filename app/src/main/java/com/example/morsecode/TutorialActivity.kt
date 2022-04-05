@@ -28,6 +28,7 @@ class TutorialActivity : AppCompatActivity() {
     var tutorial_text:String = ""
     var text_samples:MutableList<String> = mutableListOf("the","of","and","a","to","in","is","you","that","it","he","was","for","on","are","as","with","his","they","I","at","be","this","have","from","or","one","had","by","word","but","not","what","all","were","we","when","your","can","said","there","use","an","each","which","she","do","how","their","if","will","up","other","about","out","many","then","them","these","so","some","her","would","make","like","him","into","time","has","look","two","more","write","go","see","number","no","way","could","people","my","than","first","water","been","call","who","oil","its","now","find","long","down","day","did","get","come","made","may","part")
     lateinit var korutina_next_tutorial: Job
+    lateinit var korutina_refresh_text: Job
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,9 +77,19 @@ class TutorialActivity : AppCompatActivity() {
         }
     }
 
+    suspend fun refreshTextJob() { // this: CoroutineScope
+        while(true) {
+            delay(100)
+            withContext(Dispatchers.Main) {
+                refreshText()
+            }
+        }
+    }
+
     fun refreshText(){
         if(mAccessibilityService?.buttonHistory?.size!! >= 2) {
-            val tekst = mAccessibilityService?.getMessage()
+            var tekst = mAccessibilityService?.getMessage()
+            tekst = tekst?.replace("\\s".toRegex(), "")
             if(tekst != null){
                 if(tutorial_text == tekst){
                     tutorial_status_image.setImageResource(R.drawable.ic_baseline_check_circle_24)
@@ -93,16 +104,14 @@ class TutorialActivity : AppCompatActivity() {
                 } else if(tutorial_text.startsWith(tekst)){
                     tutorial_status_image.setImageResource(R.drawable.ic_baseline_check_circle_24)
                     tutorial_status_text.text = tekst + " - So far so good"
-                } else if(tekst.length > 1 && tutorial_text.startsWith(tekst.slice(IntRange(0, tekst.length-2)))){
+                } else if(tekst.length > 1 && tutorial_text.startsWith(tekst.slice(IntRange(0, tekst.length-2))) && mAccessibilityService?.isCharacterFinished() == false){
                     tutorial_status_image.setImageResource(R.drawable.ic_baseline_check_circle_24)
                     tutorial_status_text.text = tekst.slice(IntRange(0, tekst.length-2)) + " - So far so good"
-                } else {
+                } else if(tekst.length > 0 && mAccessibilityService?.isCharacterFinished() == true){
                     tutorial_status_image.setImageResource(R.drawable.ic_baseline_cancel_24)
                     tutorial_status_text.text = tekst + " - Wrong"
                 }
             }
-
-
         }
     }
 
@@ -128,13 +137,26 @@ class TutorialActivity : AppCompatActivity() {
         }
     }
 
+    fun cancelKorutina(){
+        if(::korutina_next_tutorial.isInitialized && korutina_next_tutorial.isActive) {
+            korutina_next_tutorial.cancel()
+        }
+        if(::korutina_refresh_text.isInitialized && korutina_refresh_text.isActive) {
+            korutina_refresh_text.cancel()
+        }
+    }
+
     override fun onResume() {
         toggleTesting(true)
+        korutina_refresh_text = lifecycleScope.launch(Dispatchers.Default){
+            refreshTextJob()
+        }
         super.onResume()
     }
 
     override fun onPause() {
         toggleTesting(false)
+        cancelKorutina()
         super.onPause()
     }
 

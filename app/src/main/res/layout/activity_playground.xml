@@ -61,7 +61,8 @@
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/visual_feedback_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        tools:layout="@layout/fragment_visual_feedback"/>
 
     <Button
         android:id="@+id/tap"

@@ -30,11 +30,11 @@ class VisualFeedbackFragment : Fragment() {
     lateinit var playground_text: TextView
     lateinit var timer_text: TextView
     lateinit var all_timers_text: TextView
-    var all_timers = mutableListOf<Int>()
     lateinit var korutina: Job
     var mAccessibilityService:GlobalActionBarService? = null
     var oneTimeUnit: Int = 0
     var up_or_down:Boolean = false
+    var testing: Boolean = true
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,7 +64,6 @@ class VisualFeedbackFragment : Fragment() {
     fun up(){
         Log.d("ingo", "up")
         mAccessibilityService?.onKeyPressed()
-        if(mAccessibilityService != null) all_timers.add(mAccessibilityService?.buttonHistory?.last() ?: -1)
         refreshText()
         up_or_down = false
         progressbar_down.setNewProgress(0)
@@ -78,7 +77,6 @@ class VisualFeedbackFragment : Fragment() {
     fun down(){
         Log.d("ingo", "down")
         mAccessibilityService?.onKeyPressed()
-        if(mAccessibilityService != null) all_timers.add(mAccessibilityService?.buttonHistory?.last() ?: -1)
         refreshText()
         up_or_down = true
         progressbar_up.setNewProgress(0)
@@ -108,7 +106,7 @@ class VisualFeedbackFragment : Fragment() {
 
     fun updateGraphics(progress: Int){
         timer_text.text = progress.toString() + " ms"
-        all_timers_text.text = "Morse: " + mAccessibilityService?.getMorse()//all_timers.drop(1).toString()
+        all_timers_text.text = "Morse: " + mAccessibilityService?.getMorse()
         if(up_or_down){
             // down
             progressbar_down.setNewProgress(progress)
@@ -117,8 +115,7 @@ class VisualFeedbackFragment : Fragment() {
             progressbar_up.setNewProgress(progress)
             if(progress > oneTimeUnit*7){
                 cancelKorutina()
-                mAccessibilityService?.buttonHistory?.clear()
-                all_timers.clear()
+                if(testing) mAccessibilityService?.buttonHistory?.clear()
                 //progressbar_up.setNewProgress(0)
                 // send happens
             }
@@ -167,7 +164,7 @@ class VisualFeedbackFragment : Fragment() {
         cancelKorutina()
         progressbar_down.setNewProgress(0)
         progressbar_up.setNewProgress(0)
-        mAccessibilityService?.buttonHistory?.clear()
+        if(testing) mAccessibilityService?.buttonHistory?.clear()
         refreshText()
         all_timers_text.text = "Morse: "
     }

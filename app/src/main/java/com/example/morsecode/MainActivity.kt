@@ -25,7 +25,6 @@ import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var lista_poruka:TextView
     var mAccessibilityService:GlobalActionBarService? = null
     lateinit var service_not_started:TextView
 
@@ -47,15 +46,18 @@ class MainActivity : AppCompatActivity() {
             fetchPostavkeFromService()
             Toast.makeText(this, "Messages reloaded.", Toast.LENGTH_SHORT).show()
         }
-        findViewById<LinearLayout>(R.id.playground).setOnClickListener(){
-            val intent = Intent(this, Playground::class.java)
-            startActivity(intent)
-        }
         findViewById<LinearLayout>(R.id.tutorial).setOnClickListener(){
             val intent = Intent(this, TutorialActivity::class.java)
             startActivity(intent)
         }
-        lista_poruka = findViewById<TextView>(R.id.lista_poruka)
+        findViewById<LinearLayout>(R.id.playground).setOnClickListener(){
+            val intent = Intent(this, Playground::class.java)
+            startActivity(intent)
+        }
+        findViewById<LinearLayout>(R.id.morse_in_action).setOnClickListener(){
+            val intent = Intent(this, SendMorseActivity::class.java)
+            startActivity(intent)
+        }
         reloadListaPoruka()
     }
 
@@ -92,7 +94,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun refreshMessages(poruke: List<Poruka>){
-        //lista_poruka.setText("Povijest poruka: " + poruke.map { poruka -> poruka.poruka }.toString())
         val shortcutList: RecyclerView = findViewById(R.id.messagesList)
         shortcutList.adapter = MessagesAdapter(this, poruke)
         shortcutList.layoutManager = LinearLayoutManager(this)
