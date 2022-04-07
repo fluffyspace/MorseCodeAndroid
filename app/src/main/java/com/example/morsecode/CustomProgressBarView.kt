@@ -25,16 +25,16 @@ class CustomProgressBarView(context: Context, attrs: AttributeSet) : View(contex
             0, 0).apply {
 
             try {
-                firstThreshold = getInteger(R.styleable.CustomProgressBarView_first, -1)
-                secondThreshold = getInteger(R.styleable.CustomProgressBarView_second, -1)
-                thirdThreshold = getInteger(R.styleable.CustomProgressBarView_third, -1)
+                firstThreshold = getInteger(R.styleable.CustomProgressBarView_first_threshold, -1)
+                secondThreshold = getInteger(R.styleable.CustomProgressBarView_second_threshold, -1)
+                thirdThreshold = getInteger(R.styleable.CustomProgressBarView_third_threshold, -1)
                 biggestThresholdValue = max(listOf(firstThreshold, secondThreshold, thirdThreshold))
 
                 firstText = getString(R.styleable.CustomProgressBarView_first_text).toString()
                 secondText = getString(R.styleable.CustomProgressBarView_second_text).toString()
                 thirdText = getString(R.styleable.CustomProgressBarView_third_text).toString()
 
-                barColor = getInteger(R.styleable.CustomProgressBarView_forwhat, 0)
+                barColor = getInteger(R.styleable.CustomProgressBarView_bar_color, 0)
                 progress = getInteger(R.styleable.CustomProgressBarView_progress, 0)
             } finally {
                 recycle()
