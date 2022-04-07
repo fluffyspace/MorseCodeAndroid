@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
-import com.example.morsecode.moodel.Postavke
+import com.example.morsecode.models.Postavke
 import kotlinx.coroutines.*
 
 // TODO: Rename parameter arguments, choose names that match
@@ -31,7 +31,7 @@ class VisualFeedbackFragment : Fragment() {
     lateinit var timer_text: TextView
     lateinit var all_timers_text: TextView
     lateinit var korutina: Job
-    var mAccessibilityService:GlobalActionBarService? = null
+    var mAccessibilityService:MorseCodeService? = null
     var oneTimeUnit: Int = 0
     var up_or_down:Boolean = false
     var testing: Boolean = true
@@ -87,11 +87,11 @@ class VisualFeedbackFragment : Fragment() {
     }
 
     fun checkService(){
-        mAccessibilityService = GlobalActionBarService.getSharedInstance();
+        mAccessibilityService = MorseCodeService.getSharedInstance();
         if(mAccessibilityService == null) {
 
         } else {
-            val (aaaa, sssa, oneTimeUnitLong) = mAccessibilityService?.getPostavke() ?: Postavke(-1, -1, -1)
+            val (_, _, oneTimeUnitLong) = mAccessibilityService?.getPostavke() ?: Postavke(-1, -1, -1)
             oneTimeUnit = oneTimeUnitLong.toInt()
             progressbar_down.updateThings(0, oneTimeUnit, -1)
             progressbar_up.updateThings(oneTimeUnit, oneTimeUnit*3, oneTimeUnit*7)

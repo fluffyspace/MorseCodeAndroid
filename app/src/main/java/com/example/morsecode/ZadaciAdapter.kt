@@ -2,12 +2,11 @@ package com.example.morsecode
 
 import android.content.Context
 import androidx.recyclerview.widget.RecyclerView
-import android.content.pm.LauncherApps
 import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
-import com.example.morsecode.moodel.Zadatak
+import com.example.morsecode.models.Zadatak
 
 class ZadaciAdapter(c: Context, messages:List<Zadatak>) : RecyclerView.Adapter<ZadaciAdapter.ViewHolder>() {
     var messages:List<Zadatak>

@@ -2,14 +2,13 @@ package com.example.morsecode
 
 import android.content.Context
 import androidx.recyclerview.widget.RecyclerView
-import android.content.pm.LauncherApps
 import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
-import com.example.morsecode.moodel.Poruka
+import com.example.morsecode.models.Poruka
 
-class MessagesAdapter(c: Context, messages:List<Poruka>) : RecyclerView.Adapter<MessagesAdapter.ViewHolder>() {
+class MessagesRecyclerViewAdapter(c: Context, messages:List<Poruka>) : RecyclerView.Adapter<MessagesRecyclerViewAdapter.ViewHolder>() {
     var messages:List<Poruka>
     var context:Context
     init {

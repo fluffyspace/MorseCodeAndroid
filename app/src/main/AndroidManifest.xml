@@ -18,30 +18,20 @@
             android:label="Settings"
             android:parentActivityName=".MainActivity"/>
         <activity
-            android:name=".Playground"
+            android:name=".PlaygroundActivity"
             android:exported="true"
             android:label="Playground"
-            android:parentActivityName=".MainActivity"></activity>
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".TutorialActivity"
             android:exported="true"
             android:label="Tutorial"
-            android:parentActivityName=".MainActivity"></activity>
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".SendMorseActivity"
             android:exported="true"
             android:label="Send Morse code"
-            android:parentActivityName=".MainActivity"></activity>
-        <!--
-        <receiver
-            android:name=".MyReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON" />
-            </intent-filter>
-        </receiver>
-        -->
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -53,7 +43,7 @@
         </activity>
 
         <service
-            android:name=".GlobalActionBarService"
+            android:name=".MorseCodeService"
             android:exported="true"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>

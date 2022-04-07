@@ -11,8 +11,8 @@ import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.morsecode.moodel.Zadatak
-import com.example.morsecode.network.MarsApi
+import com.example.morsecode.models.Zadatak
+import com.example.morsecode.network.MessagesApi
 import kotlinx.coroutines.*
 
 class SendMorseActivity : AppCompatActivity() {
@@ -20,8 +20,7 @@ class SendMorseActivity : AppCompatActivity() {
     lateinit var service_not_started:TextView
     lateinit var visual_feedback_container:VisualFeedbackFragment
 
-    var mAccessibilityService:GlobalActionBarService? = null
-    lateinit var korutina_refresh_text: Job
+    var mAccessibilityService:MorseCodeService? = null
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,11 +44,9 @@ class SendMorseActivity : AppCompatActivity() {
             when (event?.action) {
                 MotionEvent.ACTION_DOWN -> {
                     visual_feedback_container.down()
-                    refreshText()
                 }
                 MotionEvent.ACTION_UP -> {
                     visual_feedback_container.up()
-                    refreshText()
                     v.performClick()
                 }
             }
@@ -64,7 +61,7 @@ class SendMorseActivity : AppCompatActivity() {
         val context = this
         lifecycleScope.launch(Dispatchers.Default){
             try {
-                val zadaci:List<Zadatak> = MarsApi.retrofitService.getAll("all", if (mAccessibilityService != null) mAccessibilityService?.token.toString() else "")
+                val zadaci:List<Zadatak> = MessagesApi.retrofitService.getAllMessages("all", if (mAccessibilityService != null) mAccessibilityService?.servicePostavke?.token.toString() else "")
                 withContext(Dispatchers.Main){
                     zadaciRecyclerView.adapter = ZadaciAdapter(context, zadaci)
                 }
@@ -74,24 +71,8 @@ class SendMorseActivity : AppCompatActivity() {
         }
     }
 
-    suspend fun refreshTextJob() { // this: CoroutineScope
-        while(true) {
-            delay(100)
-            withContext(Dispatchers.Main) {
-                refreshText()
-            }
-        }
-    }
-
-    fun refreshText(){
-        if(mAccessibilityService?.buttonHistory?.size!! >= 2) {
-            var tekst = mAccessibilityService?.getMessage()
-            tekst = tekst?.replace("\\s".toRegex(), "")
-        }
-    }
-
     fun checkService(){
-        mAccessibilityService = GlobalActionBarService.getSharedInstance();
+        mAccessibilityService = MorseCodeService.getSharedInstance();
         if(mAccessibilityService == null) {
             service_not_started.visibility = View.VISIBLE
             tap_button.isEnabled = false
@@ -102,22 +83,12 @@ class SendMorseActivity : AppCompatActivity() {
         }
     }
 
-    fun cancelKorutina(){
-        if(::korutina_refresh_text.isInitialized && korutina_refresh_text.isActive) {
-            korutina_refresh_text.cancel()
-        }
-    }
-
     override fun onResume() {
-        korutina_refresh_text = lifecycleScope.launch(Dispatchers.Default){
-            refreshTextJob()
-        }
         mAccessibilityService?.setMessageFeedback(::refreshMessages)
         super.onResume()
     }
 
     override fun onPause() {
-        cancelKorutina()
         mAccessibilityService?.setMessageFeedback(null)
         super.onPause()
     }

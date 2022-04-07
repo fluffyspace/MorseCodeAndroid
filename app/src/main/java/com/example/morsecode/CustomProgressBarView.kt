@@ -8,14 +8,14 @@ import java.util.Collections.max
 
 class CustomProgressBarView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
-    var first:Int = -1
-    var second:Int = -1
-    var third:Int = -1
-    var first_text:String = ""
-    var second_text:String = ""
-    var third_text:String = ""
-    var biggest_value = -1
-    var for_what = -1
+    var firstThreshold:Int = -1
+    var secondThreshold:Int = -1
+    var thirdThreshold:Int = -1
+    var firstText:String = ""
+    var secondText:String = ""
+    var thirdText:String = ""
+    var biggestThresholdValue = -1
+    var barColor = -1
     var progress = 0
 
     init {
@@ -25,16 +25,16 @@ class CustomProgressBarView(context: Context, attrs: AttributeSet) : View(contex
             0, 0).apply {
 
             try {
-                first = getInteger(R.styleable.CustomProgressBarView_first, -1)
-                second = getInteger(R.styleable.CustomProgressBarView_second, -1)
-                third = getInteger(R.styleable.CustomProgressBarView_third, -1)
-                biggest_value = max(listOf(first, second, third))
+                firstThreshold = getInteger(R.styleable.CustomProgressBarView_first, -1)
+                secondThreshold = getInteger(R.styleable.CustomProgressBarView_second, -1)
+                thirdThreshold = getInteger(R.styleable.CustomProgressBarView_third, -1)
+                biggestThresholdValue = max(listOf(firstThreshold, secondThreshold, thirdThreshold))
 
-                first_text = getString(R.styleable.CustomProgressBarView_first_text).toString()
-                second_text = getString(R.styleable.CustomProgressBarView_second_text).toString()
-                third_text = getString(R.styleable.CustomProgressBarView_third_text).toString()
+                firstText = getString(R.styleable.CustomProgressBarView_first_text).toString()
+                secondText = getString(R.styleable.CustomProgressBarView_second_text).toString()
+                thirdText = getString(R.styleable.CustomProgressBarView_third_text).toString()
 
-                for_what = getInteger(R.styleable.CustomProgressBarView_forwhat, 0)
+                barColor = getInteger(R.styleable.CustomProgressBarView_forwhat, 0)
                 progress = getInteger(R.styleable.CustomProgressBarView_progress, 0)
             } finally {
                 recycle()
@@ -64,55 +64,35 @@ class CustomProgressBarView(context: Context, attrs: AttributeSet) : View(contex
 
         canvas.apply {
             drawRect(Rect(0, 0, width, height), whitePaint)
-            val unit:Float = (width.toFloat()/biggest_value)
+            val unit:Float = (width.toFloat()/biggestThresholdValue)
             // Down paint
             drawRect(Rect(0, 0, (unit*progress).toInt(), height), backgroundPaint)
 
-            if(first != -1) {
-                var first_at = (unit*first).toInt()
+            if(firstThreshold != -1) {
+                var first_at = (unit*firstThreshold).toInt()
                 drawRect(Rect(first_at-10, 0, first_at+10, height), indicatorPaint)
             }
-            if(second != -1) {
-                var second_at = (unit*second).toInt()
+            if(secondThreshold != -1) {
+                var second_at = (unit*secondThreshold).toInt()
                 drawRect(Rect(second_at-10, 0, second_at+10, height), indicatorPaint)
             }
             var text = ""
-            if(third != -1 && progress > third) {
-                text = third_text
-
-            } else if(second != -1 && progress > second) {
-                text = second_text
-
-            } else if(first != -1 && progress > first) {
-                text = first_text
-
+            if(thirdThreshold != -1 && progress > thirdThreshold) {
+                text = thirdText
+            } else if(secondThreshold != -1 && progress > secondThreshold) {
+                text = secondText
+            } else if(firstThreshold != -1 && progress > firstThreshold) {
+                text = firstText
             }
             drawText(text, (width / 2).toFloat(), (height / 2).toFloat() + 35, textPaint)
-            /*drawOval(shadowBounds, shadowPaint)
-
-            // Draw the label text
-            drawText(data[mCurrentItem].mLabel, textX, textY, textPaint)
-
-            // Draw the pie slices
-            data.forEach {
-                piePaint.shader = it.mShader
-                drawArc(bounds,
-                    360 - it.endAngle,
-                    it.endAngle - it.startAngle,
-                    true, piePaint)
-            }
-
-            // Draw the pointer
-            drawLine(textX, pointerY, pointerX, pointerY, textPaint)
-            drawCircle(pointerX, pointerY, pointerSize, mTextPaint)*/
         }
     }
 
     fun updateThings(first: Int, second: Int, third: Int) {
-        this.first = first
-        this.second = second
-        this.third = third
-        biggest_value = max(listOf(first, second, third))
+        this.firstThreshold = first
+        this.secondThreshold = second
+        this.thirdThreshold = third
+        biggestThresholdValue = max(listOf(first, second, third))
         invalidate()
         requestLayout()
     }
@@ -137,19 +117,16 @@ class CustomProgressBarView(context: Context, attrs: AttributeSet) : View(contex
 
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
-        color = if(for_what == 0) Color.parseColor("#BB86FC") else Color.parseColor("#03DAC5")
+        color = if(barColor == 0) Color.parseColor("#BB86FC") else Color.parseColor("#03DAC5")
     }
 
     private val indicatorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
-        color = if(for_what == 0) Color.parseColor("#3700B3") else Color.parseColor("#018786")
+        color = if(barColor == 0) Color.parseColor("#3700B3") else Color.parseColor("#018786")
     }
 
     private val shadowPaint = Paint(0).apply {
         color = 0x101010
         maskFilter = BlurMaskFilter(8f, BlurMaskFilter.Blur.NORMAL)
     }
-
-
-
 }

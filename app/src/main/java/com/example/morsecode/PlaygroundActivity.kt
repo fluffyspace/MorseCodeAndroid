@@ -3,21 +3,16 @@ package com.example.morsecode
 import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import androidx.lifecycle.lifecycleScope
-import com.example.morsecode.moodel.Postavke
-import kotlinx.coroutines.*
-import java.lang.StringBuilder
 
-class Playground : AppCompatActivity() {
+class PlaygroundActivity : AppCompatActivity() {
     lateinit var tap_button: Button
     lateinit var service_not_started:TextView
     lateinit var visual_feedback_container:VisualFeedbackFragment
-    var mAccessibilityService:GlobalActionBarService? = null
+    var mAccessibilityService:MorseCodeService? = null
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,7 +43,7 @@ class Playground : AppCompatActivity() {
     }
 
     fun checkService(){
-        mAccessibilityService = GlobalActionBarService.getSharedInstance();
+        mAccessibilityService = MorseCodeService.getSharedInstance();
         if(mAccessibilityService == null) {
             service_not_started.visibility = View.VISIBLE
             tap_button.isEnabled = false

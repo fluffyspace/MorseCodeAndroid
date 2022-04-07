@@ -4,8 +4,8 @@
     <string name="volume">Vol +</string>
     <string name="scroll">Scroll</string>
     <string name="swipe">Swipe</string>
-    <string name="aaa">PWM on duration: </string>
-    <string name="sss">PWM off duration: </string>
+    <string name="pwm_on">PWM on duration: </string>
+    <string name="pwm_off">PWM off duration: </string>
     <string name="otu">One time unit: </string>
     <string name="channel_name">Status</string>
     <string name="channel_description">Shows when service is running</string>

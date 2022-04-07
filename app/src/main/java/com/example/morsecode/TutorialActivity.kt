@@ -3,16 +3,13 @@ package com.example.morsecode
 import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
-import com.example.morsecode.moodel.Postavke
 import kotlinx.coroutines.*
-import java.lang.StringBuilder
 import kotlin.random.Random
 
 class TutorialActivity : AppCompatActivity() {
@@ -23,7 +20,7 @@ class TutorialActivity : AppCompatActivity() {
     lateinit var tutorial_text_view:TextView
     lateinit var tutorial_number_view:TextView
     lateinit var visual_feedback_container:VisualFeedbackFragment
-    var mAccessibilityService:GlobalActionBarService? = null
+    var mAccessibilityService:MorseCodeService? = null
     var tutorial_number:Int = 0
     var tutorial_text:String = ""
     var text_samples:MutableList<String> = mutableListOf("the","of","and","a","to","in","is","you","that","it","he","was","for","on","are","as","with","his","they","I","at","be","this","have","from","or","one","had","by","word","but","not","what","all","were","we","when","your","can","said","there","use","an","each","which","she","do","how","their","if","will","up","other","about","out","many","then","them","these","so","some","her","would","make","like","him","into","time","has","look","two","more","write","go","see","number","no","way","could","people","my","than","first","water","been","call","who","oil","its","now","find","long","down","day","did","get","come","made","may","part")
@@ -110,6 +107,7 @@ class TutorialActivity : AppCompatActivity() {
                 } else if(tekst.length > 0 && mAccessibilityService?.isCharacterFinished() == true){
                     tutorial_status_image.setImageResource(R.drawable.ic_baseline_cancel_24)
                     tutorial_status_text.text = tekst + " - Wrong"
+                    visual_feedback_container.reset()
                 }
             }
         }
@@ -126,7 +124,7 @@ class TutorialActivity : AppCompatActivity() {
     }
 
     fun checkService(){
-        mAccessibilityService = GlobalActionBarService.getSharedInstance();
+        mAccessibilityService = MorseCodeService.getSharedInstance();
         if(mAccessibilityService == null) {
             service_not_started.visibility = View.VISIBLE
             tap_button.isEnabled = false

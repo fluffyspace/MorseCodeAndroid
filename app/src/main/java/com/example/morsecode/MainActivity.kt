@@ -1,7 +1,6 @@
 package com.example.morsecode
 
 import android.content.Intent
-import android.content.pm.ShortcutInfo
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -18,14 +17,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
-import com.example.morsecode.moodel.Poruka
+import com.example.morsecode.models.Poruka
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
-    var mAccessibilityService:GlobalActionBarService? = null
+    var mAccessibilityService:MorseCodeService? = null
     lateinit var service_not_started:TextView
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -42,7 +41,7 @@ class MainActivity : AppCompatActivity() {
         checkService();
 
         findViewById<Button>(R.id.reload_from_service).setOnClickListener(){
-            mAccessibilityService = GlobalActionBarService.getSharedInstance();
+            mAccessibilityService = MorseCodeService.getSharedInstance();
             fetchPostavkeFromService()
             Toast.makeText(this, "Messages reloaded.", Toast.LENGTH_SHORT).show()
         }
@@ -51,7 +50,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
         findViewById<LinearLayout>(R.id.playground).setOnClickListener(){
-            val intent = Intent(this, Playground::class.java)
+            val intent = Intent(this, PlaygroundActivity::class.java)
             startActivity(intent)
         }
         findViewById<LinearLayout>(R.id.morse_in_action).setOnClickListener(){
@@ -95,7 +94,7 @@ class MainActivity : AppCompatActivity() {
 
     fun refreshMessages(poruke: List<Poruka>){
         val shortcutList: RecyclerView = findViewById(R.id.messagesList)
-        shortcutList.adapter = MessagesAdapter(this, poruke)
+        shortcutList.adapter = MessagesRecyclerViewAdapter(this, poruke)
         shortcutList.layoutManager = LinearLayoutManager(this)
     }
 
@@ -104,7 +103,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun checkService(){
-        mAccessibilityService = GlobalActionBarService.getSharedInstance();
+        mAccessibilityService = MorseCodeService.getSharedInstance();
         if(mAccessibilityService == null) {
             service_not_started.visibility = View.VISIBLE
         } else {

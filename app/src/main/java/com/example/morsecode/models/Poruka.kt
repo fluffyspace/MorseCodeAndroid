@@ -1,4 +1,4 @@
-package com.example.morsecode.moodel
+package com.example.morsecode.models
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

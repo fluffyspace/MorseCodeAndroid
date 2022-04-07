@@ -1,7 +1,7 @@
 package com.example.morsecode.baza
 
 import androidx.room.*
-import com.example.morsecode.moodel.Poruka
+import com.example.morsecode.models.Poruka
 
 @Dao
 interface PorukaDao {

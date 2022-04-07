@@ -11,8 +11,8 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.AppCompatImageButton
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
-import com.example.morsecode.moodel.Poruka
-import com.example.morsecode.moodel.Postavke
+import com.example.morsecode.models.Poruka
+import com.example.morsecode.models.Postavke
 import java.util.*
 import kotlin.random.Random
 
@@ -22,11 +22,11 @@ class SettingsActivity : AppCompatActivity() {
     var sss:Long = 0
     var oneTimeUnit:Long = 0
     var device_uuid:String = ""
-    lateinit var aaa_status:TextView
-    lateinit var sss_status:TextView
-    lateinit var otu_status:TextView
+    lateinit var pwmOnStatus:TextView
+    lateinit var pwmOffStatus:TextView
+    lateinit var oneTimeUnitStatus:TextView
     lateinit var timing_status:TextView
-    var mAccessibilityService:GlobalActionBarService? = null
+    var mAccessibilityService:MorseCodeService? = null
     lateinit var service_not_started:TextView
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -34,18 +34,18 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        aaa = PreferenceManager.getDefaultSharedPreferences(this).getLong("aaa", 5)
-        sss = PreferenceManager.getDefaultSharedPreferences(this).getLong("sss", 1)
+        aaa = PreferenceManager.getDefaultSharedPreferences(this).getLong("pwm_on", 5)
+        sss = PreferenceManager.getDefaultSharedPreferences(this).getLong("pwm_off", 1)
         oneTimeUnit = PreferenceManager.getDefaultSharedPreferences(this).getLong("oneTimeUnit", 400)
         val token_value = PreferenceManager.getDefaultSharedPreferences(this).getString("token", "").toString()
         device_uuid = PreferenceManager.getDefaultSharedPreferences(this).getString("device_uuid", "").toString()
         if(device_uuid == "") setDeviceUuid()
 
-        mAccessibilityService = GlobalActionBarService.getSharedInstance();
+        mAccessibilityService = MorseCodeService.getSharedInstance();
         Log.d("ingo", mAccessibilityService.toString())
-        aaa_status = findViewById<TextView>(R.id.aaa_status)
-        sss_status = findViewById<TextView>(R.id.sss_status)
-        otu_status = findViewById<TextView>(R.id.otu_status)
+        pwmOnStatus = findViewById<TextView>(R.id.pwm_on_status)
+        pwmOffStatus = findViewById<TextView>(R.id.pwm_off_status)
+        oneTimeUnitStatus = findViewById<TextView>(R.id.otu_status)
         timing_status = findViewById(R.id.morse_timing)
         service_not_started = findViewById(R.id.service_not_started)
 
@@ -74,7 +74,7 @@ class SettingsActivity : AppCompatActivity() {
         }
         val button = findViewById<Button>(R.id.vibrate_button)
         button.setOnClickListener{
-            mAccessibilityService?.vibrateee(mAccessibilityService!!.makeWaveformFromText(text.text.toString()))
+            mAccessibilityService?.vibrateWithPWM(mAccessibilityService!!.makeWaveformFromText(text.text.toString()))
         }
         findViewById<Button>(R.id.vibrate_stop_button).setOnClickListener(){
             mAccessibilityService?.vibrator?.cancel()
@@ -127,8 +127,8 @@ class SettingsActivity : AppCompatActivity() {
     fun setPostavke(postavke:Postavke){
         val preferences = PreferenceManager.getDefaultSharedPreferences(this)
         val editor = preferences.edit()
-        editor.putLong("aaa", postavke.aaa)
-        editor.putLong("sss", postavke.sss)
+        editor.putLong("pwm_on", postavke.pwm_on)
+        editor.putLong("pwm_off", postavke.pwm_off)
         editor.putLong("oneTimeUnit", postavke.oneTimeUnit)
         editor.putString("token", postavke.token)
         editor.apply()
@@ -146,12 +146,12 @@ class SettingsActivity : AppCompatActivity() {
         if(mAccessibilityService == null) {
             service_not_started.visibility = View.VISIBLE
         } else {
-            aaa_status.text = getString(R.string.aaa) + aaa.toString()
-            sss_status.text = getString(R.string.sss) + sss.toString()
-            otu_status.text = getString(R.string.otu) + oneTimeUnit.toString()
-            timing_status.text = "Dit: up to 1 unit (<" + (oneTimeUnit).toString() + " ms)\n" +
-                    "Dah: from 1 unit up (>" + (oneTimeUnit).toString() + " ms)\n" +
-                    "Intra-character space (the gap between dits and dahs within a character): up to 1 unit (" + (oneTimeUnit).toString() + " ms)\n" +
+            pwmOnStatus.text = getString(R.string.pwm_on) + aaa.toString()
+            pwmOffStatus.text = getString(R.string.pwm_off) + sss.toString()
+            oneTimeUnitStatus.text = getString(R.string.otu) + oneTimeUnit.toString()
+            timing_status.text = "Dot: up to 1 unit (<" + (oneTimeUnit).toString() + " ms)\n" +
+                    "Dash: from 1 unit up (>" + (oneTimeUnit).toString() + " ms)\n" +
+                    "Intra-character space (the gap between dots and dashs within a character): up to 1 unit (" + (oneTimeUnit).toString() + " ms)\n" +
                     "Inter-character space (the gap between the characters of a word): from 1 unit up to 3 units (" + (oneTimeUnit).toString() + " - " + (oneTimeUnit * 3).toString() + " ms)\n" +
                     "Word space (the gap between two words): from 3 units up (>" + (oneTimeUnit * 3).toString() + " ms)"
         }

@@ -37,11 +37,11 @@
             android:orientation="horizontal"
             android:background="@drawable/obrub">
             <TextView
-                android:id="@+id/aaa_status"
+                android:id="@+id/pwm_on_status"
                 android:layout_width="0dp"
                 android:layout_weight="2"
                 android:layout_height="wrap_content"
-                android:text="@string/aaa"
+                android:text="@string/pwm_on"
                 android:textSize="20sp"
                 android:padding="10dp"
                 android:gravity="center"
@@ -67,11 +67,11 @@
             android:orientation="horizontal"
             android:background="@drawable/obrub">
             <TextView
-                android:id="@+id/sss_status"
+                android:id="@+id/pwm_off_status"
                 android:layout_width="0dp"
                 android:layout_weight="2"
                 android:layout_height="wrap_content"
-                android:text="@string/sss"
+                android:text="@string/pwm_off"
                 android:textSize="20sp"
                 android:padding="10dp"
                 android:gravity="center"

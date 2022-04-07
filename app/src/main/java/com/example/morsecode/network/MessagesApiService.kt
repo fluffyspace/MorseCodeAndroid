@@ -1,7 +1,7 @@
 package com.example.morsecode.network
 
-import com.example.morsecode.moodel.Poruka
-import com.example.morsecode.moodel.Zadatak
+import com.example.morsecode.models.Poruka
+import com.example.morsecode.models.Zadatak
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import retrofit2.Retrofit
@@ -32,19 +32,19 @@ private val retrofit = Retrofit.Builder()
 /**
  * A public interface that exposes the [getPhotos] method
  */
-interface MarsApiService {
+interface MessagesApiService {
     //@Headers("Accept: text/html")
     //@Headers("Content-Type: application/json")
     @GET("api")
     suspend fun sendMessage(@Query("poruka") poruka: String, @Query("token") token: String): Poruka
 
     @GET("api")
-    suspend fun getAll(@Query("poruka") poruka: String, @Query("token") token: String): List<Zadatak>
+    suspend fun getAllMessages(@Query("poruka") poruka: String, @Query("token") token: String): List<Zadatak>
 }
 
 /**
  * A public Api object that exposes the lazy-initialized Retrofit service
  */
-object MarsApi {
-    val retrofitService: MarsApiService by lazy { retrofit.create(MarsApiService::class.java) }
+object MessagesApi {
+    val retrofitService: MessagesApiService by lazy { retrofit.create(MessagesApiService::class.java) }
 }
