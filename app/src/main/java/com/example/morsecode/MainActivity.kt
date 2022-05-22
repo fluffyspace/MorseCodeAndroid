@@ -40,6 +40,11 @@ class MainActivity : AppCompatActivity() {
         fetchPostavkeFromService()
         checkService();
 
+        findViewById<LinearLayout>(R.id.contacts).setOnClickListener(){
+            val intent = Intent(this, ContactActivity::class.java)
+            startActivity(intent);
+        }
+
         findViewById<Button>(R.id.reload_from_service).setOnClickListener(){
             mAccessibilityService = MorseCodeService.getSharedInstance();
             fetchPostavkeFromService()

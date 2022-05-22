@@ -2,18 +2,18 @@ package com.example.morsecode
 
 import android.content.Context
 import android.util.Log
-import androidx.recyclerview.widget.RecyclerView
-import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.*
-import com.example.morsecode.models.Poruka
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+import com.example.morsecode.models.EntitetKontakt
 
-class MessagesRecyclerViewAdapter(c: Context, messages:List<Poruka>) : RecyclerView.Adapter<MessagesRecyclerViewAdapter.ViewHolder>() {
-    var messages:List<Poruka>
+class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>) : RecyclerView.Adapter<KontaktiAdapter.ViewHolder>() {
+    var kontakt:List<EntitetKontakt>
     var context:Context
     init {
-        this.messages = messages
+        this.kontakt = kontakt
         context = c
     }
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
@@ -39,7 +39,7 @@ class MessagesRecyclerViewAdapter(c: Context, messages:List<Poruka>) : RecyclerV
 
     override fun onBindViewHolder(viewHolder: ViewHolder, i: Int) {
         val textView = viewHolder.textView
-        textView.text = messages[i].poruka
+        textView.text = kontakt[i].username + "bok"
         //val imageView = viewHolder.img
         //val launcherApps:LauncherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
         //imageView.setImageDrawable(launcherApps.getShortcutIconDrawable(shortcuts[i],
@@ -50,8 +50,8 @@ class MessagesRecyclerViewAdapter(c: Context, messages:List<Poruka>) : RecyclerV
 
         //This method needs to be overridden so that Androids knows how many items
         //will be making it into the list
-        Log.d("stjepan" ,  messages.size.toString())
-        return messages.size
+        Log.d("stjepan" ,  kontakt.size.toString())
+        return kontakt.size
     }
 
     override fun onCreateViewHolder(

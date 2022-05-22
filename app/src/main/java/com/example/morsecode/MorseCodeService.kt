@@ -23,10 +23,12 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
 import com.example.morsecode.models.Poruka
 import com.example.morsecode.models.Postavke
+import com.example.morsecode.network.ContactsApi
 import com.example.morsecode.network.MessagesApi
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
@@ -338,6 +340,12 @@ class MorseCodeService: AccessibilityService(), CoroutineScope{
         val db = AppDatabase.getInstance(this)
         val porukaDao: PorukaDao = db.porukaDao()
         porukaDao.insertAll(poruka)
+    }
+
+    fun retrofitFetchUserIp(username: String){
+        scope.launch {
+            ContactsApi.retrofitService.getContact(username);
+        }
     }
 
     fun getMorse():String{

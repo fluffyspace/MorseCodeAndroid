@@ -1,6 +1,8 @@
 package com.example.morsecode.network
 
+import com.example.morsecode.models.EntitetKontakt
 import com.example.morsecode.models.Poruka
+import com.example.morsecode.models.RegisterResponse
 import com.example.morsecode.models.Zadatak
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -42,9 +44,26 @@ interface MessagesApiService {
     suspend fun getAllMessages(@Query("poruka") poruka: String, @Query("token") token: String): List<Zadatak>
 }
 
+interface ContactsApiService {
+    //@Headers("Accept: text/html")
+    //@Headers("Content-Type: application/json")
+    @GET("api/kontakt.php")
+    suspend fun getAllContacts(): List<EntitetKontakt>
+
+    @GET("api/kontakt.php")
+    suspend fun getContact(@Query("username") username: String): RegisterResponse
+
+    @GET("api/register.php")
+    suspend fun registerContact(@Query("username") username: String, @Query("password") password: String): RegisterResponse
+}
+
 /**
  * A public Api object that exposes the lazy-initialized Retrofit service
  */
 object MessagesApi {
     val retrofitService: MessagesApiService by lazy { retrofit.create(MessagesApiService::class.java) }
+}
+
+object ContactsApi {
+    val retrofitService: ContactsApiService by lazy { retrofit.create(ContactsApiService::class.java) }
 }

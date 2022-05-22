@@ -23,7 +23,7 @@
             android:visibility="gone"/>
 
         <LinearLayout
-            android:id="@+id/chat"
+            android:id="@+id/contacts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -41,7 +41,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:text="Tutorial"
+                android:text="Contacts"
                 android:padding="10dp"/>
         </LinearLayout>
 

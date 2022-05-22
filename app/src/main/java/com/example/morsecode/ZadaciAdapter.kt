@@ -1,6 +1,7 @@
 package com.example.morsecode
 
 import android.content.Context
+import android.util.Log
 import androidx.recyclerview.widget.RecyclerView
 import android.view.ViewGroup
 import android.view.LayoutInflater
@@ -8,7 +9,7 @@ import android.view.View
 import android.widget.*
 import com.example.morsecode.models.Zadatak
 
-class ZadaciAdapter(c: Context, messages:List<Zadatak>) : RecyclerView.Adapter<ZadaciAdapter.ViewHolder>() {
+class ZadaciAdapter(c: Context, messages: List<Zadatak>) : RecyclerView.Adapter<ZadaciAdapter.ViewHolder>() {
     var messages:List<Zadatak>
     var context:Context
     init {
@@ -49,6 +50,7 @@ class ZadaciAdapter(c: Context, messages:List<Zadatak>) : RecyclerView.Adapter<Z
 
         //This method needs to be overridden so that Androids knows how many items
         //will be making it into the list
+        Log.d("stjepan" ,  messages.size.toString())
         return messages.size
     }
 
