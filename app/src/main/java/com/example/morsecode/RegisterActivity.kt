@@ -25,7 +25,6 @@ class RegisterActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_log_in)
 
-        val sharedPreferences: SharedPreferences
 
         var logIn: Button = findViewById(R.id.logInButton)
         var registerButton: Button = findViewById(R.id.registerButton)
@@ -35,20 +34,20 @@ class RegisterActivity : AppCompatActivity() {
         logIn.isClickable = false
         logIn.visibility = View.GONE
 
-        sharedPreferences = getSharedPreferences(MyPREFERENCES, MODE_PRIVATE)
+
 
         registerButton.setOnClickListener {
             val username = userNameText.text.toString()
 
             val pass = userPasswordText.text.toString()
-            Log.e("Stjepan", pass+ "");
+            Log.e("Stjepan", "password - $pass");
             val MD5pass = getMd5(pass)
-            Log.e("stjepan", " $MD5pass");
+            Log.e("stjepan", "hash - $MD5pass");
 
-            if (userNameText.text.isNotEmpty()){
+            if (userNameText.text.isNotEmpty()) {
 
-                //var passed = registerUser(username, MD5pass)
-                //Log.e("Stjepan", "preslo je ili " + passed)
+                var passed = registerUser(username, MD5pass)
+                Log.e("Stjepan", "preslo je ili " + passed)
             }
 
         }
@@ -70,14 +69,24 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-    private fun registerUser(name: String, hash: String): Boolean{
+    private fun registerUser(name: String, hash: String): Boolean {
         var flag = false
 
-        lifecycleScope.launch(Dispatchers.Default){
+        lifecycleScope.launch(Dispatchers.Default) {
             try {
-                val passed:RegisterResponse = ContactsApi.retrofitService.registerContact(name, hash)
-
+                val passed: RegisterResponse =
+                    ContactsApi.retrofitService.registerContact(name, hash)
                 flag = passed.success == true
+
+                val sharedPreferences: SharedPreferences =
+                    getSharedPreferences(MyPREFERENCES, MODE_PRIVATE)
+                val editor = sharedPreferences.edit()
+                editor.clear()
+                editor.putString("username", name)
+                editor.putString("password", hash)
+                editor.apply()
+                editor.commit()
+
             } catch (e: Exception) {
                 Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
             }

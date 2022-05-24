@@ -5,20 +5,28 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.models.EntitetKontakt
 
-class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>) : RecyclerView.Adapter<KontaktiAdapter.ViewHolder>() {
-    var kontakt:List<EntitetKontakt>
-    var context:Context
+class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>) :
+    RecyclerView.Adapter<KontaktiAdapter.ViewHolder>() {
+    var kontakt: List<EntitetKontakt>
+    var context: Context
+
     init {
         this.kontakt = kontakt
         context = c
     }
+
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
         View.OnClickListener {
-        var textView: TextView
+        val imePrezimeTV: TextView
+        val contactImageIV: ImageView
+        private val cardView: CardView
+        //var textView: TextView
         //var img: ImageView
 
 
@@ -26,7 +34,10 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>) : RecyclerView.
         //'holds the views' for us to show on each row
         init {
             //Finds the views from our row.xml
-            textView = itemView.findViewById<View>(R.id.text) as TextView
+            imePrezimeTV = itemView.findViewById(R.id.imePrezimeTV)
+            contactImageIV = itemView.findViewById(R.id.contactImageIV)
+            cardView = itemView.findViewById(R.id.cardView)
+            //textView = itemView.findViewById<View>(R.id.text) as TextView
             //img = itemView.findViewById<View>(R.id.img) as ImageView
 
         }
@@ -38,19 +49,18 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>) : RecyclerView.
     }
 
     override fun onBindViewHolder(viewHolder: ViewHolder, i: Int) {
-        val textView = viewHolder.textView
-        textView.text = kontakt[i].username + "bok"
-        //val imageView = viewHolder.img
-        //val launcherApps:LauncherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-        //imageView.setImageDrawable(launcherApps.getShortcutIconDrawable(shortcuts[i],
-        //    context.resources.displayMetrics.densityDpi))
+        val ime = viewHolder.imePrezimeTV
+        ime.text = kontakt[i].username
+        //val ip = viewHolder.telefonTV
+        //ip.text = kontakt[i].ip
+
     }
 
     override fun getItemCount(): Int {
 
         //This method needs to be overridden so that Androids knows how many items
         //will be making it into the list
-        Log.d("stjepan" ,  kontakt.size.toString())
+        Log.d("stjepan", kontakt.size.toString())
         return kontakt.size
     }
 
@@ -61,7 +71,7 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>) : RecyclerView.
 
         //This is what adds the code we've written in here to our target view
         val inflater = LayoutInflater.from(parent.context)
-        val view: View = inflater.inflate(R.layout.message_row, parent, false)
+        val view: View = inflater.inflate(R.layout.recyclerview_contacts, parent, false)
         return ViewHolder(view)
     }
 

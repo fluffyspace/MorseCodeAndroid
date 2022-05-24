@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import com.example.morsecode.network.ContactsApi
 import kotlinx.coroutines.withContext
 
-class ContactActivity: AppCompatActivity() {
+class ContactActivity : AppCompatActivity() {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,14 +26,15 @@ class ContactActivity: AppCompatActivity() {
         val kontaktiRecyclerView: RecyclerView = findViewById(R.id.recycler)
         kontaktiRecyclerView.layoutManager = LinearLayoutManager(this)
         val context = this
-        lifecycleScope.launch(Dispatchers.Default){
+        lifecycleScope.launch(Dispatchers.Default) {
             try {
                 val kontakti: List<EntitetKontakt> = ContactsApi.retrofitService.getAllContacts()
-                withContext(Dispatchers.Main){
+                Log.e("stjepan", kontakti[3].toString())
+                withContext(Dispatchers.Main) {
                     kontaktiRecyclerView.adapter = KontaktiAdapter(context, kontakti)
                 }
-            }   catch (e: Exception) {
-                Log.d("stjepan", "greska " )
+            } catch (e: Exception) {
+                Log.d("stjepan", "greska ")
             }
         }
     }
