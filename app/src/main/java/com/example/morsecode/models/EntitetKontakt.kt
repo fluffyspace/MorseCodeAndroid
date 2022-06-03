@@ -12,4 +12,5 @@ data class EntitetKontakt     // Konstruktor
     @Json(name = "username") var username: String,
     @Json(name = "ip") var ip: String,
     @Json(name = "lastUpdated") var lastUpdated: String?,
+
 )

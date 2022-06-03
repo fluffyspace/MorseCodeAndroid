@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.morsecode.Adapters.ZadaciAdapter
 import com.example.morsecode.models.Zadatak
 import com.example.morsecode.network.MessagesApi
 import kotlinx.coroutines.*

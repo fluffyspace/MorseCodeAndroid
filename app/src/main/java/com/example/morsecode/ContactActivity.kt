@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.morsecode.Adapters.KontaktiAdapter
 import com.example.morsecode.models.EntitetKontakt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

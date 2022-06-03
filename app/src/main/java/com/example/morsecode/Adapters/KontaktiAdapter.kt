@@ -1,6 +1,8 @@
-package com.example.morsecode
+package com.example.morsecode.Adapters
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -8,7 +10,10 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
+import com.example.morsecode.ChatActivity
+import com.example.morsecode.R
 import com.example.morsecode.models.EntitetKontakt
 
 class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>) :
@@ -51,8 +56,15 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>) :
     override fun onBindViewHolder(viewHolder: ViewHolder, i: Int) {
         val ime = viewHolder.imePrezimeTV
         ime.text = kontakt[i].username
-        //val ip = viewHolder.telefonTV
-        //ip.text = kontakt[i].ip
+
+        viewHolder.itemView.setOnClickListener{
+            val activity = viewHolder.itemView.context as Activity
+            val intent = Intent(activity, ChatActivity::class.java)
+            intent.putExtra("username", kontakt[i].username)
+            intent.putExtra("id", kontakt[i].id.toString())
+            startActivity(activity,intent,null)
+
+        }
 
     }
 

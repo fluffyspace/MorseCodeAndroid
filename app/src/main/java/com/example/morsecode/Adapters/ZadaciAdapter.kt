@@ -1,4 +1,4 @@
-package com.example.morsecode
+package com.example.morsecode.Adapters
 
 import android.content.Context
 import android.util.Log
@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
+import com.example.morsecode.R
 import com.example.morsecode.models.Zadatak
 
 class ZadaciAdapter(c: Context, messages: List<Zadatak>) : RecyclerView.Adapter<ZadaciAdapter.ViewHolder>() {

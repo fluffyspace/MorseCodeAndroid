@@ -1,9 +1,6 @@
 package com.example.morsecode.network
 
-import com.example.morsecode.models.EntitetKontakt
-import com.example.morsecode.models.Poruka
-import com.example.morsecode.models.RegisterResponse
-import com.example.morsecode.models.Zadatak
+import com.example.morsecode.models.*
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import retrofit2.Retrofit
@@ -55,6 +52,9 @@ interface ContactsApiService {
 
     @GET("api/register.php")
     suspend fun registerContact(@Query("username") username: String, @Query("password") password: String): RegisterResponse
+
+    @GET("api/login.php")
+    suspend fun logInUser(@Query("username") username: String, @Query("password") password: String): LogInResponse
 }
 
 /**
