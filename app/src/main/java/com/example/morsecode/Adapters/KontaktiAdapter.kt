@@ -21,6 +21,7 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>) :
     var kontakt: List<EntitetKontakt>
     var context: Context
 
+
     init {
         this.kontakt = kontakt
         context = c
@@ -56,6 +57,8 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>) :
     override fun onBindViewHolder(viewHolder: ViewHolder, i: Int) {
         val ime = viewHolder.imePrezimeTV
         ime.text = kontakt[i].username
+
+
 
         viewHolder.itemView.setOnClickListener{
             val activity = viewHolder.itemView.context as Activity

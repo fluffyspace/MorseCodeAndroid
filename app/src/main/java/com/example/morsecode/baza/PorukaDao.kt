@@ -2,23 +2,24 @@ package com.example.morsecode.baza
 
 import androidx.room.*
 import com.example.morsecode.models.EntitetKontakt
-import com.example.morsecode.models.Poruka
+import com.example.morsecode.models.Message
+import com.example.morsecode.models.VibrationMessage
 
 @Dao
 interface PorukaDao {
-    @Query("SELECT * FROM Poruka")
-    fun getAll(): List<Poruka>
+    @Query("SELECT * FROM VibrationMessage")
+    fun getAll(): List<VibrationMessage>
 
     @Insert
-    fun insertAll(vararg polja: Poruka): List<Long>
+    fun insertAll(vararg polja: VibrationMessage): List<Long>
 
     @Update
-    fun update(polje: Poruka)
+    fun update(polje: VibrationMessage)
 
     @Delete
-    fun delete(polje: Poruka)
+    fun delete(polje: VibrationMessage)
 
-    @Query("DELETE FROM Poruka")
+    @Query("DELETE FROM VibrationMessage")
     fun deleteAll()
 }
 
@@ -26,6 +27,12 @@ interface PorukaDao {
 interface EntitetKontaktADao {
     @Query("SELECT * FROM contacts")
     fun getAll(): List<EntitetKontakt>
+
+    //@Query("SELECT * FROM contacts WHERE id ")
+    //fun get(): List<EntitetKontakt>
+
+    @Query("SELECT * FROM contacts WHERE id != :userId")
+    fun getAllNoUser(userId :Integer): List<EntitetKontakt>
 
     @Insert
     fun insertAll(vararg polja: EntitetKontakt): List<Long>
@@ -39,3 +46,4 @@ interface EntitetKontaktADao {
     @Query("DELETE FROM contacts")
     fun deleteAll()
 }
+

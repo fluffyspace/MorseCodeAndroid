@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".PlaygroundActivity"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""/>
+        <TextView
+            android:id="@+id/service_not_started"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/service_not_started_tap_to_try_again"
+            android:textSize="20sp"
+            android:gravity="center"
+            android:background="#ff0000"
+            android:textColor="@color/white"
+            android:padding="20dp"
+            android:visibility="gone"/>
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:src="@drawable/international_morse_code"
+            android:visibility="gone"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+                android:orientation="vertical">
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/visual_feedback_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:layout="@layout/fragment_visual_feedback" />
+            <Button
+                android:id="@+id/tap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TAP/HOLD"
+                android:textSize="30sp"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:padding="30dp"
+                android:layout_marginTop="10dp"/>
+
+        </LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Popis pitanja i odgovora:"
+            android:paddingHorizontal="20sp"
+            android:textSize="20sp"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/zadaciRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"/>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

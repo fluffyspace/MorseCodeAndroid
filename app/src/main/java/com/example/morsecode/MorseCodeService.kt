@@ -23,13 +23,12 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.lifecycle.lifecycleScope
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
-import com.example.morsecode.models.Poruka
+import com.example.morsecode.models.VibrationMessage
 import com.example.morsecode.models.Postavke
 import com.example.morsecode.network.ContactsApi
-import com.example.morsecode.network.MessagesApi
+import com.example.morsecode.network.VibrationMessagesApi
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KFunction0
@@ -297,7 +296,7 @@ class MorseCodeService: AccessibilityService(), CoroutineScope{
             } else {
                 Log.d("ingo", "Neispravna naredba.")
                 scope.launch {
-                    databaseAddNewPoruka(Poruka(id=null,poruka = "neispravna naredba: "+porukaIzMorsea,vibrate = null))
+                    databaseAddNewPoruka(VibrationMessage(id=null,poruka = "neispravna naredba: "+porukaIzMorsea,vibrate = null))
                 }
                 textView.setText(MORSECODE_ON + ": neispravna naredba")
             }
@@ -309,7 +308,7 @@ class MorseCodeService: AccessibilityService(), CoroutineScope{
     @RequiresApi(Build.VERSION_CODES.S)
     suspend fun sendMessage(stringZaPoslati:String){
         try {
-            val response: Poruka = MessagesApi.retrofitService.sendMessage(stringZaPoslati, servicePostavke.token)
+            val response: VibrationMessage = VibrationMessagesApi.retrofitService.sendMessage(stringZaPoslati, servicePostavke.token)
             databaseAddNewPoruka(response)
             withContext(Dispatchers.Main){
                 textView.setText(MORSECODE_ON + ": received " + response.poruka)
@@ -335,7 +334,7 @@ class MorseCodeService: AccessibilityService(), CoroutineScope{
         }
     }
 
-    fun databaseAddNewPoruka(poruka: Poruka) {
+    fun databaseAddNewPoruka(poruka: VibrationMessage) {
         Log.d("ingo", "databaseAddNewPoruka(" + poruka.poruka + ")")
         val db = AppDatabase.getInstance(this)
         val porukaDao: PorukaDao = db.porukaDao()

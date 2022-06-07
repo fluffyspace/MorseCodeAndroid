@@ -7,10 +7,10 @@ import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
-import com.example.morsecode.models.Poruka
+import com.example.morsecode.models.VibrationMessage
 
-class MessagesRecyclerViewAdapter(c: Context, messages:List<Poruka>) : RecyclerView.Adapter<MessagesRecyclerViewAdapter.ViewHolder>() {
-    var messages:List<Poruka>
+class MessagesRecyclerViewAdapter(c: Context, messages:List<VibrationMessage>) : RecyclerView.Adapter<MessagesRecyclerViewAdapter.ViewHolder>() {
+    var messages:List<VibrationMessage>
     var context:Context
     init {
         this.messages = messages

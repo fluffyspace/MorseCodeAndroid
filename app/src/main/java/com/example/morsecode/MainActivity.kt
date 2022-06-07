@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
-import com.example.morsecode.models.Poruka
+import com.example.morsecode.models.VibrationMessage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -74,7 +74,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun databaseGetAll(): List<Poruka> {
+    fun databaseGetAll(): List<VibrationMessage> {
         val db = AppDatabase.getInstance(this)
         val porukaDao: PorukaDao = db.porukaDao()
         Log.d("ingo", "databaseGetAll")
@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun refreshMessages(poruke: List<Poruka>){
+    fun refreshMessages(poruke: List<VibrationMessage>){
         val shortcutList: RecyclerView = findViewById(R.id.messagesList)
         shortcutList.adapter = MessagesRecyclerViewAdapter(this, poruke)
         shortcutList.layoutManager = LinearLayoutManager(this)

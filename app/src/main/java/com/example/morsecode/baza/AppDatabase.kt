@@ -6,13 +6,15 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.morsecode.models.EntitetKontakt
-import com.example.morsecode.models.Poruka
+import com.example.morsecode.models.Message
+import com.example.morsecode.models.VibrationMessage
 
-@Database(entities = arrayOf(Poruka::class, EntitetKontakt::class), version = 1)
+@Database(entities = arrayOf(Message::class, VibrationMessage::class, EntitetKontakt::class), version = 2)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun porukaDao(): PorukaDao
     abstract fun kontaktDao(): EntitetKontaktADao
+    abstract fun messageDao(): MessageDao
 
     companion object {
 
@@ -35,6 +37,7 @@ abstract class AppDatabase : RoomDatabase() {
         // https://medium.com/google-developers/7-pro-tips-for-room-fbadea4bfbd1#4785
         private fun buildDatabase(context: Context): AppDatabase {
             return Room.databaseBuilder(context, AppDatabase::class.java, "morsecode.db")
+                    .allowMainThreadQueries()
                     .fallbackToDestructiveMigration()
                     .build()
         }

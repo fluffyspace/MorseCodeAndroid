@@ -31,15 +31,30 @@ private val retrofit = Retrofit.Builder()
 /**
  * A public interface that exposes the [getPhotos] method
  */
-interface MessagesApiService {
+interface VibrationMessagesApiService {
     //@Headers("Accept: text/html")
     //@Headers("Content-Type: application/json")
     @GET("api")
-    suspend fun sendMessage(@Query("poruka") poruka: String, @Query("token") token: String): Poruka
+    suspend fun sendMessage(@Query("poruka") poruka: String, @Query("token") token: String): VibrationMessage
 
     @GET("api")
     suspend fun getAllMessages(@Query("poruka") poruka: String, @Query("token") token: String): List<Zadatak>
 }
+
+interface MessagesApiService {
+    //@Headers("Accept: text/html")
+    //@Headers("Content-Type: application/json")
+    @GET("api/sendMessage.php")
+    suspend fun sendMessage(@Query("senderId") senderId: Long, @Query("password") password: String?, @Query("receiverId") receiverId: Integer, @Query("message") message: String): Boolean
+
+    @GET("api/getMessages.php")
+    suspend fun getMessages(@Query("poruka") poruka: String, @Query("token") token: String): List<Zadatak>
+
+    @GET("api")
+    suspend fun getNewMessages(@Query("poruka") poruka: String, @Query("token") token: String): List<Zadatak>
+}
+
+
 
 interface ContactsApiService {
     //@Headers("Accept: text/html")
@@ -60,6 +75,10 @@ interface ContactsApiService {
 /**
  * A public Api object that exposes the lazy-initialized Retrofit service
  */
+object VibrationMessagesApi {
+    val retrofitService: VibrationMessagesApiService by lazy { retrofit.create(VibrationMessagesApiService::class.java) }
+}
+
 object MessagesApi {
     val retrofitService: MessagesApiService by lazy { retrofit.create(MessagesApiService::class.java) }
 }

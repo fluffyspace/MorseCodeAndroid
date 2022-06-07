@@ -11,7 +11,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.AppCompatImageButton
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
-import com.example.morsecode.models.Poruka
+import com.example.morsecode.models.VibrationMessage
 import com.example.morsecode.models.Postavke
 import java.util.*
 import kotlin.random.Random
@@ -135,7 +135,7 @@ class SettingsActivity : AppCompatActivity() {
         mAccessibilityService?.setPostavke(postavke)
     }
 
-    fun databaseGetAll(): List<Poruka> {
+    fun databaseGetAll(): List<VibrationMessage> {
         val db = AppDatabase.getInstance(this)
         val porukaDao: PorukaDao = db.porukaDao()
         Log.d("ingo", "databaseGetAll")

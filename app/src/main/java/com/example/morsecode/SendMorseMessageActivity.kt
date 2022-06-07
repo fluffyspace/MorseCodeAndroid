@@ -16,7 +16,7 @@ import com.example.morsecode.models.Zadatak
 import com.example.morsecode.network.VibrationMessagesApi
 import kotlinx.coroutines.*
 
-class SendMorseActivity : AppCompatActivity() {
+class SendMorseMessageActivity : AppCompatActivity() {
     lateinit var tap_button: Button
     lateinit var service_not_started:TextView
     lateinit var visual_feedback_container:VisualFeedbackFragment
@@ -26,7 +26,7 @@ class SendMorseActivity : AppCompatActivity() {
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_send_morse)
+        setContentView(R.layout.activity_send_morse_message)
         service_not_started = findViewById(R.id.service_not_started)
         service_not_started.setOnClickListener {
             checkService();
