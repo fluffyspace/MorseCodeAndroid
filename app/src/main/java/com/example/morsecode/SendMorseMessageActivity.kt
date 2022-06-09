@@ -35,6 +35,7 @@ class SendMorseMessageActivity : AppCompatActivity() {
 
         visual_feedback_container = VisualFeedbackFragment()
         visual_feedback_container.testing = false
+        visual_feedback_container.layout1 = false
         supportFragmentManager
             .beginTransaction()
             .add(R.id.visual_feedback_container, visual_feedback_container, "main")

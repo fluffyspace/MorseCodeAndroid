@@ -69,6 +69,11 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>) :
 
         }
 
+        viewHolder.itemView.setOnLongClickListener {
+
+
+            true
+        }
     }
 
     override fun getItemCount(): Int {

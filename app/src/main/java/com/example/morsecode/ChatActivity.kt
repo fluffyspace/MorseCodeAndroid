@@ -1,12 +1,18 @@
 package com.example.morsecode
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.MotionEvent
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
+import androidx.fragment.app.FragmentContainerView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -15,13 +21,17 @@ import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.MessageDao
 import com.example.morsecode.models.Message
 import com.example.morsecode.network.MessagesApi
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+
 class ChatActivity : AppCompatActivity() {
 
+    lateinit var tap_button: Button
     private val sharedPreferencesFile = "MyPrefs"
+    lateinit var visual_feedback_container: VisualFeedbackFragment
+
+    private var morseOn = false
 
     companion object {
         val USER_NAME = "username"
@@ -30,6 +40,7 @@ class ChatActivity : AppCompatActivity() {
         val sharedPreferencesFile = "MyPrefs"
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
@@ -50,23 +61,94 @@ class ChatActivity : AppCompatActivity() {
         supportActionBar?.title = "$contactName id $contactId"
 
 
+        visual_feedback_container = VisualFeedbackFragment()
+        visual_feedback_container.testing = false
+        visual_feedback_container.layout1 = true
+        supportFragmentManager
+            .beginTransaction()
+            .add(R.id.visual_feedback_container, visual_feedback_container, "main")
+            .commitNow()
 
         populateData(context, recyclerView, userId, contactId)
 
         val sendButton = findViewById<Button>(R.id.sendButton)
-        val sendMorseButton = findViewById<Button>(R.id.sendMorseButton)
+        val morseButton = findViewById<Button>(R.id.sendMorseButton)
+
+        val lay = findViewById<LinearLayout>(R.id.topLayout)
+        val layBottom = findViewById<LinearLayout>(R.id.layoutBottom)
+
+        val textEditMessage = findViewById<TextView>(R.id.playground_text)
+
+        //message listeners
+        visual_feedback_container.setListener(object : VisualFeedbackFragment.Listener {
+            override fun onTranslation(changeText: String) {
+                textEditMessage.text = changeText+ ""
+            }
+        })
 
         sendButton.setOnClickListener {
-            Log.e("stjepan", "sendButton")
+            Log.e("stjepan", "sendButton" + visual_feedback_container.getMessage())
             //performSendMessage(id.toLong(), sharedPassword, contactId)
-
             saveMessage(userId, contactId)
         }
-        sendMorseButton.setOnClickListener {
-            Log.e("Stjepan", "send Morse code button clicked")
 
-            val snack = Snackbar.make(it,"xhack bar", Snackbar.LENGTH_LONG)
-            snack.show()
+
+
+        morseButton.setOnClickListener {
+            var fra: FragmentContainerView = findViewById(R.id.visual_feedback_container)
+            if (!morseOn) {
+                val param = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    0,
+                    0.6f
+                )
+                lay.layoutParams = param
+                val param1 = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    0,
+                    0.4f
+                )
+                layBottom.layoutParams = param1
+                morseOn = true
+
+                fra.isVisible = true
+            } else {
+                val param = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    0,
+                    0.75f
+                )
+                lay.layoutParams = param
+                val param1 = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    0,
+                    0.25f
+                )
+                layBottom.layoutParams = param1
+                morseOn = false
+                fra.isVisible = false
+            }
+
+/*
+            LargeBanner.make(it, "Ceci est une snackbar LARGE", LargeBanner.LENGTH_INDEFINITE)
+                .setAction()
+                .show()
+
+ */
+        }
+
+        tap_button = findViewById(R.id.tap)
+
+        tap_button.setOnTouchListener { v, event ->
+            when (event?.action) {
+                MotionEvent.ACTION_DOWN ->
+                    visual_feedback_container.down()//Do Something
+                MotionEvent.ACTION_UP -> {
+                    visual_feedback_container.up()
+                    v.performClick()
+                }
+            }
+            true
         }
 
     }
@@ -82,7 +164,7 @@ class ChatActivity : AppCompatActivity() {
         val poruke: List<Message>
 
         if (contactId == userId) {
-            poruke= messageDao.getAllSender(userId);
+            poruke = messageDao.getAllSender(userId);
 
         } else {
             poruke = messageDao.getAllReceived(contactId, userId)
@@ -98,7 +180,7 @@ class ChatActivity : AppCompatActivity() {
     private fun saveMessage(userId: Integer, contactId: Integer) {
         try {
 
-            val textMessage = findViewById<EditText>(R.id.editTextMessage)
+            val textMessage = findViewById<EditText>(R.id.playground_text)
             val poruka = Message(textMessage.text.toString(), contactId, userId)
 
             val db = AppDatabase.getInstance(this)
@@ -113,7 +195,7 @@ class ChatActivity : AppCompatActivity() {
 
     private fun performSendMessage(id: Long, sharedPassword: String?, contactId: Integer) {
 
-        val textMessage = findViewById<EditText>(R.id.editTextMessage)
+        val textMessage = findViewById<EditText>(R.id.playground_text)
         lifecycleScope.launch(Dispatchers.Default) {
 
             try {

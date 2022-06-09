@@ -16,32 +16,40 @@
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/menu/menu.xml" value="0.36666666666666664" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.1425" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/xml/global_action_bar_service.xml" value="0.11302083333333333" />
+        <entry key="app/src/main/res/drawable-v24/rounded_background.xml" value="0.2555" />
         <entry key="app/src/main/res/drawable/bg_receive_message.xml" value="0.2315" />
         <entry key="app/src/main/res/drawable/bg_receve_message.xml" value="0.198" />
         <entry key="app/src/main/res/drawable/bg_send_message.xml" value="0.199" />
         <entry key="app/src/main/res/drawable/obrub.xml" value="0.199" />
         <entry key="app/src/main/res/drawable/rounded_corner.xml" value="0.198" />
-        <entry key="app/src/main/res/layout/activity_chat.xml" value="0.35520833333333335" />
+        <entry key="app/src/main/res/layout/action_bar.xml" value="0.3703125" />
+        <entry key="app/src/main/res/layout/activity_chat.xml" value="0.3" />
         <entry key="app/src/main/res/layout/activity_contact.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/activity_log_in.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.3703125" />
-        <entry key="app/src/main/res/layout/activity_playground.xml" value="0.3703125" />
+        <entry key="app/src/main/res/layout/activity_playground.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_register.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/activity_send_morse.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/activity_send_morse_message.xml" value="0.3703125" />
+        <entry key="app/src/main/res/layout/activity_settings.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/bg_receve_message.xml" value="0.19010416666666666" />
         <entry key="app/src/main/res/layout/chat_form_row.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/chat_form_row_left.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/cornres.xml" value="0.751953125" />
-        <entry key="app/src/main/res/layout/fragment_visual_feedback.xml" value="0.3703125" />
+        <entry key="app/src/main/res/layout/fragment_visual_feedback.xml" value="0.20277777777777778" />
+        <entry key="app/src/main/res/layout/fragment_visual_feedback_message.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_receive.xml" value="0.4159090909090909" />
         <entry key="app/src/main/res/layout/item_message_send.xml" value="0.25" />
         <entry key="app/src/main/res/layout/message_row.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/nav_menu.xml" value="0.21614583333333334" />
         <entry key="app/src/main/res/layout/recyclerview_contacts.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/recyclerview_item_horizontal.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/recyclerview_item_vertical.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/rounded_corner.xml" value="0.3692708333333333" />
         <entry key="app/src/main/res/layout/shape.xml" value="0.3703125" />
+        <entry key="app/src/main/res/layout/view_bottom_banner.xml" value="0.3703125" />
+        <entry key="app/src/main/res/layout/view_fullscreen_banner.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/view_fullscreen_banner1.xml" value="0.3703125" />
       </map>
     </option>
   </component>

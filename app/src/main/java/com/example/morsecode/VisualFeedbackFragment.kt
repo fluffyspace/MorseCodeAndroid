@@ -2,11 +2,11 @@ package com.example.morsecode
 
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.morsecode.models.Postavke
 import kotlinx.coroutines.*
@@ -35,6 +35,17 @@ class VisualFeedbackFragment : Fragment() {
     var oneTimeUnit: Int = 0
     var up_or_down:Boolean = false
     var testing: Boolean = true
+    var layout1: Boolean = false
+
+    interface Listener {
+        fun onTranslation(changeText: String)
+    }
+
+    private lateinit var listener: Listener
+
+    fun setListener(l: Listener) {
+        listener = l
+    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,6 +53,7 @@ class VisualFeedbackFragment : Fragment() {
         arguments?.let {
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
+
         }
 
     }
@@ -50,7 +62,13 @@ class VisualFeedbackFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_visual_feedback, container, false)
+        Log.e("Stjepan layout" , layout1.toString())
+        var view = inflater.inflate(R.layout.fragment_visual_feedback_message,container,false)
+
+        if (layout1){
+            view = inflater.inflate(R.layout.fragment_visual_feedback_message,container,false)
+        }
+
         progressbar_down = view.findViewById<CustomProgressBarView>(R.id.custom_progress_down)
         progressbar_up = view.findViewById<CustomProgressBarView>(R.id.custom_progress_up)
         playground_text = view.findViewById(R.id.playground_text)
@@ -101,7 +119,14 @@ class VisualFeedbackFragment : Fragment() {
     fun refreshText(){
         if(mAccessibilityService?.buttonHistory?.size!! >= 2) {
             playground_text.text = "Text: " + mAccessibilityService?.getMessage()
+            if (listener != null){
+                mAccessibilityService?.getMessage()?.let { listener.onTranslation(it) }
+            }
         }
+    }
+
+    fun getMessage(): String? {
+        return playground_text.text.toString()
     }
 
     fun updateGraphics(progress: Int){
