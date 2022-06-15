@@ -8,7 +8,7 @@ interface MessageDao {
     @Query("SELECT * FROM message")
     fun getAll(): List<Message>
 
-    @Query("SELECT * FROM message WHERE receiverId = :receiverId OR senderId = :senderId AND senderId = :receiverId OR receiverId = :senderId")
+    @Query("SELECT * FROM message WHERE (receiverId = :receiverId AND senderId = :senderId) OR (senderId = :receiverId AND receiverId = :senderId)")
     fun getAllReceived(receiverId :Integer, senderId: Integer): List<Message>
 
     @Query("SELECT * FROM message WHERE receiverId = :senderId AND senderId = :senderId")

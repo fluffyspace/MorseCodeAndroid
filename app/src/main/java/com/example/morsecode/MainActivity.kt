@@ -1,6 +1,8 @@
 package com.example.morsecode
 
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -26,6 +28,9 @@ class MainActivity : AppCompatActivity() {
 
     var mAccessibilityService:MorseCodeService? = null
     lateinit var service_not_started:TextView
+
+    private lateinit var sharedPreferences: SharedPreferences
+    private val sharedPreferencesFile = "MyPrefs"
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -140,7 +145,17 @@ class MainActivity : AppCompatActivity() {
                 clearMessages()
                 true
             }
+            R.id.accelerometer_controls -> {
+                sharedPreferences = this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
+                val hands_free = sharedPreferences.getBoolean("hands_free", false)
+                val editor = sharedPreferences.edit()
+                editor.putBoolean("hands_free", !hands_free)
+                true
+            }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+
 }

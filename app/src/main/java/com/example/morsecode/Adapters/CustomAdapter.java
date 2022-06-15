@@ -1,6 +1,7 @@
 package com.example.morsecode.Adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,7 +45,7 @@ public class CustomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     private class MessageOutViewHolder extends RecyclerView.ViewHolder {
 
-        TextView messageTV,dateTV;
+        TextView messageTV;
         MessageOutViewHolder(final View itemView) {
             super(itemView);
             messageTV = itemView.findViewById(R.id.textViewMessage1);
@@ -65,14 +66,16 @@ public class CustomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        if (list.get(position).getSenderId() == idSender) {
+        if (getItemCount() > 0) {
 
+            if (list.get(position).getSenderId() == idSender) {
 
-            MessageInViewHolder messageInViewHolder = (MessageInViewHolder)holder;
-            messageInViewHolder.bind(position);
-        } else if (list.get(position).getSenderId() != idSender){
-            MessageOutViewHolder messageOutViewHolder = (MessageOutViewHolder)holder;
-            messageOutViewHolder.bind(position);
+                MessageInViewHolder messageInViewHolder = (MessageInViewHolder) holder;
+                messageInViewHolder.bind(position);
+            } else if (list.get(position).getSenderId() != idSender) {
+                MessageOutViewHolder messageOutViewHolder = (MessageOutViewHolder) holder;
+                messageOutViewHolder.bind(position);
+            }
         }
     }
 

@@ -298,8 +298,15 @@ class MorseCodeService: AccessibilityService(), CoroutineScope{
                 scope.launch {
                     databaseAddNewPoruka(VibrationMessage(id=null,poruka = "neispravna naredba: "+porukaIzMorsea,vibrate = null))
                 }
-                textView.setText(MORSECODE_ON + ": neispravna naredba")
+
+               setText()
             }
+        }
+    }
+
+    private suspend fun setText(){
+        withContext(Dispatchers.IO){
+            textView.setText(MORSECODE_ON + ": neispravna naredba")
         }
     }
 

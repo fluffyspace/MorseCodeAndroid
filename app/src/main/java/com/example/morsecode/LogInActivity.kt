@@ -14,6 +14,10 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.morsecode.ChatActivity.Companion.USER_HASH
+import com.example.morsecode.ChatActivity.Companion.USER_ID
+import com.example.morsecode.ChatActivity.Companion.USER_NAME
+import com.example.morsecode.ChatActivity.Companion.USER_PASSWORD
 import com.example.morsecode.models.EntitetKontakt
 import com.example.morsecode.models.LogInResponse
 import com.example.morsecode.models.RegisterResponse
@@ -62,8 +66,6 @@ class LogInActivity : AppCompatActivity() {
 
         val but = findViewById<Button>(R.id.logInButton)
 
-        //1a1dc91c907325c69271ddf0c944bc72
-
         but.setOnClickListener {
             val userName: String = userNameEditText.text.toString()
             val userPassword: String = userPasswordEditTet.text.toString()
@@ -78,14 +80,16 @@ class LogInActivity : AppCompatActivity() {
                         var user: LogInResponse = ContactsApi.retrofitService.logInUser(userName, userPasswordHash)
 
 
-                        Log.e("stjepan", "$user")
+                        Log.e("stjepan", "${user.hash}")
+                        Log.e("stjepan", "$userPasswordHash")
 
                         if (user.success == true){
 
                             val editor = sharedPreferences.edit()
-                            editor.putString("username", userName)
-                            editor.putString("password", userPasswordHash)
-                            editor.putInt("id", user.id.toInt())
+                            editor.putString(USER_NAME, userName)
+                            editor.putString(USER_PASSWORD, userPasswordHash)
+                            editor.putInt(USER_ID, user.id.toInt())
+                            editor.putString(USER_HASH, user.hash)
                             editor.apply()
                             editor.commit()
 

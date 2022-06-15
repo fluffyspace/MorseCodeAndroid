@@ -45,13 +45,16 @@ interface MessagesApiService {
     //@Headers("Accept: text/html")
     //@Headers("Content-Type: application/json")
     @GET("api/sendMessage.php")
-    suspend fun sendMessage(@Query("senderId") senderId: Long, @Query("password") password: String?, @Query("receiverId") receiverId: Integer, @Query("message") message: String): Boolean
+    suspend fun sendMessage(@Query("id") senderId: Long, @Query("hash") password: String?, @Query("to") receiverId: Integer, @Query("message") message: String): Boolean
 
     @GET("api/getMessages.php")
-    suspend fun getMessages(@Query("poruka") poruka: String, @Query("token") token: String): List<Zadatak>
+    suspend fun getMessages(@Query("id") senderId: Long, @Query("hash") password: String?, @Query("contactId") receiverId: Integer): List<Message>
 
-    @GET("api")
-    suspend fun getNewMessages(@Query("poruka") poruka: String, @Query("token") token: String): List<Zadatak>
+    @GET("api/getContactsWithMessages.php")
+    suspend fun getMessageContact(@Query("id") id: Int, @Query("hash") hash: String?): List<ContactListResponse>
+
+    @GET("api/getNewMessages.php")
+    suspend fun getNewMessages(@Query("id") id: Int, @Query("hash") hash: String?): List<Message>
 }
 
 

@@ -7,8 +7,8 @@ import com.squareup.moshi.Json
 @Entity
 data class LogInResponse(
     @Json(name = "success") val success:Boolean?,
+    @Json(name = "hash") val hash:String?,
     @Json(name = "id") val id:Integer,
     @Json(name = "error") val error:String?,
-
 
 )
