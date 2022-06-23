@@ -1,42 +1,43 @@
 package com.example.morsecode
 
-class HandsFree {
+class HandsFreeContact {
 
+    private var zCounter = 0
     private var counter = 0
-    private var threshold = 1.5f
-    private var xM = 0f
-    private var yM = 0f
-    private var zM = 0f
+    private var threshold = 1.0f
 
-    fun follow(x: Float, z: Float) {
+
+    fun follow(x: Float, z: Float){
 
         var zz = z
 
-        if (counter < 10) {
+        if (zCounter < 10) {
             zz = 0f
-            counter++
+            zCounter++
         }
+        if (counter > 0)
+            counter--
 
-        zM += zz * 0.5f
-        xM += x * 0.5f
-
-        if (zM > threshold) {
+        if (zz > threshold && counter == 0) {
             if (listener != null) {
                 listener.onTranslation(1)
             }
-
-        } else if (zM < -threshold) {
+            counter == 10
+        } else if (zz < -threshold && counter == 0) {
             if (listener != null) {
                 listener.onTranslation(2)
             }
-        } else if (xM < -threshold) {
+            counter == 10
+        } else if (x < -threshold && counter == 0) {
             if (listener != null) {
                 listener.onTranslation(3)
             }
-        } else if (xM < -threshold) {
+            counter == 10
+        } else if (x < -threshold && counter == 0) {
             if (listener != null) {
                 listener.onTranslation(4)
             }
+            counter == 10
         }
 
     }

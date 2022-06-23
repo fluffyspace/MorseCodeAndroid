@@ -38,20 +38,6 @@ class LargeBanner private constructor(
 
         bannerAction.visibility = View.VISIBLE
 
-
-        bannerAction.setOnTouchListener { v, event ->
-            when (event?.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    visual_feedback_container.down()
-                }
-                MotionEvent.ACTION_UP -> {
-                    visual_feedback_container.up()
-                    v.performClick()
-                }
-            }
-            true
-        }
-
         return this
     }
 

@@ -101,4 +101,13 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>) :
         //object we created to store the label, package name and icon
 
     }
+/*
+    fun pass(){
+        val activity = viewHolder.itemView.context as Activity
+        val intent = Intent(activity, ChatActivity::class.java)
+        intent.putExtra("username", kontakt[i].username)
+        intent.putExtra("id", kontakt[i].id.toString())
+        startActivity(activity,intent,null)
+    }
+*/
 }

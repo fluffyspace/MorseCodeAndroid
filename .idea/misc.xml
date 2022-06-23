@@ -16,6 +16,7 @@
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/menu/menu.xml" value="0.36666666666666664" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.1425" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/xml/global_action_bar_service.xml" value="0.11302083333333333" />
+        <entry key="app/src/main/res/drawable-v24/add_white.xml" value="0.2385" />
         <entry key="app/src/main/res/drawable-v24/rounded_background.xml" value="0.2555" />
         <entry key="app/src/main/res/drawable/bg_receive_message.xml" value="0.2315" />
         <entry key="app/src/main/res/drawable/bg_receve_message.xml" value="0.198" />
@@ -24,7 +25,7 @@
         <entry key="app/src/main/res/drawable/rounded_corner.xml" value="0.198" />
         <entry key="app/src/main/res/layout/action_bar.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/activity_chat.xml" value="0.3" />
-        <entry key="app/src/main/res/layout/activity_contact.xml" value="0.3703125" />
+        <entry key="app/src/main/res/layout/activity_contact.xml" value="0.22" />
         <entry key="app/src/main/res/layout/activity_log_in.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/activity_playground.xml" value="0.1" />
@@ -32,6 +33,7 @@
         <entry key="app/src/main/res/layout/activity_send_morse.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/activity_send_morse_message.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/activity_settings.xml" value="0.3703125" />
+        <entry key="app/src/main/res/layout/add_contact_dialog.xml" value="0.30312099187687047" />
         <entry key="app/src/main/res/layout/bg_receve_message.xml" value="0.19010416666666666" />
         <entry key="app/src/main/res/layout/chat_form_row.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/chat_form_row_left.xml" value="0.3703125" />
@@ -48,7 +50,7 @@
         <entry key="app/src/main/res/layout/rounded_corner.xml" value="0.3692708333333333" />
         <entry key="app/src/main/res/layout/shape.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/view_bottom_banner.xml" value="0.3703125" />
-        <entry key="app/src/main/res/layout/view_fullscreen_banner.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/view_fullscreen_banner.xml" value="0.25" />
         <entry key="app/src/main/res/layout/view_fullscreen_banner1.xml" value="0.3703125" />
         <entry key="app/src/main/res/menu/chat_menu.xml" value="0.1" />
         <entry key="app/src/main/res/menu/menu.xml" value="0.3039760581445062" />

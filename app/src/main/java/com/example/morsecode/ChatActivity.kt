@@ -35,6 +35,7 @@ class ChatActivity : AppCompatActivity() {
         val USER_PASSWORD = "password"
         val USER_HASH = "logInHash"
         val sharedPreferencesFile = "MyPrefs"
+        var handsFreeOn = false
     }
 
     lateinit var tapButton: Button
@@ -152,8 +153,8 @@ class ChatActivity : AppCompatActivity() {
             LargeBanner.make(it, "Ceci est une snackbar LARGE", LargeBanner.LENGTH_INDEFINITE)
                 .setAction()
                 .show()
+*/
 
- */
         }
 
         tapButton = findViewById(R.id.tap)
@@ -171,18 +172,24 @@ class ChatActivity : AppCompatActivity() {
 
         accelerometer.setListener { x, y, z ->
             supportActionBar?.title = x.toString()
-            handsFree.follow(x)
+            handsFree.follow(x, z)
         }
 
         handsFree.setListener(object : HandsFree.Listener {
             override fun onTranslation(tap: Int) {
                 if (tap == 1) {
-                    visual_feedback_container.down()
+                   // visual_feedback_container.down()
                 } else if (tap == 2) {
-                    visual_feedback_container.up()
+                  //  visual_feedback_container.up()
+                } else if(tap == 3){
+                    onBackPressed()
                 }
             }
         })
+
+        if (handsFreeOn){
+            onResume()
+        }
     }
 
     private fun getNewMessages(id: Integer, userHash: String?, contactId: Integer) {
@@ -339,13 +346,13 @@ class ChatActivity : AppCompatActivity() {
                 } catch (e: Exception) {
 
                 }
-
+/*
                 if (accelerometer.on) {
                     onPause()
                 } else {
                     onResume()
                 }
-
+*/
                 true
             }
             else -> super.onOptionsItemSelected(item)
