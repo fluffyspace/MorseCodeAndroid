@@ -38,20 +38,20 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         service_not_started = findViewById(R.id.service_not_started)
         service_not_started.setOnClickListener {
-            checkService();
+            checkService()
         }
 
         Log.d("ingo", mAccessibilityService.toString())
         fetchPostavkeFromService()
-        checkService();
+        checkService()
 
         findViewById<LinearLayout>(R.id.contacts).setOnClickListener(){
             val intent = Intent(this, ContactActivity::class.java)
-            startActivity(intent);
+            startActivity(intent)
         }
 
         findViewById<Button>(R.id.reload_from_service).setOnClickListener(){
-            mAccessibilityService = MorseCodeService.getSharedInstance();
+            mAccessibilityService = MorseCodeService.getSharedInstance()
             fetchPostavkeFromService()
             Toast.makeText(this, "Messages reloaded.", Toast.LENGTH_SHORT).show()
         }
@@ -68,6 +68,9 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
         reloadListaPoruka()
+
+        val intent = Intent(this, MorseCodeService::class.java) // Build the intent for the service
+        applicationContext.startForegroundService(intent)
     }
 
     fun reloadListaPoruka(){
@@ -113,7 +116,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun checkService(){
-        mAccessibilityService = MorseCodeService.getSharedInstance();
+        mAccessibilityService = MorseCodeService.getSharedInstance()
         if(mAccessibilityService == null) {
             service_not_started.visibility = View.VISIBLE
         } else {

@@ -41,7 +41,7 @@ class VisualFeedbackFragment : Fragment() {
         fun onTranslation(changeText: String)
     }
 
-    private lateinit var listener: Listener
+    private var listener: Listener? = null
 
     fun setListener(l: Listener) {
         listener = l
@@ -120,7 +120,7 @@ class VisualFeedbackFragment : Fragment() {
         if(mAccessibilityService?.buttonHistory?.size!! >= 2) {
             playground_text.text = "Text: " + mAccessibilityService?.getMessage()
             if (listener != null){
-                mAccessibilityService?.getMessage()?.let { listener.onTranslation(it) }
+                mAccessibilityService?.getMessage()?.let { listener!!.onTranslation(it) }
             }
         }
     }

@@ -1,27 +1,20 @@
 package com.example.morsecode
 
-import android.accessibilityservice.AccessibilityService
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PixelFormat
-import android.os.Build
-import android.os.VibrationEffect
-import android.os.Vibrator
+import android.os.*
 import android.preference.PreferenceManager
 import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.WindowManager
-import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
-import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
@@ -38,10 +31,9 @@ private val MORSE = arrayOf(".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "..
 private val ALPHANUM:String = "abcdefghijklmnopqrstuvwxyz1234567890"
 // ABCDEFGHIJKLMNOPQRSTUVWXYZ
 
-class MorseCodeService: AccessibilityService(), CoroutineScope{
+class MorseCodeService: Service(), CoroutineScope{
     val MORSECODE_ON = "MorseCode ON"
     val CHANNEL_ID = "MorseTalk"
-    var mLayout: FrameLayout? = null
     var buttonHistory:MutableList<Int> = mutableListOf()
     var lastTimeMillis:Long = 0L
     lateinit var korutina:Job
@@ -50,49 +42,26 @@ class MorseCodeService: AccessibilityService(), CoroutineScope{
     var servicePostavke: Postavke = Postavke(5, 1, 400L)
     var testing:Boolean = false
     val scope = CoroutineScope(Job() + Dispatchers.IO)
-    lateinit var textView: TextView // ovo je tirkizni tekst koji vidiš kad pokreneš MorseCode accessibility service
     var messageReceiveCallback: KFunction0<Unit>? = null // ovo je callback (funkcija) koji ovaj servis pozove kad završi slanjem poruke, moguće je registrirati bilo koju funkciju u bilo kojem activityu. Koristi se kao momentalni feedback da je poruka poslana.
 
     var testMode = false
+    val ONGOING_NOTIFICATION_ID = 1
 
     private var coroutineJob: Job = Job()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + coroutineJob
 
-
-    @RequiresApi(Build.VERSION_CODES.S)
-    override fun onServiceConnected() {
-        createNotificationChannel()
-        // Create an overlay and display the action bar
-        val wm = getSystemService(WINDOW_SERVICE) as WindowManager
-        mLayout = FrameLayout(this)
-        val lp = WindowManager.LayoutParams()
-        lp.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
-        lp.format = PixelFormat.TRANSLUCENT
-        lp.flags = lp.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-        lp.width = WindowManager.LayoutParams.WRAP_CONTENT
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-        lp.gravity = Gravity.TOP
-        val inflater = LayoutInflater.from(this)
-        var view = inflater.inflate(R.layout.action_bar, mLayout)
-        wm.addView(mLayout, lp)
-        textView = view.findViewById<TextView>(R.id.power)
-        vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
-        vibrateWithPWM(VIBRATE_PATTERN)
-        //maybeSendMessageCoroutineLoop()
-        korutina = scope.launch {
-            // New coroutine that can call suspend functions
-            maybeSendMessageCoroutineLoop()
-        }
-        serviceSharedInstance = this
-
-        servicePostavke.pwm_on = PreferenceManager.getDefaultSharedPreferences(this).getLong("pwm_on", 5)
-        servicePostavke.pwm_off = PreferenceManager.getDefaultSharedPreferences(this).getLong("pwm_off", 1)
-        servicePostavke.oneTimeUnit = PreferenceManager.getDefaultSharedPreferences(this).getLong("oneTimeUnit", 400)
-        servicePostavke.token = PreferenceManager.getDefaultSharedPreferences(this).getString("token", "").toString()
-
-        createNotification()
+    /**
+     * Class used for the client Binder.  Because we know this service always
+     * runs in the same process as its clients, we don't need to deal with IPC.
+     */
+    inner class LocalBinder : Binder() {
+        // Return this instance of LocalService so clients can call public methods
+        fun getService(): MorseCodeService = this@MorseCodeService
     }
+
+    // Binder given to clients
+    private val binder = LocalBinder()
 
     fun makeWaveformFromText(text: String): List<Long>{
         val vvv: MutableList<Long> = mutableListOf(0)
@@ -126,14 +95,14 @@ class MorseCodeService: AccessibilityService(), CoroutineScope{
         return vvv.toList()
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
-    override fun onKeyEvent(event: KeyEvent): Boolean {
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun onKeyEvent(event: KeyEvent) {
         /*
             KEYCODE_HEADSETHOOK = middle button on phone headset
             KEYCODE_VOLUME_UP = volume up button on phone
             KEYCODE_VOLUME_DOWN = volume down button on phone
          */
-        Log.d("ingo", "Key pressed via accessibility is: " + event.keyCode)
+        Log.d("ingo", "Key send to MorseCodeService is: " + event.keyCode)
         if(event.keyCode == KeyEvent.KEYCODE_VOLUME_UP && event.action == KeyEvent.ACTION_DOWN){
             testing = !testing
             Log.d("ingo", "testing " + testing)
@@ -163,11 +132,8 @@ class MorseCodeService: AccessibilityService(), CoroutineScope{
         } else {
             if(event.keyCode == KeyEvent.KEYCODE_HEADSETHOOK || event.keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
                 onKeyPressed()
-                return true
             }
         }
-        //This allows the key pressed to function normally after it has been used by your app.
-        return super.onKeyEvent(event)
     }
 
     // ovo pozivati kod upisivanja morseovog koda, ovo popunjava buttonHistory s vremenskim razlikama
@@ -177,10 +143,10 @@ class MorseCodeService: AccessibilityService(), CoroutineScope{
         lastTimeMillis = System.currentTimeMillis()
         buttonHistory.add(diff)
         Log.d("ingo", diff.toString())
-        textView.setText(MORSECODE_ON + ": " + getMessage())
+        //textView.setText(MORSECODE_ON + ": " + getMessage())
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
+    @RequiresApi(Build.VERSION_CODES.O)
     fun vibrateWithPWM(listWithoutPWM: List<Long>) {
         var nisu_sve_nule = false
         listWithoutPWM.forEach{
@@ -206,27 +172,52 @@ class MorseCodeService: AccessibilityService(), CoroutineScope{
                 if(counter % 2 == 0) listWithPWM.add(servicePostavke.pwm_on)
             }
         }
-        vibrator.vibrate(VibrationEffect.createWaveform(listWithPWM.toLongArray(), -1))
+        val vibrationEffect: VibrationEffect = VibrationEffect.createWaveform(listWithPWM.toLongArray(), -1)
+        vibrator.vibrate(vibrationEffect)
     }
 
-    fun createNotification(){
-        // Create an explicit intent for an Activity in your app
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun createNotification(): Notification {
+
+        // If the notification supports a direct reply action, use
+// PendingIntent.FLAG_MUTABLE instead.
+        val pendingIntent: PendingIntent =
+            Intent(this, MainActivity::class.java).let { notificationIntent ->
+                PendingIntent.getActivity(
+                    this, 0, notificationIntent,
+                    PendingIntent.FLAG_IMMUTABLE
+                )
+            }
+
+        return Notification.Builder(this, CHANNEL_ID)
+            .setContentTitle("Morse talk")
+            .setContentText("Running...")
+            .setSmallIcon(R.drawable.ic_baseline_check_circle_24)
+            .setContentIntent(pendingIntent)
+            .setTicker("Ticker text")
+            .build()
+
+        /*// Create an explicit intent for an Activity in your app
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-        var builder = NotificationCompat.Builder(this, CHANNEL_ID)
+        var notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_baseline_play_arrow_24)
             .setContentTitle("Morse Talk")
             .setContentText("Running...")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setContentIntent(pendingIntent)
+            .setOngoing(true)
+            .build()
 
-        with(NotificationManagerCompat.from(this)) {
+        return notification
+*/
+        /*with(NotificationManagerCompat.from(this)) {
             // notificationId is a unique int for each notification that you must define
-            notify(1, builder.build())
-        }
+            notify(1, notification)
+        }*/
     }
 
     private fun createNotificationChannel() {
@@ -246,6 +237,12 @@ class MorseCodeService: AccessibilityService(), CoroutineScope{
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        setup()
+        return super.onStartCommand(intent, flags, startId)
+    }
+
     override fun onDestroy() {
         korutina.cancel()
         scope.cancel()
@@ -253,7 +250,49 @@ class MorseCodeService: AccessibilityService(), CoroutineScope{
         super.onDestroy()
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onBind(intent: Intent?): IBinder? {
+
+        return binder
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun setup(){
+        createNotificationChannel()
+        // Create an overlay and display the action bar
+        /*val wm = getSystemService(WINDOW_SERVICE) as WindowManager
+        mLayout = FrameLayout(this)
+        val lp = WindowManager.LayoutParams()
+        lp.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
+        lp.format = PixelFormat.TRANSLUCENT
+        lp.flags = lp.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+        lp.width = WindowManager.LayoutParams.WRAP_CONTENT
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
+        lp.gravity = Gravity.TOP
+        val inflater = LayoutInflater.from(this)
+        var view = inflater.inflate(R.layout.action_bar, mLayout)
+        wm.addView(mLayout, lp)
+        textView = view.findViewById<TextView>(R.id.power)*/
+        vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
+        vibrateWithPWM(VIBRATE_PATTERN)
+        //maybeSendMessageCoroutineLoop()
+        korutina = scope.launch {
+            // New coroutine that can call suspend functions
+            maybeSendMessageCoroutineLoop()
+        }
+        serviceSharedInstance = this
+
+        servicePostavke.pwm_on = PreferenceManager.getDefaultSharedPreferences(this).getLong("pwm_on", 5)
+        servicePostavke.pwm_off = PreferenceManager.getDefaultSharedPreferences(this).getLong("pwm_off", 1)
+        servicePostavke.oneTimeUnit = PreferenceManager.getDefaultSharedPreferences(this).getLong("oneTimeUnit", 400)
+        servicePostavke.token = PreferenceManager.getDefaultSharedPreferences(this).getString("token", "").toString()
+
+        val notification = createNotification()
+
+        startForeground(ONGOING_NOTIFICATION_ID, notification)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun maybeSendMessage(){
         Log.d("ingo", "maybeSendMessage")
         val diff:Int = getTimeDifference()
@@ -306,19 +345,19 @@ class MorseCodeService: AccessibilityService(), CoroutineScope{
 
     private suspend fun setText(){
         withContext(Dispatchers.IO){
-            textView.setText(MORSECODE_ON + ": neispravna naredba")
+            //textView.setText(MORSECODE_ON + ": neispravna naredba")
         }
     }
 
     fun isNumeric(str: String) = str.all { it in '0'..'9' }
 
-    @RequiresApi(Build.VERSION_CODES.S)
+    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun sendMessage(stringZaPoslati:String){
         try {
             val response: VibrationMessage = VibrationMessagesApi.retrofitService.sendMessage(stringZaPoslati, servicePostavke.token)
             databaseAddNewPoruka(response)
             withContext(Dispatchers.Main){
-                textView.setText(MORSECODE_ON + ": received " + response.poruka)
+                //textView.setText(MORSECODE_ON + ": received " + response.poruka)
                 messageReceiveCallback?.let { it() }
             }
             if(response.vibrate != null && response.vibrate != ""){
@@ -333,7 +372,7 @@ class MorseCodeService: AccessibilityService(), CoroutineScope{
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
+    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun maybeSendMessageCoroutineLoop() { // this: CoroutineScope
         while(true) {
             delay(1000L) // non-blocking delay for 1 second (default time unit is ms)
@@ -433,14 +472,6 @@ class MorseCodeService: AccessibilityService(), CoroutineScope{
         return message.toString()
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        TODO("Not yet implemented")
-    }
-
-    override fun onInterrupt() {
-        TODO("Not yet implemented")
-    }
-
     override fun onRebind(intent: Intent?) {
         super.onRebind(intent)
         Log.d("ingo", "service rebinded")
@@ -472,11 +503,11 @@ class MorseCodeService: AccessibilityService(), CoroutineScope{
         testMode = testing
         buttonHistory.clear()
         if(testMode){
-            textView.setBackgroundColor(Color.parseColor("#FFA500"))
-            textView.setText("MorseCode TESTING")
+            //textView.setBackgroundColor(Color.parseColor("#FFA500"))
+            //textView.setText("MorseCode TESTING")
         } else {
-            textView.setBackgroundColor(Color.parseColor("#03DAC5"))
-            textView.setText(MORSECODE_ON)
+            //textView.setBackgroundColor(Color.parseColor("#03DAC5"))
+            //textView.setText(MORSECODE_ON)
         }
     }
 

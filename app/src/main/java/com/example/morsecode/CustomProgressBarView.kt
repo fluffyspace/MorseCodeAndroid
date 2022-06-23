@@ -84,7 +84,7 @@ class CustomProgressBarView(context: Context, attrs: AttributeSet) : View(contex
             } else if(firstThreshold != -1 && progress > firstThreshold) {
                 text = firstText
             }
-            drawText(text, (width / 2).toFloat(), (height / 2).toFloat() + 35, textPaint)
+            drawText(text, (width / 2).toFloat(), (height / 2).toFloat() + 15, textPaint)
         }
     }
 
@@ -106,7 +106,7 @@ class CustomProgressBarView(context: Context, attrs: AttributeSet) : View(contex
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         textAlign = Paint.Align.CENTER
-        textSize = 100f
+        textSize = 40f
         color = Color.BLACK
     }
 
