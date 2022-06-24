@@ -69,7 +69,8 @@
         <service
             android:name=".PhysicalButtonsService"
             android:exported="true"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:stopWithTask="true">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
@@ -78,6 +79,11 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/global_action_bar_service" />
         </service>
+
+        <receiver
+            android:name=".StopServiceReceiver"
+            android:enabled="true"
+            android:process=":remote" />
     </application>
 
 </manifest>

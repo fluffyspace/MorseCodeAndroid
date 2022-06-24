@@ -14,17 +14,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text=""/>
-        <TextView
-            android:id="@+id/service_not_started"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/service_not_started_tap_to_try_again"
-            android:textSize="20sp"
-            android:gravity="center"
-            android:background="#ff0000"
-            android:textColor="@color/white"
-            android:padding="20dp"
-            android:visibility="gone"/>
+
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

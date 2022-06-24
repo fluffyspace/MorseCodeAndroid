@@ -3,28 +3,22 @@ package com.example.morsecode
 import android.app.*
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
-import android.graphics.PixelFormat
 import android.os.*
 import android.preference.PreferenceManager
 import android.util.Log
-import android.view.Gravity
 import android.view.KeyEvent
-import android.view.LayoutInflater
-import android.view.WindowManager
-import android.widget.FrameLayout
-import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationManagerCompat
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
-import com.example.morsecode.models.VibrationMessage
 import com.example.morsecode.models.Postavke
+import com.example.morsecode.models.VibrationMessage
 import com.example.morsecode.network.ContactsApi
 import com.example.morsecode.network.VibrationMessagesApi
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KFunction0
+
 
 private val VIBRATE_PATTERN: List<Long> = listOf(500, 500)
 private val MORSE = arrayOf(".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..", ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----.", "-----")
@@ -176,11 +170,7 @@ class MorseCodeService: Service(), CoroutineScope{
         vibrator.vibrate(vibrationEffect)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun createNotification(): Notification {
-
-        // If the notification supports a direct reply action, use
-// PendingIntent.FLAG_MUTABLE instead.
+    fun createNotification(title: String, text: String): Notification {
         val pendingIntent: PendingIntent =
             Intent(this, MainActivity::class.java).let { notificationIntent ->
                 PendingIntent.getActivity(
@@ -188,36 +178,22 @@ class MorseCodeService: Service(), CoroutineScope{
                     PendingIntent.FLAG_IMMUTABLE
                 )
             }
-
+        val intentStopService = Intent(this, StopServiceReceiver::class.java)
+        val stopServicePendingIntent = PendingIntent.getBroadcast(
+            this,
+            System.currentTimeMillis().toInt(),
+            intentStopService,
+            PendingIntent.FLAG_CANCEL_CURRENT
+        )
         return Notification.Builder(this, CHANNEL_ID)
-            .setContentTitle("Morse talk")
-            .setContentText("Running...")
+            .setContentTitle(title)
+            .setContentText(text)
             .setSmallIcon(R.drawable.ic_baseline_check_circle_24)
             .setContentIntent(pendingIntent)
-            .setTicker("Ticker text")
+            .addAction(R.drawable.ic_baseline_cancel_24, getString(R.string.stopService),
+                stopServicePendingIntent)
+            .setOnlyAlertOnce(true)
             .build()
-
-        /*// Create an explicit intent for an Activity in your app
-        val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-        var notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_baseline_play_arrow_24)
-            .setContentTitle("Morse Talk")
-            .setContentText("Running...")
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-            .setContentIntent(pendingIntent)
-            .setOngoing(true)
-            .build()
-
-        return notification
-*/
-        /*with(NotificationManagerCompat.from(this)) {
-            // notificationId is a unique int for each notification that you must define
-            notify(1, notification)
-        }*/
     }
 
     private fun createNotificationChannel() {
@@ -246,7 +222,7 @@ class MorseCodeService: Service(), CoroutineScope{
     override fun onDestroy() {
         korutina.cancel()
         scope.cancel()
-        Log.d("ingo", "oncancel")
+        Log.d("ingo", "MorseCodeService onDestroy")
         super.onDestroy()
     }
 
@@ -260,19 +236,6 @@ class MorseCodeService: Service(), CoroutineScope{
     fun setup(){
         createNotificationChannel()
         // Create an overlay and display the action bar
-        /*val wm = getSystemService(WINDOW_SERVICE) as WindowManager
-        mLayout = FrameLayout(this)
-        val lp = WindowManager.LayoutParams()
-        lp.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
-        lp.format = PixelFormat.TRANSLUCENT
-        lp.flags = lp.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-        lp.width = WindowManager.LayoutParams.WRAP_CONTENT
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-        lp.gravity = Gravity.TOP
-        val inflater = LayoutInflater.from(this)
-        var view = inflater.inflate(R.layout.action_bar, mLayout)
-        wm.addView(mLayout, lp)
-        textView = view.findViewById<TextView>(R.id.power)*/
         vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
         vibrateWithPWM(VIBRATE_PATTERN)
         //maybeSendMessageCoroutineLoop()
@@ -287,8 +250,7 @@ class MorseCodeService: Service(), CoroutineScope{
         servicePostavke.oneTimeUnit = PreferenceManager.getDefaultSharedPreferences(this).getLong("oneTimeUnit", 400)
         servicePostavke.token = PreferenceManager.getDefaultSharedPreferences(this).getString("token", "").toString()
 
-        val notification = createNotification()
-
+        val notification = createNotification("Morse talk", "Running...")
         startForeground(ONGOING_NOTIFICATION_ID, notification)
     }
 

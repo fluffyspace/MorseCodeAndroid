@@ -3,6 +3,7 @@ package com.example.morsecode
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -47,7 +48,6 @@ class VisualFeedbackFragment : Fragment() {
         listener = l
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -79,6 +79,18 @@ class VisualFeedbackFragment : Fragment() {
         return view
     }
 
+    fun touchListener(view: View, event: MotionEvent){
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                down()
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                up()
+                view.performClick()
+            }
+        }
+    }
+
     fun up(){
         Log.d("ingo", "up")
         mAccessibilityService?.onKeyPressed()
@@ -105,15 +117,11 @@ class VisualFeedbackFragment : Fragment() {
     }
 
     fun checkService(){
-        mAccessibilityService = MorseCodeService.getSharedInstance();
-        if(mAccessibilityService == null) {
-
-        } else {
-            val (_, _, oneTimeUnitLong) = mAccessibilityService?.getPostavke() ?: Postavke(-1, -1, -1)
-            oneTimeUnit = oneTimeUnitLong.toInt()
-            progressbar_down.updateThings(0, oneTimeUnit, -1)
-            progressbar_up.updateThings(oneTimeUnit, oneTimeUnit*3, oneTimeUnit*7)
-        }
+        mAccessibilityService = MorseCodeService.getSharedInstance()
+        val (_, _, oneTimeUnitLong) = mAccessibilityService?.getPostavke() ?: Postavke(-1, -1, -1)
+        oneTimeUnit = oneTimeUnitLong.toInt()
+        progressbar_down.updateThings(0, oneTimeUnit, -1)
+        progressbar_up.updateThings(oneTimeUnit, oneTimeUnit*3, oneTimeUnit*7)
     }
 
     fun refreshText(){
@@ -125,7 +133,11 @@ class VisualFeedbackFragment : Fragment() {
         }
     }
 
-    fun getMessage(): String? {
+    fun setMessage(text: String) {
+        playground_text.text = text
+    }
+
+    fun getMessage(): String {
         return playground_text.text.toString()
     }
 

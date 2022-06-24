@@ -43,7 +43,6 @@ class ChatActivity : AppCompatActivity() {
     lateinit var morseButton: Button
     lateinit var recyclerView: RecyclerView
     lateinit var textEditMessage: EditText
-    lateinit var textViewMessage: TextView
     private val sharedPreferencesFile = "MyPrefs"
 
     lateinit var visual_feedback_container: VisualFeedbackFragment
@@ -70,10 +69,7 @@ class ChatActivity : AppCompatActivity() {
 
         sendButton = findViewById(R.id.sendButton)
         morseButton = findViewById(R.id.sendMorseButton)
-        val layoutTop = findViewById<LinearLayout>(R.id.topLayout)
-        val layBottom = findViewById<LinearLayout>(R.id.layoutBottom)
-        textEditMessage = findViewById(R.id.playground_text)
-        textViewMessage = findViewById(R.id.playground_text)
+        textEditMessage = findViewById(R.id.enter_message_edittext)
 
         val sharedPreferences: SharedPreferences =
             this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
@@ -95,14 +91,13 @@ class ChatActivity : AppCompatActivity() {
             .add(R.id.visual_feedback_container, visual_feedback_container, "main")
             .commitNow()
 
-
         getNewMessages(userId, userHash, contactId)
         //populateData(context, recyclerView, userId, contactId)
 
         //message listeners
         visual_feedback_container.setListener(object : VisualFeedbackFragment.Listener {
             override fun onTranslation(changeText: String) {
-                textViewMessage.text = changeText + ""
+                visual_feedback_container.setMessage(changeText)
             }
         })
 
@@ -111,12 +106,16 @@ class ChatActivity : AppCompatActivity() {
             performSendMessage(userId, userHash, contactId)
             val poruka = Message(textEditMessage.text.toString(), contactId, userId)
             saveMessage(userId, contactId, listOf(poruka))
-            textViewMessage.text = ""
+            visual_feedback_container.setMessage("")
         }
 
         morseButton.setOnClickListener {
-            var fra: FragmentContainerView = findViewById(R.id.visual_feedback_container)
-            if (!morseOn) {
+            val fra: FragmentContainerView = findViewById(R.id.visual_feedback_container)
+
+            morseOn = !morseOn
+            fra.isVisible = morseOn
+
+            /*if (!morseOn) {
                 val param = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     0,
@@ -129,9 +128,7 @@ class ChatActivity : AppCompatActivity() {
                     0.4f
                 )
                 layBottom.layoutParams = param1
-                morseOn = true
 
-                fra.isVisible = true
             } else {
                 val param = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -147,7 +144,7 @@ class ChatActivity : AppCompatActivity() {
                 layBottom.layoutParams = param1
                 morseOn = false
                 fra.isVisible = false
-            }
+            }*/
 
 /*
             LargeBanner.make(it, "Ceci est une snackbar LARGE", LargeBanner.LENGTH_INDEFINITE)
@@ -259,7 +256,7 @@ class ChatActivity : AppCompatActivity() {
 
     private fun performSendMessage(id: Integer, sharedPassword: String?, contactId: Integer) {
 
-        val textMessage = findViewById<EditText>(R.id.playground_text)
+        val textMessage = findViewById<EditText>(R.id.enter_message_edittext)
         lifecycleScope.launch(Dispatchers.Default) {
             try {
                 val response: Boolean = MessagesApi.retrofitService.sendMessage(

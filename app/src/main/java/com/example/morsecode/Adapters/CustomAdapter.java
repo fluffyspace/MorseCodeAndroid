@@ -30,10 +30,10 @@ public class CustomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         this.idReceiver = idReceiver;
     }
 
-    private class MessageInViewHolder extends RecyclerView.ViewHolder {
+    private class MessageViewHolder extends RecyclerView.ViewHolder {
 
         TextView messageTV;
-        MessageInViewHolder(final View itemView) {
+        MessageViewHolder(final View itemView) {
             super(itemView);
             messageTV = itemView.findViewById(R.id.textViewMessage);
         }
@@ -43,39 +43,16 @@ public class CustomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         }
     }
 
-    private class MessageOutViewHolder extends RecyclerView.ViewHolder {
-
-        TextView messageTV;
-        MessageOutViewHolder(final View itemView) {
-            super(itemView);
-            messageTV = itemView.findViewById(R.id.textViewMessage1);
-        }
-        void bind(int position) {
-            Message messageModel = list.get(position);
-            messageTV.setText(messageModel.getMessage());
-        }
-    }
-
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        if (viewType == MESSAGE_TYPE_IN) {
-            return new MessageInViewHolder(LayoutInflater.from(context).inflate(R.layout.item_message_send, parent, false));
-        }
-        return new MessageOutViewHolder(LayoutInflater.from(context).inflate(R.layout.item_message_receive, parent, false));
+        return new MessageViewHolder(LayoutInflater.from(context).inflate(viewType == MESSAGE_TYPE_IN ? R.layout.item_message_send : R.layout.item_message_receive, parent, false));
     }
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         if (getItemCount() > 0) {
-
-            if (list.get(position).getSenderId() == idSender) {
-
-                MessageInViewHolder messageInViewHolder = (MessageInViewHolder) holder;
-                messageInViewHolder.bind(position);
-            } else if (list.get(position).getSenderId() != idSender) {
-                MessageOutViewHolder messageOutViewHolder = (MessageOutViewHolder) holder;
-                messageOutViewHolder.bind(position);
-            }
+            MessageViewHolder messageViewHolder = (MessageViewHolder) holder;
+            messageViewHolder.bind(position);
         }
     }
 

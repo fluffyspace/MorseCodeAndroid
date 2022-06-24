@@ -14,7 +14,6 @@ import kotlin.random.Random
 
 class TutorialActivity : AppCompatActivity() {
     lateinit var tap_button: Button
-    lateinit var service_not_started:TextView
     lateinit var tutorial_status_text:TextView
     lateinit var tutorial_status_image:ImageView
     lateinit var tutorial_text_view:TextView
@@ -31,10 +30,6 @@ class TutorialActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tutorial)
-        service_not_started = findViewById(R.id.service_not_started)
-        service_not_started.setOnClickListener {
-            checkService();
-        }
         tap_button = findViewById(R.id.tap)
         tutorial_status_text = findViewById(R.id.tutorial_status_text)
         tutorial_status_image = findViewById(R.id.tutorial_status_image)
@@ -47,7 +42,7 @@ class TutorialActivity : AppCompatActivity() {
             .add(R.id.visual_feedback_container, visual_feedback_container, "main")
             .commitNow()
 
-        checkService();
+        mAccessibilityService = MorseCodeService.getSharedInstance();
         tap_button.setOnTouchListener { v, event ->
             when (event?.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -121,18 +116,6 @@ class TutorialActivity : AppCompatActivity() {
 
         tutorial_number_view.text = "Tutorial: " + tutorial_number + "/20"
         tutorial_text_view.text = "Pokušajte upisati: " + tutorial_text
-    }
-
-    fun checkService(){
-        mAccessibilityService = MorseCodeService.getSharedInstance();
-        if(mAccessibilityService == null) {
-            service_not_started.visibility = View.VISIBLE
-            tap_button.isEnabled = false
-        } else {
-            service_not_started.visibility = View.GONE
-            tap_button.isEnabled = true
-            toggleTesting(true)
-        }
     }
 
     fun cancelKorutina(){

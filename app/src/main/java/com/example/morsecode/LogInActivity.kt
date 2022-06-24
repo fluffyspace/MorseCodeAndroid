@@ -63,10 +63,7 @@ class LogInActivity : AppCompatActivity() {
         val userNameEditText = findViewById<EditText>(R.id.editTextName)
         val userPasswordEditTet = findViewById<EditText>(R.id.editTextPassword)
 
-
-        val but = findViewById<Button>(R.id.logInButton)
-
-        but.setOnClickListener {
+        findViewById<Button>(R.id.logInButton).setOnClickListener {
             val userName: String = userNameEditText.text.toString()
             val userPassword: String = userPasswordEditTet.text.toString()
             val userPasswordHash = getMd5(userPassword)
@@ -76,15 +73,12 @@ class LogInActivity : AppCompatActivity() {
             } else if (userName.isNotEmpty() || userPassword.isNotEmpty()) {
                 lifecycleScope.launch(Dispatchers.Default) {
                     try {
-
                         var user: LogInResponse = ContactsApi.retrofitService.logInUser(userName, userPasswordHash)
-
 
                         Log.e("stjepan", "${user.hash}")
                         Log.e("stjepan", "$userPasswordHash")
 
                         if (user.success == true){
-
                             val editor = sharedPreferences.edit()
                             editor.putString(USER_NAME, userName)
                             editor.putString(USER_PASSWORD, userPasswordHash)

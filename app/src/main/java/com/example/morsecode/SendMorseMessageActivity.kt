@@ -18,7 +18,6 @@ import kotlinx.coroutines.*
 
 class SendMorseMessageActivity : AppCompatActivity() {
     lateinit var tap_button: Button
-    lateinit var service_not_started:TextView
     lateinit var visual_feedback_container:VisualFeedbackFragment
 
     var mAccessibilityService:MorseCodeService? = null
@@ -27,10 +26,6 @@ class SendMorseMessageActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_send_morse_message)
-        service_not_started = findViewById(R.id.service_not_started)
-        service_not_started.setOnClickListener {
-            checkService();
-        }
         tap_button = findViewById(R.id.tap)
 
         visual_feedback_container = VisualFeedbackFragment()
@@ -41,7 +36,8 @@ class SendMorseMessageActivity : AppCompatActivity() {
             .add(R.id.visual_feedback_container, visual_feedback_container, "main")
             .commitNow()
 
-        checkService();
+        mAccessibilityService = MorseCodeService.getSharedInstance();
+
         tap_button.setOnTouchListener { v, event ->
             when (event?.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -70,18 +66,6 @@ class SendMorseMessageActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 Log.d("ingo", "greska " + e.stackTraceToString() + e.message.toString())
             }
-        }
-    }
-
-    fun checkService(){
-        mAccessibilityService = MorseCodeService.getSharedInstance();
-        if(mAccessibilityService == null) {
-            service_not_started.visibility = View.VISIBLE
-            tap_button.isEnabled = false
-        } else {
-            service_not_started.visibility = View.GONE
-            tap_button.isEnabled = true
-            mAccessibilityService?.setMessageFeedback(::refreshMessages)
         }
     }
 

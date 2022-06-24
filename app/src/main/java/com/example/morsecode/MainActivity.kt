@@ -27,7 +27,6 @@ import kotlinx.coroutines.withContext
 class MainActivity : AppCompatActivity() {
 
     var mAccessibilityService:MorseCodeService? = null
-    lateinit var service_not_started:TextView
 
     private lateinit var sharedPreferences: SharedPreferences
     private val sharedPreferencesFile = "MyPrefs"
@@ -36,14 +35,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        service_not_started = findViewById(R.id.service_not_started)
-        service_not_started.setOnClickListener {
-            checkService()
-        }
 
         Log.d("ingo", mAccessibilityService.toString())
         fetchPostavkeFromService()
-        checkService()
+
+        mAccessibilityService = MorseCodeService.getSharedInstance();
 
         findViewById<LinearLayout>(R.id.contacts).setOnClickListener(){
             val intent = Intent(this, ContactActivity::class.java)
@@ -113,15 +109,6 @@ class MainActivity : AppCompatActivity() {
 
     fun fetchPostavkeFromService(){
         reloadListaPoruka()
-    }
-
-    fun checkService(){
-        mAccessibilityService = MorseCodeService.getSharedInstance()
-        if(mAccessibilityService == null) {
-            service_not_started.visibility = View.VISIBLE
-        } else {
-            service_not_started.visibility = View.GONE
-        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
