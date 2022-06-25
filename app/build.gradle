@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.morsecode"
-        minSdk 26
+        minSdk 24
         targetSdk 31
         versionCode 2
         versionName "1.1"

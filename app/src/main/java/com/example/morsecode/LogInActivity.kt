@@ -69,7 +69,7 @@ class LogInActivity : AppCompatActivity() {
             val userPasswordHash = getMd5(userPassword)
 
             if (userName.isEmpty() || userPassword.isEmpty()) {
-                Toast.makeText(applicationContext, "Error", Toast.LENGTH_LONG).show()
+                Toast.makeText(applicationContext, "Username or password missing", Toast.LENGTH_SHORT).show()
             } else if (userName.isNotEmpty() || userPassword.isNotEmpty()) {
                 lifecycleScope.launch(Dispatchers.Default) {
                     try {
@@ -90,7 +90,7 @@ class LogInActivity : AppCompatActivity() {
                             val intent = Intent(this@LogInActivity, MainActivity::class.java)
                             startActivity(intent)
                         } else {
-                            Toast.makeText(applicationContext,"Log in error",Toast.LENGTH_SHORT).show()
+                            Toast.makeText(applicationContext, "The username or password is incorrect", Toast.LENGTH_SHORT).show()
                         }
                     } catch (e: Exception) {
                         Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
@@ -120,5 +120,9 @@ class LogInActivity : AppCompatActivity() {
         } catch (e: NoSuchAlgorithmException) {
             throw RuntimeException(e)
         }
+    }
+
+    override fun onBackPressed() {
+
     }
 }

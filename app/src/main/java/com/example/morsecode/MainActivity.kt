@@ -10,7 +10,6 @@ import android.util.Log
 import android.view.*
 import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -66,7 +65,7 @@ class MainActivity : AppCompatActivity() {
         reloadListaPoruka()
 
         val intent = Intent(this, MorseCodeService::class.java) // Build the intent for the service
-        applicationContext.startForegroundService(intent)
+        //applicationContext.startForegroundService(intent)
     }
 
     fun reloadListaPoruka(){
@@ -142,10 +141,22 @@ class MainActivity : AppCompatActivity() {
                 editor.putBoolean("hands_free", !hands_free)
                 true
             }
+            R.id.log_out ->{
+                sharedPreferences = this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
+                val editor = sharedPreferences.edit()
+                editor.clear()
+                editor.apply()
+                editor.commit()
+                val intent = Intent(this, LogInActivity::class.java)
+                startActivity(intent)
+                true
+            }
 
             else -> super.onOptionsItemSelected(item)
         }
     }
+    override fun onBackPressed() {
 
+    }
 
 }

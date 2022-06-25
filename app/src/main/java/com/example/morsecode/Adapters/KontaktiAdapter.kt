@@ -7,20 +7,25 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.ImageView
+import android.widget.ShareActionProvider
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.ChatActivity
+import com.example.morsecode.ContactActivity
 import com.example.morsecode.R
 import com.example.morsecode.models.EntitetKontakt
+import com.example.morsecode.network.ContactsApi
+import kotlinx.coroutines.Dispatchers
 
 class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>) :
     RecyclerView.Adapter<KontaktiAdapter.ViewHolder>() {
     var kontakt: List<EntitetKontakt>
     var context: Context
-
 
     init {
         this.kontakt = kontakt
@@ -70,7 +75,10 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>) :
         }
 
         viewHolder.itemView.setOnLongClickListener {
-
+            val intent = Intent(viewHolder.itemView.context, ContactActivity::class.java)
+            intent.putExtra("idFriend", kontakt[i].id.toString())
+            intent.putExtra("nameFriend", kontakt[i].username)
+            viewHolder.itemView.context.startActivity(intent)
 
             true
         }

@@ -71,9 +71,23 @@ interface ContactsApiService {
     @GET("api/register.php")
     suspend fun registerContact(@Query("username") username: String, @Query("password") password: String): RegisterResponse
 
+    @GET("api/addFriend.php")
+    suspend fun addFriend(@Query("id") id: Int, @Query("hash") hash: String, @Query("friendId") friendId: Long?): Boolean
+
     @GET("api/login.php")
     suspend fun logInUser(@Query("username") username: String, @Query("password") password: String): LogInResponse
+
+    @GET("api/getUserByUsername.php")
+    suspend fun getUserByUsername(@Query("id") id: Int, @Query("hash") hash: String,@Query("username") username: String): GetIdResponse
+
+    @GET("api/getMyFriends.php")
+    suspend fun getMyFriends(@Query("id") id: Int, @Query("hash") hash: String): List<EntitetKontakt>
+
+    @GET("api/removeFriend.php")
+    suspend fun removeFriend(@Query("id") id: Int, @Query("hash") hash: String, @Query("friendId") friendId: Int): Boolean
 }
+
+
 
 /**
  * A public Api object that exposes the lazy-initialized Retrofit service

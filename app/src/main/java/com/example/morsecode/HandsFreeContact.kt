@@ -1,13 +1,27 @@
 package com.example.morsecode
 
+import android.util.Log
+
 class HandsFreeContact {
 
     private var zCounter = 0
     private var counter = 0
-    private var threshold = 1.0f
+    private var threshold = 1.5f
+    private var maxX = 0f
+    private var minX = 0f
 
 
     fun follow(x: Float, z: Float){
+
+        if(x > maxX){
+            maxX = x;
+            Log.e("max x", " " + maxX)
+        }
+
+        if(x < minX){
+            minX = x;
+            Log.e("min x", " " + minX)
+        }
 
         var zz = z
 
@@ -22,22 +36,25 @@ class HandsFreeContact {
             if (listener != null) {
                 listener.onTranslation(1)
             }
-            counter == 10
+            counter = 10
         } else if (zz < -threshold && counter == 0) {
             if (listener != null) {
                 listener.onTranslation(2)
             }
-            counter == 10
-        } else if (x < -threshold && counter == 0) {
+            counter = 10
+        }
+        if (x < -threshold && counter == 0) {
+            Log.e("max ", " x minus")
             if (listener != null) {
                 listener.onTranslation(3)
             }
-            counter == 10
+            counter = 10
         } else if (x < -threshold && counter == 0) {
+            Log.e("max ", " x +")
             if (listener != null) {
                 listener.onTranslation(4)
             }
-            counter == 10
+            counter = 10
         }
 
     }
