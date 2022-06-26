@@ -86,4 +86,7 @@ dependencies {
     implementation "com.xwray:groupie-kotlin-android-extensions:2.7.0"
 
     implementation "androidx.recyclerview:recyclerview:1.0.0"
+
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+
 }

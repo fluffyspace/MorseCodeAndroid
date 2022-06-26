@@ -14,7 +14,7 @@ data class Message(
     //@Json(name = "seen") val seen:Boolean?,
     //@Json(name = "received") val received:Boolean?,
 ){
-    constructor(message:String?, receiverId:Integer?, senderId:Integer?) : this(0,message,receiverId,senderId)
+    //constructor(message:String, receiverId:Integer, senderId:Integer) : this(0,message,receiverId,senderId)
 
 }
 

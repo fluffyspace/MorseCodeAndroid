@@ -104,7 +104,7 @@ class ChatActivity : AppCompatActivity() {
         sendButton.setOnClickListener {
             Log.e("stjepan", "sendButton" + visual_feedback_container.getMessage())
             performSendMessage(userId, userHash, contactId)
-            val poruka = Message(textEditMessage.text.toString(), contactId, userId)
+            val poruka = Message(0, textEditMessage.text.toString(), contactId, userId)
             saveMessage(userId, contactId, listOf(poruka))
             visual_feedback_container.setMessage("")
         }
@@ -216,7 +216,7 @@ class ChatActivity : AppCompatActivity() {
             val db = AppDatabase.getInstance(this)
             val messageDao: MessageDao = db.messageDao()
             for (x in list) {
-                val poruka = Message(x.message, x.receiverId, x.senderId)
+                val poruka = Message(0, x.message!!, x.receiverId!!, x.senderId!!)
                 messageDao.insertAll(poruka)
             }
 
