@@ -32,7 +32,7 @@ interface EntitetKontaktADao {
     //fun get(): List<EntitetKontakt>
 
     @Query("SELECT * FROM contacts WHERE id != :userId")
-    fun getAllNoUser(userId :Integer): List<EntitetKontakt>
+    fun getAllNoUser(userId :Int): List<EntitetKontakt>
 
     @Insert
     fun insertAll(vararg polja: EntitetKontakt): List<Long>

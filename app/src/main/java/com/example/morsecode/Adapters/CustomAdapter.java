@@ -17,7 +17,7 @@ import com.example.morsecode.models.Message;
 
 public class CustomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final Context context;
-    List<Message> list;
+    public List<Message> list;
     private Integer idSender;
     private Integer idReceiver;
     public static final int MESSAGE_TYPE_IN = 1;

@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.Adapters.KontaktiAdapter
+import com.example.morsecode.Adapters.OnLongClickListener
 import com.example.morsecode.ChatActivity.Companion.USER_HASH
 import com.example.morsecode.ChatActivity.Companion.handsFreeOn
 import com.example.morsecode.ChatActivity.Companion.sharedPreferencesFile
@@ -28,7 +29,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ContactActivity : AppCompatActivity() {
+class ContactActivity : AppCompatActivity(), OnLongClickListener {
 
     private lateinit var kontakt: List<EntitetKontakt>
     private lateinit var accelerometer: Accelerometer
@@ -41,14 +42,17 @@ class ContactActivity : AppCompatActivity() {
 
     var mAccessibilityService:MorseCodeService? = null
 
+    var userId: Int = 0
+    var userLoginHash: String = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_contact)
 
         val sharedPreferences: SharedPreferences =
             this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
-        val userId = sharedPreferences.getInt("id", 0)
-        val userLoginHash = sharedPreferences.getString(USER_HASH, "noHash");
+        userId = sharedPreferences.getInt("id", 0)
+        userLoginHash = sharedPreferences.getString(USER_HASH, "noHash").toString();
 
         refreshContacts(userId, userLoginHash.toString())
 
@@ -127,35 +131,7 @@ class ContactActivity : AppCompatActivity() {
             onResume()
         }
 
-        val friendNameDelete = intent.getStringExtra("nameFriend")
-        var friendIdDelete = intent.getStringExtra("idFriend")
-        val idFriendDelete = friendIdDelete?.toInt()
 
-        if (friendIdDelete != null && idFriendDelete != -1) {
-            val builder = AlertDialog.Builder(this)
-            builder.setTitle("Delete contact $friendNameDelete")
-            builder.setNegativeButton("Close") { dialogInterface, i ->
-                dialogInterface.dismiss()
-            }
-            builder.setPositiveButton("OK") { dialogInterface, i ->
-                lifecycleScope.launch(Dispatchers.Default) {
-                    try {
-
-                        var response = idFriendDelete?.let {
-                            ContactsApi.retrofitService.removeFriend(
-                                userId, userLoginHash.toString(),
-                                it
-                            )
-                        }
-                        refreshContacts(userId, userLoginHash.toString())
-
-                    } catch (e: Exception) {
-                        Log.d("stjepan", "greska ")
-                    }
-                }
-            }
-            builder.show()
-        }
     }
 
     private fun contactAdded() {
@@ -182,7 +158,7 @@ class ContactActivity : AppCompatActivity() {
 
                 //Log.e("max ", " $maxContactCounter")
                 withContext(Dispatchers.Main) {
-                    kontaktiRecyclerView.adapter = KontaktiAdapter(context, kontakti)
+                    kontaktiRecyclerView.adapter = KontaktiAdapter(context, kontakti, this@ContactActivity)
                 }
             } catch (e: Exception) {
                 Log.d("stjepan", "greska ")
@@ -216,8 +192,8 @@ class ContactActivity : AppCompatActivity() {
 
     private fun startContactChat(index: Int) {
         val intent = Intent(this, ChatActivity::class.java)
-        intent.putExtra("username", kontakt[index].username)
-        intent.putExtra("id", kontakt[index].id.toString())
+        intent.putExtra(ChatActivity.USER_NAME, kontakt[index].username)
+        intent.putExtra(ChatActivity.USER_ID, kontakt[index].id!!.toInt())
         ContextCompat.startActivity(this, intent, null)
     }
 
@@ -226,10 +202,10 @@ class ContactActivity : AppCompatActivity() {
 
         mAccessibilityService = MorseCodeService.getSharedInstance();
 
-        Log.e("stejpan " , kontakt[index].username.toString())
+        Log.e("stjepan " , kontakt[index].username.toString())
 
         var a = mAccessibilityService?.makeWaveformFromText(kontakt[index].username)
-        Log.e("stejpan " , a.toString())
+        Log.e("stjepan " , a.toString())
 
         mAccessibilityService?.vibrateWithPWM(mAccessibilityService!!.makeWaveformFromText(kontakt[index].username.toString()))
         Toast.makeText(
@@ -293,6 +269,34 @@ class ContactActivity : AppCompatActivity() {
     override fun onPause() {
         accelerometer.unregister()
         super.onPause()
+    }
+
+    override fun longHold(id: Int, username: String) {
+        Log.d("ingo", "long hold ${id} ${username}")
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Delete contact $username")
+        builder.setNegativeButton("Close") { dialogInterface, i ->
+            dialogInterface.dismiss()
+        }
+        builder.setPositiveButton("OK") { dialogInterface, i ->
+            lifecycleScope.launch(Dispatchers.Default) {
+                try {
+                    var response = id?.let {
+                        ContactsApi.retrofitService.removeFriend(
+                            userId, userLoginHash.toString(),
+                            it
+                        )
+                    }
+                    withContext(Dispatchers.Main) {
+                        refreshContacts(userId, userLoginHash.toString())
+                    }
+
+                } catch (e: Exception) {
+                    Log.d("stjepan", "greska ")
+                }
+            }
+        }
+        builder.show()
     }
 
 

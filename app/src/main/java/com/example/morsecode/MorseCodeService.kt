@@ -141,37 +141,36 @@ class MorseCodeService: Service(), CoroutineScope{
         //textView.setText(MORSECODE_ON + ": " + getMessage())
     }
 
-
     fun vibrateWithPWM(listWithoutPWM: List<Long>) {
-        var nisu_sve_nule = false
-        listWithoutPWM.forEach{
-            if(it != 0L){
-                nisu_sve_nule = true
-            }
-        }
-        if(!nisu_sve_nule) return
-        var listWithPWM = mutableListOf<Long>()
-        listWithoutPWM.forEachIndexed{ index, item ->
-            if(index % 2 == 0){
-                listWithPWM.add(item)
-            } else {
-                var counter = 0
-                repeat((item/(servicePostavke.pwm_off+servicePostavke.pwm_on)).toInt()){
-                    if(counter % 2 == 0){
-                        listWithPWM.add(servicePostavke.pwm_on)
-                    } else {
-                        listWithPWM.add(servicePostavke.pwm_off)
-                    }
-                    counter++
-                }
-                if(counter % 2 == 0) listWithPWM.add(servicePostavke.pwm_on)
-            }
-        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            var nisu_sve_nule = false
+            listWithoutPWM.forEach {
+                if (it != 0L) {
+                    nisu_sve_nule = true
+                }
+            }
+            if (!nisu_sve_nule) return
+            var listWithPWM = mutableListOf<Long>()
+            listWithoutPWM.forEachIndexed { index, item ->
+                if (index % 2 == 0) {
+                    listWithPWM.add(item)
+                } else {
+                    var counter = 0
+                    repeat((item / (servicePostavke.pwm_off + servicePostavke.pwm_on)).toInt()) {
+                        if (counter % 2 == 0) {
+                            listWithPWM.add(servicePostavke.pwm_on)
+                        } else {
+                            listWithPWM.add(servicePostavke.pwm_off)
+                        }
+                        counter++
+                    }
+                    if (counter % 2 == 0) listWithPWM.add(servicePostavke.pwm_on)
+                }
+            }
             val vibrationEffect: VibrationEffect = VibrationEffect.createWaveform(listWithPWM.toLongArray(), -1)
             vibrator.vibrate(vibrationEffect)
         }else{
-            vibrator.vibrate(listWithPWM.toLongArray(), -1)
+            vibrator.vibrate(listWithoutPWM.toLongArray(), -1)
         }
     }
 

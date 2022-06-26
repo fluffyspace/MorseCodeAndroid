@@ -10,20 +10,26 @@
         android:layout_height="match_parent"
         tools:context=".MainActivity"
         android:orientation="vertical">
-
+        <TextView
+            android:id="@+id/welcome_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="25sp"
+            android:padding="10dp"
+            android:gravity="center_horizontal"/>
         <LinearLayout
             android:id="@+id/contacts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginTop="50dp"
+            android:layout_marginTop="25dp"
             android:layout_marginLeft="50dp"
             android:layout_marginRight="50dp"
             android:layout_marginBottom="15dp">
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:src="@drawable/elementary_classroom_in_alaska"
+                android:src="@drawable/defenceforcesmorse"
                 android:scaleType="fitXY"
                 android:adjustViewBounds="true"/>
             <TextView
@@ -31,6 +37,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="Contacts"
+                android:textSize="20sp"
                 android:padding="10dp"/>
         </LinearLayout>
         <View
@@ -57,7 +64,8 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="Tutorial"
-                android:padding="10dp"/>
+                android:padding="10dp"
+                android:textSize="20sp"/>
         </LinearLayout>
         <View
             android:layout_width="match_parent"
@@ -83,9 +91,10 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="Playground"
-            android:padding="10dp"/>
+            android:padding="10dp"
+            android:textSize="20sp"/>
         </LinearLayout>
-        <View
+        <!--<View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/obrub"/>
@@ -110,7 +119,7 @@
                 android:gravity="center"
                 android:text="Send Morse code to others"
                 android:padding="10dp"/>
-        </LinearLayout>
+        </LinearLayout>-->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"

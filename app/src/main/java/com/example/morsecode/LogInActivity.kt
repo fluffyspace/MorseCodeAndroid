@@ -121,8 +121,4 @@ class LogInActivity : AppCompatActivity() {
             throw RuntimeException(e)
         }
     }
-
-    override fun onBackPressed() {
-
-    }
 }

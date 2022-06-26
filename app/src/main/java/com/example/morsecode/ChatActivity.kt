@@ -45,6 +45,8 @@ class ChatActivity : AppCompatActivity() {
     lateinit var textEditMessage: EditText
     private val sharedPreferencesFile = "MyPrefs"
 
+    private var chatAdapter: CustomAdapter? = null
+
     lateinit var visual_feedback_container: VisualFeedbackFragment
     private lateinit var accelerometer: Accelerometer
 
@@ -61,8 +63,8 @@ class ChatActivity : AppCompatActivity() {
         setContentView(R.layout.activity_chat)
 
         val contactName = intent.getStringExtra(USER_NAME).toString()
-        val contactId = Integer(intent.getStringExtra(USER_ID))
-        supportActionBar?.title = "$contactName"
+        val contactId = intent.getLongExtra(USER_ID, -1).toInt()
+        supportActionBar?.title = "$contactName ($contactId)"
 
         accelerometer = Accelerometer(this)
         handsFree = HandsFree()
@@ -76,7 +78,6 @@ class ChatActivity : AppCompatActivity() {
         val prefUserName: String = sharedPreferences.getString(USER_NAME, "").toString()
         val prefUserId = sharedPreferences.getInt("id", 0)
         val prefUserPassword = sharedPreferences.getString(USER_PASSWORD, "")
-        val userId = Integer(prefUserId)
         val userHash = sharedPreferences.getString(USER_HASH, "")
 
         recyclerView = findViewById(R.id.recyclerView)
@@ -91,8 +92,8 @@ class ChatActivity : AppCompatActivity() {
             .add(R.id.visual_feedback_container, visual_feedback_container, "main")
             .commitNow()
 
-        getNewMessages(userId, userHash, contactId)
-        //populateData(context, recyclerView, userId, contactId)
+        //(userId, userHash, contactId)
+        populateData(context, recyclerView, prefUserId, contactId)
 
         //message listeners
         visual_feedback_container.setListener(object : VisualFeedbackFragment.Listener {
@@ -103,9 +104,10 @@ class ChatActivity : AppCompatActivity() {
 
         sendButton.setOnClickListener {
             Log.e("stjepan", "sendButton" + visual_feedback_container.getMessage())
-            performSendMessage(userId, userHash, contactId)
-            val poruka = Message(0, textEditMessage.text.toString(), contactId, userId)
-            saveMessage(userId, contactId, listOf(poruka))
+            performSendMessage(prefUserId, userHash, contactId)
+            val poruka = Message(0, textEditMessage.text.toString(), contactId, prefUserId)
+            saveMessage(poruka)
+            textEditMessage.setText("")
             visual_feedback_container.setMessage("")
         }
 
@@ -189,38 +191,14 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
-    private fun getNewMessages(id: Integer, userHash: String?, contactId: Integer) {
-        lifecycleScope.launch(Dispatchers.Default) {
-            try {
-                val response: List<Message> = MessagesApi.retrofitService.getNewMessages(
-                    id.toInt(),
-                    userHash
-                )
-                Log.e("stjepan", "poslana poruka$response")
-                if (response.isNotEmpty()) {
-                    saveMessage(id, contactId, response)
-                }
-
-            } catch (e: Exception) {
-                Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
-            }
-        }
-    }
-
-    private fun saveMessage(userId: Integer, contactId: Integer, list: List<Message>) {
-        if (list.isEmpty()) {
-            return
-        }
+    private fun saveMessage(message: Message) {
         try {
-
             val db = AppDatabase.getInstance(this)
             val messageDao: MessageDao = db.messageDao()
-            for (x in list) {
-                val poruka = Message(0, x.message!!, x.receiverId!!, x.senderId!!)
-                messageDao.insertAll(poruka)
-            }
+            messageDao.insertAll(message)
 
-            populateData(context, recyclerView, userId, contactId)
+            chatAdapter!!.list.add(message)
+            chatAdapter!!.notifyDataSetChanged()
 
             Log.e("stjepan", "db uspelo")
         } catch (e: Exception) {
@@ -231,8 +209,8 @@ class ChatActivity : AppCompatActivity() {
     private fun populateData(
         context: Context,
         recyclerView: RecyclerView,
-        userId: Integer,
-        contactId: Integer
+        userId: Int,
+        contactId: Int
     ) {
         val db = AppDatabase.getInstance(this)
         val messageDao: MessageDao = db.messageDao()
@@ -243,27 +221,27 @@ class ChatActivity : AppCompatActivity() {
         } else {
             poruke = messageDao.getAllReceived(contactId, userId)
         }
+        Log.d("ingo", "broj poruka -> " + poruke.size)
         this@ChatActivity.runOnUiThread(java.lang.Runnable {
-            recyclerView.adapter = CustomAdapter(
+            chatAdapter = CustomAdapter(
                 context,
                 poruke,
                 userId.toInt(),
                 contactId.toInt()
             )
+            recyclerView.adapter = chatAdapter
             recyclerView.scrollToPosition(poruke.size - 1)
         })
     }
 
-    private fun performSendMessage(id: Integer, sharedPassword: String?, contactId: Integer) {
-
-        val textMessage = findViewById<EditText>(R.id.enter_message_edittext)
+    private fun performSendMessage(id: Int, sharedPassword: String?, contactId: Int) {
         lifecycleScope.launch(Dispatchers.Default) {
             try {
                 val response: Boolean = MessagesApi.retrofitService.sendMessage(
                     id.toLong(),
                     sharedPassword,
                     contactId,
-                    textMessage.text.toString()
+                    textEditMessage.text.toString()
                 )
                 Log.e("stjepan", "poslana poruka$response")
             } catch (e: Exception) {
@@ -295,7 +273,7 @@ class ChatActivity : AppCompatActivity() {
 
  */
 
-    private fun getMessages(id: Long, sharedPassword: String?, contactId: Integer) {
+    private fun getMessages(id: Long, sharedPassword: String?, contactId: Int) {
         lifecycleScope.launch(Dispatchers.Default) {
 
             try {

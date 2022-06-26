@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.*
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -17,8 +18,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.baza.AppDatabase
+import com.example.morsecode.baza.MessageDao
 import com.example.morsecode.baza.PorukaDao
+import com.example.morsecode.models.Message
 import com.example.morsecode.models.VibrationMessage
+import com.example.morsecode.network.MessagesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -58,10 +62,19 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, PlaygroundActivity::class.java)
             startActivity(intent)
         }
-        findViewById<LinearLayout>(R.id.morse_in_action).setOnClickListener(){
+
+        val sharedPreferences: SharedPreferences =
+            this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
+
+        val sharedName: String = sharedPreferences.getString("username", "").toString()
+        val userHash = sharedPreferences.getString(ChatActivity.USER_HASH, "")
+        val prefUserId = sharedPreferences.getInt("id", 0)
+        findViewById<TextView>(R.id.welcome_message).text = "Welcome, ${sharedName}"
+        /*findViewById<LinearLayout>(R.id.morse_in_action).setOnClickListener(){
             val intent = Intent(this, SendMorseActivity::class.java)
             startActivity(intent)
-        }
+        }*/
+        getNewMessages(prefUserId, userHash)
         reloadListaPoruka()
 
         val intent = Intent(this, MorseCodeService::class.java) // Build the intent for the service
@@ -78,6 +91,37 @@ class MainActivity : AppCompatActivity() {
             withContext(Dispatchers.Main){
                 refreshMessages(poruke)
             }
+        }
+    }
+
+    private fun getNewMessages(id: Int, userHash: String?) {
+        lifecycleScope.launch(Dispatchers.Default) {
+            try {
+                val response: List<Message> = MessagesApi.retrofitService.getNewMessages(
+                    id,
+                    userHash
+                )
+                Log.e("stjepan", "dohvacene poruke $response")
+                if (response.isNotEmpty()) {
+                    for(message in response) {
+                        saveMessage(message)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
+            }
+        }
+    }
+
+    private fun saveMessage(message: Message) {
+        try {
+            val db = AppDatabase.getInstance(this)
+            val messageDao: MessageDao = db.messageDao()
+            messageDao.insertAll(message)
+
+            Log.e("stjepan", "db uspelo")
+        } catch (e: Exception) {
+            Log.e("stjepan", "db neje uspelo" + e.stackTraceToString() + e.message.toString())
         }
     }
 
@@ -158,9 +202,6 @@ class MainActivity : AppCompatActivity() {
 
             else -> super.onOptionsItemSelected(item)
         }
-    }
-    override fun onBackPressed() {
-
     }
 
 }

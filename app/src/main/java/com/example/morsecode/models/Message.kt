@@ -8,8 +8,8 @@ import com.squareup.moshi.Json
 data class Message(
     @PrimaryKey(autoGenerate = true) val id: Long,
     @Json(name = "message") val message:String?,
-    @Json(name = "receiverId") val receiverId:Integer?,
-    @Json(name = "senderId") val senderId:Integer?,
+    @Json(name = "receiverId") val receiverId:Int?,
+    @Json(name = "senderId") val senderId:Int?,
     //@Json(name = "sentAT") val sentAt:Timestamp?,
     //@Json(name = "seen") val seen:Boolean?,
     //@Json(name = "received") val received:Boolean?,

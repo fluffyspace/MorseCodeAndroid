@@ -22,14 +22,16 @@ import com.example.morsecode.models.EntitetKontakt
 import com.example.morsecode.network.ContactsApi
 import kotlinx.coroutines.Dispatchers
 
-class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>) :
+class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>, longClickListener: OnLongClickListener) :
     RecyclerView.Adapter<KontaktiAdapter.ViewHolder>() {
     var kontakt: List<EntitetKontakt>
     var context: Context
+    var longClickListener: OnLongClickListener
 
     init {
         this.kontakt = kontakt
         context = c
+        this.longClickListener = longClickListener
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
@@ -61,7 +63,8 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>) :
 
     override fun onBindViewHolder(viewHolder: ViewHolder, i: Int) {
         val ime = viewHolder.imePrezimeTV
-        ime.text = kontakt[i].username
+        val imeText = "${kontakt[i].username} (${kontakt[i].id})"
+        ime.text = imeText
 
 
 
@@ -69,16 +72,16 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>) :
             val activity = viewHolder.itemView.context as Activity
             val intent = Intent(activity, ChatActivity::class.java)
             intent.putExtra("username", kontakt[i].username)
-            intent.putExtra("id", kontakt[i].id.toString())
+            intent.putExtra("id", kontakt[i].id)
             startActivity(activity,intent,null)
-
         }
 
         viewHolder.itemView.setOnLongClickListener {
-            val intent = Intent(viewHolder.itemView.context, ContactActivity::class.java)
+            longClickListener.longHold(kontakt[i].id!!.toInt(), kontakt[i].username)
+            /*val intent = Intent(viewHolder.itemView.context, ContactActivity::class.java)
             intent.putExtra("idFriend", kontakt[i].id.toString())
             intent.putExtra("nameFriend", kontakt[i].username)
-            viewHolder.itemView.context.startActivity(intent)
+            viewHolder.itemView.context.startActivity(intent)*/
 
             true
         }
