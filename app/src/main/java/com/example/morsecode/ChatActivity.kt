@@ -166,12 +166,12 @@ class ChatActivity : AppCompatActivity() {
             }
             true
         }
-
+/*
         accelerometer.setListener { x, y, z ->
             supportActionBar?.title = x.toString()
             handsFree.follow(x, z)
         }
-
+*/
         handsFree.setListener(object : HandsFree.Listener {
             override fun onTranslation(tap: Int) {
                 if (tap == 1) {

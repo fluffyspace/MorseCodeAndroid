@@ -9,18 +9,15 @@ import android.hardware.SensorManager;
 public class Accelerometer {
 
     public interface Listener{
-        void onTranslation(float x, float y, float z);
+        void onTranslation(float x, float y, float z,float xG, float yG, float zG);
     }
 
     private Listener listener;
-    private Listener listener1;
 
     public void setListener(Listener l){
         listener = l;
     }
-    public void setListener1(Listener ll){
-        listener1 = ll;
-    }
+
 
     private SensorManager sensorManager;
     private Sensor sensor;
@@ -41,16 +38,12 @@ public class Accelerometer {
                 gravity[1] = alpha * gravity[1] + (1 - alpha) * event.values[1];
                 gravity[2] = alpha * gravity[2] + (1 - alpha) * event.values[2];
 
-                if(listener1 != null){
-                    listener1.onTranslation(event.values[0], event.values[1], event.values[2]);
-                }
-
                 linear_acceleration[0] = event.values[0] - gravity[0];
                 linear_acceleration[1] = event.values[1] - gravity[1];
                 linear_acceleration[2] = event.values[2] - gravity[2];
 
                 if (listener != null){
-                    listener.onTranslation(linear_acceleration[0], linear_acceleration[1], linear_acceleration[2]);
+                    listener.onTranslation(linear_acceleration[0], linear_acceleration[1], linear_acceleration[2],event.values[0], event.values[1], event.values[2]);
                 }
             }
 
