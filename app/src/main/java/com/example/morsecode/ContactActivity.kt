@@ -39,6 +39,8 @@ class ContactActivity : AppCompatActivity() {
 
     private var start = true
 
+    var mAccessibilityService:MorseCodeService? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_contact)
@@ -221,6 +223,15 @@ class ContactActivity : AppCompatActivity() {
 
     fun vibrateName(index: Int) {
         //TODO vibrate contact name
+
+        mAccessibilityService = MorseCodeService.getSharedInstance();
+
+        Log.e("stejpan " , kontakt[index].username.toString())
+
+        var a = mAccessibilityService?.makeWaveformFromText(kontakt[index].username)
+        Log.e("stejpan " , a.toString())
+
+        mAccessibilityService?.vibrateWithPWM(mAccessibilityService!!.makeWaveformFromText(kontakt[index].username.toString()))
         Toast.makeText(
             applicationContext,
             "Current contact " + kontakt[index].username,
