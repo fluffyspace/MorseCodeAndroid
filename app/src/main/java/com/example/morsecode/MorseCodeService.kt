@@ -8,6 +8,7 @@ import android.preference.PreferenceManager
 import android.util.Log
 import android.view.KeyEvent
 import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
@@ -89,7 +90,7 @@ class MorseCodeService: Service(), CoroutineScope{
         return vvv.toList()
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun onKeyEvent(event: KeyEvent) {
         /*
             KEYCODE_HEADSETHOOK = middle button on phone headset
@@ -140,7 +141,7 @@ class MorseCodeService: Service(), CoroutineScope{
         //textView.setText(MORSECODE_ON + ": " + getMessage())
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun vibrateWithPWM(listWithoutPWM: List<Long>) {
         var nisu_sve_nule = false
         listWithoutPWM.forEach{
@@ -166,8 +167,12 @@ class MorseCodeService: Service(), CoroutineScope{
                 if(counter % 2 == 0) listWithPWM.add(servicePostavke.pwm_on)
             }
         }
-        val vibrationEffect: VibrationEffect = VibrationEffect.createWaveform(listWithPWM.toLongArray(), -1)
-        vibrator.vibrate(vibrationEffect)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val vibrationEffect: VibrationEffect = VibrationEffect.createWaveform(listWithPWM.toLongArray(), -1)
+            vibrator.vibrate(vibrationEffect)
+        }else{
+            vibrator.vibrate(listWithPWM.toLongArray(), -1)
+        }
     }
 
     fun createNotification(title: String, text: String): Notification {
@@ -185,20 +190,33 @@ class MorseCodeService: Service(), CoroutineScope{
             intentStopService,
             PendingIntent.FLAG_CANCEL_CURRENT
         )
-        return Notification.Builder(this, CHANNEL_ID)
-            .setContentTitle(title)
-            .setContentText(text)
-            .setSmallIcon(R.drawable.ic_baseline_check_circle_24)
-            .setContentIntent(pendingIntent)
-            .addAction(R.drawable.ic_baseline_cancel_24, getString(R.string.stopService),
-                stopServicePendingIntent)
-            .setOnlyAlertOnce(true)
-            .build()
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder(this, CHANNEL_ID)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setSmallIcon(R.drawable.ic_baseline_check_circle_24)
+                .setContentIntent(pendingIntent)
+                .addAction(R.drawable.ic_baseline_cancel_24, getString(R.string.stopService),
+                    stopServicePendingIntent)
+                .setOnlyAlertOnce(true)
+                .build()
+        } else {
+            NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setSmallIcon(R.drawable.ic_baseline_check_circle_24)
+                .setContentIntent(pendingIntent)
+                .addAction(R.drawable.ic_baseline_cancel_24, getString(R.string.stopService),
+                    stopServicePendingIntent)
+                .setOnlyAlertOnce(true)
+                .build()
+        }
     }
 
     private fun createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = getString(R.string.channel_name)
             val descriptionText = getString(R.string.channel_description)
@@ -211,9 +229,9 @@ class MorseCodeService: Service(), CoroutineScope{
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
+
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         setup()
         return super.onStartCommand(intent, flags, startId)
@@ -226,18 +244,20 @@ class MorseCodeService: Service(), CoroutineScope{
         super.onDestroy()
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     override fun onBind(intent: Intent?): IBinder? {
 
         return binder
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun setup(){
         createNotificationChannel()
         // Create an overlay and display the action bar
         vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
+
         vibrateWithPWM(VIBRATE_PATTERN)
+
         //maybeSendMessageCoroutineLoop()
         korutina = scope.launch {
             // New coroutine that can call suspend functions
@@ -254,7 +274,6 @@ class MorseCodeService: Service(), CoroutineScope{
         startForeground(ONGOING_NOTIFICATION_ID, notification)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun maybeSendMessage(){
         Log.d("ingo", "maybeSendMessage")
         val diff:Int = getTimeDifference()
@@ -313,7 +332,7 @@ class MorseCodeService: Service(), CoroutineScope{
 
     fun isNumeric(str: String) = str.all { it in '0'..'9' }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     suspend fun sendMessage(stringZaPoslati:String){
         try {
             val response: VibrationMessage = VibrationMessagesApi.retrofitService.sendMessage(stringZaPoslati, servicePostavke.token)
@@ -334,7 +353,7 @@ class MorseCodeService: Service(), CoroutineScope{
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     suspend fun maybeSendMessageCoroutineLoop() { // this: CoroutineScope
         while(true) {
             delay(1000L) // non-blocking delay for 1 second (default time unit is ms)

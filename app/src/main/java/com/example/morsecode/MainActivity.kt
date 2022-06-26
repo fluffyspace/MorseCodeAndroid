@@ -65,7 +65,11 @@ class MainActivity : AppCompatActivity() {
         reloadListaPoruka()
 
         val intent = Intent(this, MorseCodeService::class.java) // Build the intent for the service
-        //applicationContext.startForegroundService(intent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            applicationContext.startForegroundService(intent)
+        }else{
+            applicationContext.startService(intent)
+        }
     }
 
     fun reloadListaPoruka(){

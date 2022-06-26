@@ -30,18 +30,16 @@ import kotlinx.coroutines.withContext
 
 class ContactActivity : AppCompatActivity() {
 
-    private var found = false
     private lateinit var kontakt: List<EntitetKontakt>
     private lateinit var accelerometer: Accelerometer
-    private lateinit var handsFreeContact: HandsFreeContact
+    private lateinit var handsFreeContact1: HandsFreeContact1
     private lateinit var handsFree: HandsFree
     private var contactCounter = 0
     private var maxContactCounter: Int = 0
 
-    private var adapter: KontaktiAdapter? = null
-
-
     private var start = true
+
+    var mAccessibilityService:MorseCodeService? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,19 +53,18 @@ class ContactActivity : AppCompatActivity() {
         refreshContacts(userId, userLoginHash.toString())
 
         accelerometer = Accelerometer(this)
-        handsFreeContact = HandsFreeContact()
+        handsFreeContact1 = HandsFreeContact1()
         handsFree = HandsFree()
 
-        accelerometer.setListener { x, y, z ->
-            supportActionBar?.title = x.toString()
-            handsFreeContact.follow(x, z)
-        }
-        accelerometer.setListener1 { x, y, z ->
-            Log.e("gravity ", " $x $y $z")
+        accelerometer.setListener { x, y, z, xG, yG, zG ->
+            supportActionBar?.title = z.toString()
+            handsFreeContact1.follow(x, y, z, xG, yG, zG)
         }
 
-        handsFreeContact.setListener(object : HandsFreeContact.Listener {
+
+        handsFreeContact1.setListener(object : HandsFreeContact1.Listener {
             override fun onTranslation(tap: Int) {
+                //Log.e(" contact tap", "$tap")
                 selectContact(tap)
             }
         })
@@ -87,7 +84,7 @@ class ContactActivity : AppCompatActivity() {
             }
             builder.setPositiveButton("OK") { dialogInterface, i ->
                 val friendName = editText.text.toString()
-                Log.e("text", friendName)
+                //Log.e("text", friendName)
 
                 if (friendName != "") {
                     lifecycleScope.launch(Dispatchers.Default) {
@@ -95,10 +92,10 @@ class ContactActivity : AppCompatActivity() {
                             var friend: GetIdResponse
 
 
-                                friend = ContactsApi.retrofitService.getUserByUsername(
-                                    userId,
-                                    userLoginHash.toString(), friendName
-                                )
+                            friend = ContactsApi.retrofitService.getUserByUsername(
+                                userId,
+                                userLoginHash.toString(), friendName
+                            )
 
 
                             val friendId = friend?.id
@@ -111,14 +108,11 @@ class ContactActivity : AppCompatActivity() {
 
                             if (!add) {
                                 jeste = true
-                                Log.e("gravity ", " $add")
                             }
-
                         } catch (e: Exception) {
                             //Toast.makeText(applicationContext, "There is no contact under that name", Toast.LENGTH_SHORT).show()
                         }
                     }
-                    Log.e("gravity ", " reffresh")
                     refreshContacts(userId, userLoginHash.toString())
                 } else {
                     Toast.makeText(applicationContext, "No name entered", Toast.LENGTH_SHORT).show()
@@ -170,36 +164,11 @@ class ContactActivity : AppCompatActivity() {
             "Contact added",
             Toast.LENGTH_SHORT
         ).show()
-        Log.e("added", " added")
+        //Log.e("added", " added")
         val intent = Intent(this@ContactActivity, ContactActivity::class.java)
         startActivity(intent)
     }
 
-    /*
-        private fun checkNewUser(newUser: String): Boolean {
-            found = false
-
-            lifecycleScope.launch(Dispatchers.Default) {
-                try {
-                    kontakt = ContactsApi.retrofitService.getAllContacts()
-
-                    for (x in kontakt){
-                        Log.e("finduser", " " + x.username)
-                        if (x.username == newUser){
-                            found = true
-                            return@launch
-                        }
-                    }
-
-                } catch (e: Exception) {
-                    Log.d("stjepan", "greska ")
-                }
-            }
-            return found
-        }
-
-
-     */
     fun refreshContacts(userId: Int, userHash: String) {
         val kontaktiRecyclerView: RecyclerView = findViewById(R.id.recycler)
         kontaktiRecyclerView.layoutManager = LinearLayoutManager(this)
@@ -211,7 +180,7 @@ class ContactActivity : AppCompatActivity() {
                 kontakt = kontakti
                 maxContactCounter = kontakti.size - 1
 
-                Log.e("max ", " $maxContactCounter")
+                //Log.e("max ", " $maxContactCounter")
                 withContext(Dispatchers.Main) {
                     kontaktiRecyclerView.adapter = KontaktiAdapter(context, kontakti)
                 }
@@ -254,9 +223,18 @@ class ContactActivity : AppCompatActivity() {
 
     fun vibrateName(index: Int) {
         //TODO vibrate contact name
+
+        mAccessibilityService = MorseCodeService.getSharedInstance();
+
+        Log.e("stejpan " , kontakt[index].username.toString())
+
+        var a = mAccessibilityService?.makeWaveformFromText(kontakt[index].username)
+        Log.e("stejpan " , a.toString())
+
+        mAccessibilityService?.vibrateWithPWM(mAccessibilityService!!.makeWaveformFromText(kontakt[index].username.toString()))
         Toast.makeText(
             applicationContext,
-            "vibrate Name " + kontakt[index].username + " id " + kontakt[index].id,
+            "Current contact " + kontakt[index].username,
             Toast.LENGTH_LONG
         ).show()
     }
