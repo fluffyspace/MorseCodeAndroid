@@ -35,7 +35,7 @@ class ChatActivity : AppCompatActivity() {
         val USER_PASSWORD = "password"
         val USER_HASH = "logInHash"
         val sharedPreferencesFile = "MyPrefs"
-        var handsFreeOn = false
+
     }
 
     lateinit var tapButton: Button
@@ -48,7 +48,10 @@ class ChatActivity : AppCompatActivity() {
     private var chatAdapter: CustomAdapter? = null
 
     lateinit var visual_feedback_container: VisualFeedbackFragment
+
     private lateinit var accelerometer: Accelerometer
+    private lateinit var gyroscope: Gyroscope
+    //private lateinit var magnetometer: Magnetometer
 
     private lateinit var handsFree: HandsFree
     private var morseOn = false
@@ -56,6 +59,9 @@ class ChatActivity : AppCompatActivity() {
     private var start = true
 
     var context = this
+
+
+    private var handsFreeOnChat = false
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,6 +73,8 @@ class ChatActivity : AppCompatActivity() {
         supportActionBar?.title = "$contactName ($contactId)"
 
         accelerometer = Accelerometer(this)
+        gyroscope = Gyroscope(this)
+        //magnetometer = Magnetometer(this)
         handsFree = HandsFree()
 
         sendButton = findViewById(R.id.sendButton)
@@ -147,13 +155,6 @@ class ChatActivity : AppCompatActivity() {
                 morseOn = false
                 fra.isVisible = false
             }*/
-
-/*
-            LargeBanner.make(it, "Ceci est une snackbar LARGE", LargeBanner.LENGTH_INDEFINITE)
-                .setAction()
-                .show()
-*/
-
         }
 
         tapButton = findViewById(R.id.tap)
@@ -168,12 +169,21 @@ class ChatActivity : AppCompatActivity() {
             }
             true
         }
-/*
-        accelerometer.setListener { x, y, z ->
-            supportActionBar?.title = x.toString()
-            handsFree.follow(x, z)
+
+        accelerometer.setListener { x, y, z, xG, yG, zG ->
+            //supportActionBar?.title = z.toString()
+            handsFree.followAccelerometer(x, y, z, xG, yG, zG)
         }
-*/
+
+        gyroscope.setListener { rx, ry, rz ->
+
+            handsFree.followGyroscope(rx, ry, rz)
+        }
+
+        //magnetometer.setListener { rx, ry, rz ->
+        //    supportActionBar?.title = rx.toString()
+        //}
+
         handsFree.setListener(object : HandsFree.Listener {
             override fun onTranslation(tap: Int) {
                 if (tap == 1) {
@@ -186,9 +196,7 @@ class ChatActivity : AppCompatActivity() {
             }
         })
 
-        if (handsFreeOn){
-            onResume()
-        }
+
     }
 
     private fun saveMessage(message: Message) {
@@ -313,6 +321,18 @@ class ChatActivity : AppCompatActivity() {
                     }
                     morseButton.performClick()
 
+                    if (handsFreeOnChat) {
+                        handsFreeOnChat = false
+                        accelerometer.unregister()
+                        gyroscope.unregister()
+                        //magnetometer.unregister()
+                    } else if(!handsFreeOnChat) {
+                        handsFreeOnChat = true
+                        accelerometer.register()
+                        gyroscope.register()
+                        //magnetometer.register()
+                    }
+
                     Toast.makeText(
                         this,
                         "vibration" + Toast.LENGTH_SHORT.toString(),
@@ -321,13 +341,6 @@ class ChatActivity : AppCompatActivity() {
                 } catch (e: Exception) {
 
                 }
-/*
-                if (accelerometer.on) {
-                    onPause()
-                } else {
-                    onResume()
-                }
-*/
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -335,15 +348,15 @@ class ChatActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
-        if (!start) {
+        if (handsFreeOnChat) {
             accelerometer.register()
-        } else {
-            start = false
+            gyroscope.register()
         }
         super.onResume()
     }
 
     override fun onPause() {
+        gyroscope.unregister()
         accelerometer.unregister()
         super.onPause()
     }
