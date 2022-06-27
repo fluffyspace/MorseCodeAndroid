@@ -54,6 +54,9 @@ class LogInActivity : AppCompatActivity() {
 
         if (sharedName != "" && sharedPassword != "" && sharedId != 0) {
             Log.e("stjepann", "id$sharedId")
+            val editor = sharedPreferences.edit()
+            editor.putBoolean("autoLogIn", true)
+            editor.apply()
             val intent = Intent(this@LogInActivity, MainActivity::class.java)
             startActivity(intent)
         }else{

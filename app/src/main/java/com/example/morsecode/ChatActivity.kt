@@ -26,6 +26,7 @@ import com.example.morsecode.models.Message
 import com.example.morsecode.network.MessagesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ChatActivity : AppCompatActivity() {
 
@@ -104,6 +105,7 @@ class ChatActivity : AppCompatActivity() {
             .commitNow()
 
         //(userId, userHash, contactId)
+        getNewMessages(prefUserId,userHash)
         populateData(context, recyclerView, prefUserId, contactId)
 
         //message listeners
@@ -177,6 +179,9 @@ class ChatActivity : AppCompatActivity() {
                 }
             }
         })
+
+
+
     }
 
     private fun saveMessage(message: Message) {
@@ -238,41 +243,24 @@ class ChatActivity : AppCompatActivity() {
             }
         }
     }
-/*
-    private fun getMessageContacts(id: Long, sharedPassword: String?){
+
+    private fun getNewMessages(id: Int, userHash: String?) {
         lifecycleScope.launch(Dispatchers.Default) {
-
             try {
-                val response = MessagesApi.retrofitService.getMessages(
+                val response: List<Message> = MessagesApi.retrofitService.getNewMessages(
                     id,
-                    sharedPassword
-
+                    userHash
                 )
+                if (response.isNotEmpty()) {
 
-                Log.e("stjepan", "poslana poruka$response")
+                    for (message in response) {
+                        withContext(Dispatchers.Main) {
+                            saveMessage(message)
+                        }
+                    }
+                }
+
             } catch (e: Exception) {
-                Log.e("Stjepan", "poslana poruka $id + $sharedPassword + ")
-                Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
-            }
-
-        }
-    }
-
-
- */
-
-    private fun getMessages(id: Long, sharedPassword: String?, contactId: Int) {
-        lifecycleScope.launch(Dispatchers.Default) {
-
-            try {
-                val response = MessagesApi.retrofitService.getMessages(
-                    id,
-                    sharedPassword,
-                    contactId
-                )
-                Log.e("stjepan", "poslana poruka$response")
-            } catch (e: Exception) {
-                Log.e("Stjepan", "poslana poruka $id + $sharedPassword + ")
                 Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
             }
         }
@@ -306,12 +294,10 @@ class ChatActivity : AppCompatActivity() {
                         handsFreeOnChat = false
                         accelerometer.unregister()
                         gyroscope.unregister()
-                        //magnetometer.unregister()
                     } else if(!handsFreeOnChat) {
                         handsFreeOnChat = true
                         accelerometer.register()
                         gyroscope.register()
-                        //magnetometer.register()
                     }
 
                     Toast.makeText(

@@ -92,19 +92,25 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
 
                             friend = ContactsApi.retrofitService.getUserByUsername(
                                 userId,
-                                userLoginHash.toString(), friendName
+                                userLoginHash, friendName
                             )
 
                             val friendId = friend?.id
                             var add = ContactsApi.retrofitService.addFriend(
                                 userId,
-                                userLoginHash.toString(), friendId
+                                userLoginHash, friendId
                             )
+                            lifecycleScope.launch(Dispatchers.Main) {
+                                refreshContacts(userId, userLoginHash)
+
+                                Toast.makeText(applicationContext, friendName + "", Toast.LENGTH_SHORT).show()
+                            }
                         } catch (e: Exception) {
                             //Toast.makeText(applicationContext, "There is no contact under that name", Toast.LENGTH_SHORT).show()
                         }
                     }
-                    refreshContacts(userId, userLoginHash.toString())
+
+
                 } else {
                     Toast.makeText(applicationContext, "No name entered", Toast.LENGTH_SHORT).show()
                     fab.performClick()

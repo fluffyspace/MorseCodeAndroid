@@ -39,7 +39,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:ems="10"
-        android:inputType="textPersonName"
+        android:inputType="text"
         android:minHeight="48dp"
         android:hint="Name"
         android:textAlignment="center"
