@@ -62,11 +62,14 @@ class ChatActivity : AppCompatActivity() {
 
 
     private var handsFreeOnChat = false
+    private var morseFragmentOn = false
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
+
+        val vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
         val contactName = intent.getStringExtra(USER_NAME).toString()
         val contactId = intent.getLongExtra(USER_ID, -1).toInt()
@@ -107,6 +110,16 @@ class ChatActivity : AppCompatActivity() {
         visual_feedback_container.setListener(object : VisualFeedbackFragment.Listener {
             override fun onTranslation(changeText: String) {
                 visual_feedback_container.setMessage(changeText)
+                textEditMessage.setText(changeText)
+                Log.e("Stjepan " , visual_feedback_container.getMessage())
+            }
+
+            override fun finish(gotovo: Boolean) {
+                if (gotovo){
+                    sendButton.performClick()
+                    vibrator.vibrate(100)
+
+                }
             }
         })
 
@@ -125,36 +138,6 @@ class ChatActivity : AppCompatActivity() {
             morseOn = !morseOn
             fra.isVisible = morseOn
 
-            /*if (!morseOn) {
-                val param = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    0,
-                    0.6f
-                )
-                layoutTop.layoutParams = param
-                val param1 = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    0,
-                    0.4f
-                )
-                layBottom.layoutParams = param1
-
-            } else {
-                val param = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    0,
-                    0.75f
-                )
-                layoutTop.layoutParams = param
-                val param1 = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    0,
-                    0.25f
-                )
-                layBottom.layoutParams = param1
-                morseOn = false
-                fra.isVisible = false
-            }*/
         }
 
         tapButton = findViewById(R.id.tap)
@@ -176,27 +159,24 @@ class ChatActivity : AppCompatActivity() {
         }
 
         gyroscope.setListener { rx, ry, rz ->
-
+            supportActionBar?.title = rx.toString()
             handsFree.followGyroscope(rx, ry, rz)
         }
 
-        //magnetometer.setListener { rx, ry, rz ->
-        //    supportActionBar?.title = rx.toString()
-        //}
 
         handsFree.setListener(object : HandsFree.Listener {
             override fun onTranslation(tap: Int) {
                 if (tap == 1) {
-                   // visual_feedback_container.down()
+                    visual_feedback_container.down()
                 } else if (tap == 2) {
-                  //  visual_feedback_container.up()
+                    visual_feedback_container.up()
                 } else if(tap == 3){
+                    visual_feedback_container.reset()
+                } else if(tap == 4){
                     onBackPressed()
                 }
             }
         })
-
-
     }
 
     private fun saveMessage(message: Message) {
@@ -319,6 +299,7 @@ class ChatActivity : AppCompatActivity() {
                     } else {
                         vibrator.vibrate(200)
                     }
+
                     morseButton.performClick()
 
                     if (handsFreeOnChat) {

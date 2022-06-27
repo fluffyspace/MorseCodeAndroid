@@ -1,12 +1,13 @@
 package com.example.morsecode
 
 import android.util.Log
+import kotlin.math.abs
 import kotlin.math.min
 
 class HandsFree {
 
     private var counter = 0
-    private var threshold = 1.5f
+    private var threshold = 0.3f
 
     private var xG = 0f
 
@@ -24,6 +25,9 @@ class HandsFree {
     private var lastXGsum = 0f
     private var lastZGsum = 0f
     private var gCounter = 9
+
+
+    private var goreDole = true
 
     fun followAccelerometer(x: Float, y: Float, z: Float, xG: Float, yG: Float, zG: Float) {
 
@@ -44,8 +48,74 @@ class HandsFree {
         }
     }
 
-    fun followGyroscope(x: Float, y: Float, zG: Float){
+    fun followGyroscope(x: Float, y: Float, z: Float) {
 
+        if (abs(x) > threshold || abs(z) > threshold) {
+
+            if (abs(lastXGsum) < (abs(lastZGsum))) {
+
+                if (x > threshold && goreDole) {
+                    Log.e("max ", " x minus")
+                    if (listener != null) {
+                        listener.onTranslation(1)
+                    }
+                    goreDole = !goreDole
+
+                } else if (x < -threshold && !goreDole) {
+                    Log.e("max ", " x +")
+                    if (listener != null) {
+                        listener.onTranslation(2)
+                    }
+                    goreDole = !goreDole
+                } else if (z > threshold) {
+                     Log.e("z ", " plus")
+                    if (listener != null) {
+                        //listener.onTranslation(3)
+                    }
+
+                } else if (z < -threshold ) {
+                    Log.e("z ", " minus")
+                    if (listener != null) {
+                        listener.onTranslation(4)
+                    }
+
+                }
+
+
+            } else if (abs(lastXGsum) > (abs(lastZGsum))) {
+                if (z > threshold && goreDole) {
+                    Log.e("max ", " z minus")
+                    if (listener != null) {
+                        listener.onTranslation(1)
+                    }
+                    goreDole = !goreDole
+
+                } else if (z < -threshold && !goreDole) {
+                    Log.e("max ", " z +")
+                    if (listener != null) {
+                        listener.onTranslation(2)
+                    }
+                    goreDole = !goreDole
+                } else if (x > threshold && counter < 0) {
+                    //Log.e("max ", " x minus")
+                    if (listener != null) {
+                        listener.onTranslation(3)
+                    }
+                    counter = 10
+                } else if (x < -threshold && counter < 0) {
+                    //Log.e("max ", " x +")
+                    if (listener != null) {
+                        listener.onTranslation(4)
+                    }
+                    counter = 10
+                }
+
+            }
+        }
+/*
+
+
+        }
         if(x < minX){
             minX = x
             Log.e("min x" , minX.toString())
@@ -65,7 +135,7 @@ class HandsFree {
             maxZ = x
             Log.e("max z" , maxZ.toString())
         }
-
+*/
     }
 
     interface Listener {
