@@ -19,6 +19,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.Adapters.KontaktiAdapter
 import com.example.morsecode.Adapters.OnLongClickListener
+import com.example.morsecode.ChatActivity.Companion.USER_HASH
+import com.example.morsecode.ChatActivity.Companion.sharedPreferencesFile
 import com.example.morsecode.models.EntitetKontakt
 import com.example.morsecode.models.GetIdResponse
 import com.example.morsecode.network.ContactsApi
@@ -30,31 +32,35 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
 
     private lateinit var kontakt: List<EntitetKontakt>
     private lateinit var accelerometer: Accelerometer
-    private lateinit var handsFreeContact1: HandsFreeContact1
+    private lateinit var handsFreeContact1: HandsFreeContact
     private lateinit var handsFree: HandsFree
     private var contactCounter = 0
     private var maxContactCounter: Int = 0
 
-    private var start = true
+    private var handsFreeOnChat = false
 
-    var mAccessibilityService:MorseCodeService? = null
+    var mAccessibilityService: MorseCodeService? = null
 
     var userId: Int = 0
     var userLoginHash: String = ""
+
+    lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_contact)
 
-        val sharedPreferences: SharedPreferences =
-            this.getSharedPreferences(Constants.sharedPreferencesFile, Context.MODE_PRIVATE)
+
+        sharedPreferences = this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
         userId = sharedPreferences.getInt("id", 0)
         userLoginHash = sharedPreferences.getString(Constants.USER_HASH, "noHash").toString();
+
+        handsFreeOnChat = sharedPreferences.getBoolean("hands_free", false)
 
         refreshContacts(userId, userLoginHash.toString())
 
         accelerometer = Accelerometer(this)
-        handsFreeContact1 = HandsFreeContact1()
+        handsFreeContact1 = HandsFreeContact()
         handsFree = HandsFree()
 
         accelerometer.setListener { x, y, z, xG, yG, zG ->
@@ -63,14 +69,11 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
         }
 
 
-        handsFreeContact1.setListener(object : HandsFreeContact1.Listener {
+        handsFreeContact1.setListener(object : HandsFreeContact.Listener {
             override fun onTranslation(tap: Int) {
-                //Log.e(" contact tap", "$tap")
                 selectContact(tap)
             }
         })
-
-        var jeste: Boolean = false
 
         val fab: View = findViewById(R.id.floatingActionButton)
         fab.setOnClickListener { view ->
@@ -85,36 +88,37 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
             }
             builder.setPositiveButton("OK") { dialogInterface, i ->
                 val friendName = editText.text.toString()
-                //Log.e("text", friendName)
 
                 if (friendName != "") {
                     lifecycleScope.launch(Dispatchers.Default) {
                         try {
                             var friend: GetIdResponse
 
-
                             friend = ContactsApi.retrofitService.getUserByUsername(
                                 userId,
-                                userLoginHash.toString(), friendName
+                                userLoginHash, friendName
                             )
-
 
                             val friendId = friend?.id
-
-
                             var add = ContactsApi.retrofitService.addFriend(
                                 userId,
-                                userLoginHash.toString(), friendId
+                                userLoginHash, friendId
                             )
+                            lifecycleScope.launch(Dispatchers.Main) {
+                                refreshContacts(userId, userLoginHash)
 
-                            if (!add) {
-                                jeste = true
+                                Toast.makeText(
+                                    applicationContext,
+                                    friendName + "",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         } catch (e: Exception) {
                             //Toast.makeText(applicationContext, "There is no contact under that name", Toast.LENGTH_SHORT).show()
                         }
                     }
-                    refreshContacts(userId, userLoginHash.toString())
+
+
                 } else {
                     Toast.makeText(applicationContext, "No name entered", Toast.LENGTH_SHORT).show()
                     fab.performClick()
@@ -123,23 +127,6 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
             }
             builder.show()
         }
-
-        if (Constants.handsFreeOn) {
-            onResume()
-        }
-
-
-    }
-
-    private fun contactAdded() {
-        Toast.makeText(
-            applicationContext,
-            "Contact added",
-            Toast.LENGTH_SHORT
-        ).show()
-        //Log.e("added", " added")
-        val intent = Intent(this@ContactActivity, ContactActivity::class.java)
-        startActivity(intent)
     }
 
     fun refreshContacts(userId: Int, userHash: String) {
@@ -155,7 +142,8 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
 
                 //Log.e("max ", " $maxContactCounter")
                 withContext(Dispatchers.Main) {
-                    kontaktiRecyclerView.adapter = KontaktiAdapter(context, kontakti, this@ContactActivity)
+                    kontaktiRecyclerView.adapter =
+                        KontaktiAdapter(context, kontakti, this@ContactActivity)
                 }
             } catch (e: Exception) {
                 Log.d("stjepan", "greska ")
@@ -195,14 +183,7 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
     }
 
     fun vibrateName(index: Int) {
-        //TODO vibrate contact name
-
         mAccessibilityService = MorseCodeService.getSharedInstance();
-
-        Log.e("stjepan " , kontakt[index].username.toString())
-
-        var a = mAccessibilityService?.makeWaveformFromText(kontakt[index].username)
-        Log.e("stjepan " , a.toString())
 
         mAccessibilityService?.vibrateWithPWM(mAccessibilityService!!.makeWaveformFromText(kontakt[index].username.toString()))
         Toast.makeText(
@@ -235,6 +216,16 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
                     }
                     Constants.handsFreeOn = true
 
+                    if (handsFreeOnChat) {
+
+                        handsFreeOnChat = false
+                        accelerometer.unregister()
+                        handsFreeOnChatSet(false)
+                    } else if(!handsFreeOnChat) {
+                        handsFreeOnChat = true
+                        accelerometer.register()
+                        handsFreeOnChatSet(true)
+                    }
                     Toast.makeText(
                         this,
                         "vibration" + Toast.LENGTH_SHORT.toString(),
@@ -243,11 +234,6 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
                 } catch (e: Exception) {
                 }
 
-                if (accelerometer.on) {
-                    onPause()
-                } else {
-                    onResume()
-                }
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -255,12 +241,19 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
     }
 
     override fun onResume() {
-        if (!start) {
+        Log.e("handsfree" , handsFreeOnChat.toString())
+
+        if (handsFreeOnChat) {
             accelerometer.register()
-        } else {
-            start = false
         }
+
         super.onResume()
+    }
+
+    private fun handsFreeOnChatSet(b: Boolean) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean("hands_free", b)
+        editor.apply()
     }
 
     override fun onPause() {

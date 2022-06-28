@@ -40,6 +40,7 @@ class VisualFeedbackFragment : Fragment() {
 
     interface Listener {
         fun onTranslation(changeText: String)
+        fun finish(gotovo: Boolean)
     }
 
     private var listener: Listener? = null
@@ -152,7 +153,13 @@ class VisualFeedbackFragment : Fragment() {
             progressbar_up.setNewProgress(progress)
             if(progress > oneTimeUnit*7){
                 cancelKorutina()
-                if(testing) mAccessibilityService?.buttonHistory?.clear()
+                if(testing) {
+                    mAccessibilityService?.buttonHistory?.clear()
+                    Log.e("gotovo" , "gotovo")
+                    if (listener != null){
+                        listener!!.finish(true)
+                    }
+                }
                 //progressbar_up.setNewProgress(0)
                 // send happens
             }

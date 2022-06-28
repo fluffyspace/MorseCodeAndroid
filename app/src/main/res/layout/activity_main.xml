@@ -124,6 +124,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/obrub"/>
+        <!--
         <Button
             android:id="@+id/reload_from_service"
             android:layout_gravity="center"
@@ -137,5 +138,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"/>
+            -->
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

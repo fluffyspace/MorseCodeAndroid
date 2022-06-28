@@ -34,21 +34,33 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.URISyntaxException
 
-
 class ChatActivity : AppCompatActivity() {
+
+    companion object {
+        val USER_NAME = "username"
+        val USER_ID = "id"
+        val USER_PASSWORD = "password"
+        val USER_HASH = "logInHash"
+        val sharedPreferencesFile = "MyPrefs"
+
+    }
 
     lateinit var tapButton: Button
     lateinit var sendButton: Button
     lateinit var morseButton: Button
     lateinit var recyclerView: RecyclerView
     lateinit var textEditMessage: EditText
-    private val sharedPreferencesFile = "MyPrefs"
+
     private var chatAdapter: CustomAdapter? = null
     lateinit var visual_feedback_container: VisualFeedbackFragment
     private lateinit var accelerometer: Accelerometer
+
+    private lateinit var gyroscope: Gyroscope
+
+    private lateinit var sharedPreferences: SharedPreferences
     private lateinit var handsFree: HandsFree
-    private var morseOn = false
-    private var start = true
+    private var handsFreeOnChat = false
+
     var context = this
     lateinit var mSocket: Socket
     var prefUserId = -1
@@ -60,21 +72,24 @@ class ChatActivity : AppCompatActivity() {
 
         val contactName = intent.getStringExtra(Constants.USER_NAME).toString()
         val contactId = intent.getLongExtra(Constants.USER_ID, -1).toInt()
+
+        val vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         supportActionBar?.title = "$contactName ($contactId)"
 
         accelerometer = Accelerometer(this)
+        gyroscope = Gyroscope(this)
         handsFree = HandsFree()
 
         sendButton = findViewById(R.id.sendButton)
         morseButton = findViewById(R.id.sendMorseButton)
         textEditMessage = findViewById(R.id.enter_message_edittext)
 
-        val sharedPreferences: SharedPreferences =
-            this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
+        sharedPreferences = this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
         val prefUserName: String = sharedPreferences.getString(Constants.USER_NAME, "").toString()
         prefUserId = sharedPreferences.getInt("id", 0)
         val userHash = sharedPreferences.getString(Constants.USER_HASH, "")
         val socketioIp = sharedPreferences.getString(Constants.SOCKETIO_IP, "http://10.0.2.2:3000")
+        handsFreeOnChat = sharedPreferences.getBoolean("hands_free", false)
 
         try{
             mSocket = IO.socket(socketioIp);
@@ -90,9 +105,10 @@ class ChatActivity : AppCompatActivity() {
         mSocket.disconnect().connect()
         Log.d("ingo", "connected? " + mSocket.connected())
 
+
+
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        context = this
 
         visual_feedback_container = VisualFeedbackFragment()
         visual_feedback_container.testing = true
@@ -102,13 +118,23 @@ class ChatActivity : AppCompatActivity() {
             .add(R.id.visual_feedback_container, visual_feedback_container, "main")
             .commitNow()
 
-        //(userId, userHash, contactId)
+        getNewMessages(prefUserId,userHash)
         populateData(context, recyclerView, prefUserId, contactId)
 
         //message listeners
         visual_feedback_container.setListener(object : VisualFeedbackFragment.Listener {
             override fun onTranslation(changeText: String) {
                 visual_feedback_container.setMessage(changeText)
+                textEditMessage.setText(changeText)
+                //Log.e("Stjepan " , visual_feedback_container.getMessage())
+            }
+
+            override fun finish(gotovo: Boolean) {
+                if (gotovo){
+                    sendButton.performClick()
+                    vibrator.vibrate(100)
+
+                }
             }
         })
 
@@ -119,47 +145,9 @@ class ChatActivity : AppCompatActivity() {
 
         morseButton.setOnClickListener {
             val fra: FragmentContainerView = findViewById(R.id.visual_feedback_container)
-
-            morseOn = !morseOn
-            fra.isVisible = morseOn
-
-            /*if (!morseOn) {
-                val param = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    0,
-                    0.6f
-                )
-                layoutTop.layoutParams = param
-                val param1 = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    0,
-                    0.4f
-                )
-                layBottom.layoutParams = param1
-
-            } else {
-                val param = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    0,
-                    0.75f
-                )
-                layoutTop.layoutParams = param
-                val param1 = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    0,
-                    0.25f
-                )
-                layBottom.layoutParams = param1
-                morseOn = false
-                fra.isVisible = false
-            }*/
-
-/*
-            LargeBanner.make(it, "Ceci est une snackbar LARGE", LargeBanner.LENGTH_INDEFINITE)
-                .setAction()
-                .show()
-*/
-
+            if (fra.isVisible){
+                fra.isVisible = !(fra.isVisible)
+            }
         }
 
         tapButton = findViewById(R.id.tap)
@@ -174,27 +162,30 @@ class ChatActivity : AppCompatActivity() {
             }
             true
         }
-/*
-        accelerometer.setListener { x, y, z ->
-            supportActionBar?.title = x.toString()
-            handsFree.follow(x, z)
+
+        accelerometer.setListener { x, y, z, xG, yG, zG ->
+            handsFree.followAccelerometer(x, y, z, xG, yG, zG)
         }
-*/
+
+        gyroscope.setListener { rx, ry, rz ->
+            supportActionBar?.title = rx.toString()
+            handsFree.followGyroscope(rx, ry, rz)
+        }
+
+
         handsFree.setListener(object : HandsFree.Listener {
             override fun onTranslation(tap: Int) {
                 if (tap == 1) {
-                   // visual_feedback_container.down()
+                    visual_feedback_container.down()
                 } else if (tap == 2) {
-                  //  visual_feedback_container.up()
+                    visual_feedback_container.up()
                 } else if(tap == 3){
+                    visual_feedback_container.reset()
+                } else if(tap == 4){
                     onBackPressed()
                 }
             }
         })
-
-        if (Constants.handsFreeOn){
-            onResume()
-        }
     }
 
     private val onNewMessage =
@@ -313,41 +304,24 @@ class ChatActivity : AppCompatActivity() {
             }
         }
     }
-/*
-    private fun getMessageContacts(id: Long, sharedPassword: String?){
+
+    private fun getNewMessages(id: Int, userHash: String?) {
         lifecycleScope.launch(Dispatchers.Default) {
-
             try {
-                val response = MessagesApi.retrofitService.getMessages(
+                val response: List<Message> = MessagesApi.retrofitService.getNewMessages(
                     id,
-                    sharedPassword
-
+                    userHash
                 )
+                if (response.isNotEmpty()) {
 
-                Log.e("stjepan", "poslana poruka$response")
+                    for (message in response) {
+                        withContext(Dispatchers.Main) {
+                            saveMessage(message)
+                        }
+                    }
+                }
+
             } catch (e: Exception) {
-                Log.e("Stjepan", "poslana poruka $id + $sharedPassword + ")
-                Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
-            }
-
-        }
-    }
-
-
- */
-
-    private fun getMessages(id: Long, sharedPassword: String?, contactId: Int) {
-        lifecycleScope.launch(Dispatchers.Default) {
-
-            try {
-                val response = MessagesApi.retrofitService.getMessages(
-                    id,
-                    sharedPassword,
-                    contactId
-                )
-                Log.e("stjepan", "poslana poruka$response")
-            } catch (e: Exception) {
-                Log.e("Stjepan", "poslana poruka $id + $sharedPassword + ")
                 Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
             }
         }
@@ -374,7 +348,20 @@ class ChatActivity : AppCompatActivity() {
                     } else {
                         vibrator.vibrate(200)
                     }
+
                     morseButton.performClick()
+
+                    if (handsFreeOnChat) {
+                        handsFreeOnChat = false
+                        accelerometer.unregister()
+                        gyroscope.unregister()
+                        handsFreeOnChatSet(false)
+                    } else if(!handsFreeOnChat) {
+                        handsFreeOnChat = true
+                        accelerometer.register()
+                        gyroscope.register()
+                        handsFreeOnChatSet(true)
+                    }
 
                     Toast.makeText(
                         this,
@@ -384,29 +371,28 @@ class ChatActivity : AppCompatActivity() {
                 } catch (e: Exception) {
 
                 }
-/*
-                if (accelerometer.on) {
-                    onPause()
-                } else {
-                    onResume()
-                }
-*/
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
+    private fun handsFreeOnChatSet(b: Boolean) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean("hands_free", b)
+        editor.apply()
+    }
+
     override fun onResume() {
-        if (!start) {
+        if (handsFreeOnChat) {
             accelerometer.register()
-        } else {
-            start = false
+            gyroscope.register()
         }
         super.onResume()
     }
 
     override fun onPause() {
+        gyroscope.unregister()
         accelerometer.unregister()
         super.onPause()
     }
