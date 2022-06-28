@@ -44,14 +44,17 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
     var userId: Int = 0
     var userLoginHash: String = ""
 
+    lateinit var sharedPreferences: SharedPreferences
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_contact)
 
-        val sharedPreferences: SharedPreferences =
-            this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
+        sharedPreferences = this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
         userId = sharedPreferences.getInt("id", 0)
         userLoginHash = sharedPreferences.getString(USER_HASH, "noHash").toString();
+
+        handsFreeOnChat = sharedPreferences.getBoolean("hands_free", false)
 
         refreshContacts(userId, userLoginHash.toString())
 
@@ -224,9 +227,11 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
 
                         handsFreeOnChat = false
                         accelerometer.unregister()
+                        handsFreeOnChatSet(false)
                     } else if(!handsFreeOnChat) {
                         handsFreeOnChat = true
                         accelerometer.register()
+                        handsFreeOnChatSet(true)
                     }
                     Toast.makeText(
                         this,
@@ -250,6 +255,12 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
         }
 
         super.onResume()
+    }
+
+    private fun handsFreeOnChatSet(b: Boolean) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean("hands_free", b)
+        editor.apply()
     }
 
     override fun onPause() {

@@ -176,6 +176,7 @@ class MainActivity : AppCompatActivity() {
                 val hands_free = sharedPreferences.getBoolean("hands_free", false)
                 val editor = sharedPreferences.edit()
                 editor.putBoolean("hands_free", !hands_free)
+                editor.apply()
                 true
             }
             R.id.log_out -> {
