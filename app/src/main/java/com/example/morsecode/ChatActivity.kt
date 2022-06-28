@@ -8,11 +8,9 @@ import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.MotionEvent
+import android.view.*
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentContainerView
@@ -145,9 +143,7 @@ class ChatActivity : AppCompatActivity() {
 
         morseButton.setOnClickListener {
             val fra: FragmentContainerView = findViewById(R.id.visual_feedback_container)
-            if (fra.isVisible){
-                fra.isVisible = !(fra.isVisible)
-            }
+            fra.isVisible = !(fra.isVisible)
         }
 
         tapButton = findViewById(R.id.tap)
@@ -402,5 +398,15 @@ class ChatActivity : AppCompatActivity() {
         mSocket.off("new message", onNewMessage);
 
         super.onDestroy()
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if(keyCode == KeyEvent.KEYCODE_VOLUME_UP){
+            // calibrate
+            Log.d("ingo", "calibration started")
+            
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
     }
 }
