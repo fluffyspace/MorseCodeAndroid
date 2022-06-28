@@ -274,7 +274,7 @@ class MorseCodeService: Service(), CoroutineScope{
     }
 
     suspend fun maybeSendMessage(){
-        Log.d("ingo", "maybeSendMessage")
+        //Log.d("ingo", "maybeSendMessage")
         val diff:Int = getTimeDifference()
         if(buttonHistory.size > 0 && diff > servicePostavke.oneTimeUnit*7){
             Log.d("ingo", "buttonHistory not empty, time difference is big enough")

@@ -19,9 +19,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.Adapters.KontaktiAdapter
 import com.example.morsecode.Adapters.OnLongClickListener
-import com.example.morsecode.ChatActivity.Companion.USER_HASH
-import com.example.morsecode.ChatActivity.Companion.handsFreeOn
-import com.example.morsecode.ChatActivity.Companion.sharedPreferencesFile
 import com.example.morsecode.models.EntitetKontakt
 import com.example.morsecode.models.GetIdResponse
 import com.example.morsecode.network.ContactsApi
@@ -50,9 +47,9 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
         setContentView(R.layout.activity_contact)
 
         val sharedPreferences: SharedPreferences =
-            this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
+            this.getSharedPreferences(Constants.sharedPreferencesFile, Context.MODE_PRIVATE)
         userId = sharedPreferences.getInt("id", 0)
-        userLoginHash = sharedPreferences.getString(USER_HASH, "noHash").toString();
+        userLoginHash = sharedPreferences.getString(Constants.USER_HASH, "noHash").toString();
 
         refreshContacts(userId, userLoginHash.toString())
 
@@ -127,7 +124,7 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
             builder.show()
         }
 
-        if (handsFreeOn) {
+        if (Constants.handsFreeOn) {
             onResume()
         }
 
@@ -192,8 +189,8 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
 
     private fun startContactChat(index: Int) {
         val intent = Intent(this, ChatActivity::class.java)
-        intent.putExtra(ChatActivity.USER_NAME, kontakt[index].username)
-        intent.putExtra(ChatActivity.USER_ID, kontakt[index].id!!.toInt())
+        intent.putExtra(Constants.USER_NAME, kontakt[index].username)
+        intent.putExtra(Constants.USER_ID, kontakt[index].id!!.toInt())
         ContextCompat.startActivity(this, intent, null)
     }
 
@@ -236,7 +233,7 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
                     } else {
                         vibrator.vibrate(200)
                     }
-                    handsFreeOn = true
+                    Constants.handsFreeOn = true
 
                     Toast.makeText(
                         this,

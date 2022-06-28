@@ -62,7 +62,7 @@ class VisualFeedbackFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        Log.e("Stjepan layout" , layout1.toString())
+        Log.d("Stjepan layout" , layout1.toString())
         var view = inflater.inflate(R.layout.fragment_visual_feedback_message,container,false)
 
         if (layout1){

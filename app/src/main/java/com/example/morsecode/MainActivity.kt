@@ -23,12 +23,14 @@ import com.example.morsecode.baza.PorukaDao
 import com.example.morsecode.models.Message
 import com.example.morsecode.models.VibrationMessage
 import com.example.morsecode.network.MessagesApi
+import io.socket.client.IO
+import io.socket.client.Socket
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.net.URISyntaxException
 
 class MainActivity : AppCompatActivity() {
-
     var mAccessibilityService:MorseCodeService? = null
 
     private lateinit var sharedPreferences: SharedPreferences
@@ -39,10 +41,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        mAccessibilityService = MorseCodeService.getSharedInstance();
         Log.d("ingo", mAccessibilityService.toString())
         fetchPostavkeFromService()
-
-        mAccessibilityService = MorseCodeService.getSharedInstance();
 
         findViewById<LinearLayout>(R.id.contacts).setOnClickListener(){
             val intent = Intent(this, ContactActivity::class.java)
@@ -67,7 +68,7 @@ class MainActivity : AppCompatActivity() {
             this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
 
         val sharedName: String = sharedPreferences.getString("username", "").toString()
-        val userHash = sharedPreferences.getString(ChatActivity.USER_HASH, "")
+        val userHash = sharedPreferences.getString(Constants.USER_HASH, "")
         val prefUserId = sharedPreferences.getInt("id", 0)
         findViewById<TextView>(R.id.welcome_message).text = "Welcome, ${sharedName}"
         /*findViewById<LinearLayout>(R.id.morse_in_action).setOnClickListener(){
@@ -101,7 +102,7 @@ class MainActivity : AppCompatActivity() {
                     id,
                     userHash
                 )
-                Log.e("stjepan", "dohvacene poruke $response")
+                Log.d("stjepan", "dohvacene poruke $response")
                 if (response.isNotEmpty()) {
                     for(message in response) {
                         saveMessage(message)

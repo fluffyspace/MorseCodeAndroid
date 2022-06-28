@@ -5,6 +5,12 @@
     <item
         android:id="@+id/hands_free"
         android:title="Hands-free"
-        app:showAsAction="always" />
+        android:icon="@drawable/ic_baseline_waving_hand_24"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/clear_messages"
+        android:title="Clear messages"
+        android:icon="@drawable/ic_baseline_delete_24"
+        app:showAsAction="never" />
 
 </menu>

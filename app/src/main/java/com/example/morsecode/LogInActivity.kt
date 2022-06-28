@@ -14,10 +14,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.morsecode.ChatActivity.Companion.USER_HASH
-import com.example.morsecode.ChatActivity.Companion.USER_ID
-import com.example.morsecode.ChatActivity.Companion.USER_NAME
-import com.example.morsecode.ChatActivity.Companion.USER_PASSWORD
 import com.example.morsecode.models.EntitetKontakt
 import com.example.morsecode.models.LogInResponse
 import com.example.morsecode.models.RegisterResponse
@@ -50,10 +46,10 @@ class LogInActivity : AppCompatActivity() {
         val sharedPassword = sharedPreferences.getString("password", "").toString()
         val sharedId = sharedPreferences.getInt("id", 0)
 
-        Log.e("stjepan", "id$sharedId")
+        Log.d("stjepan", "id$sharedId")
 
         if (sharedName != "" && sharedPassword != "" && sharedId != 0) {
-            Log.e("stjepann", "id$sharedId")
+            Log.d("stjepann", "id$sharedId")
             val intent = Intent(this@LogInActivity, MainActivity::class.java)
             startActivity(intent)
         }else{
@@ -80,10 +76,10 @@ class LogInActivity : AppCompatActivity() {
 
                         if (user.success == true){
                             val editor = sharedPreferences.edit()
-                            editor.putString(USER_NAME, userName)
-                            editor.putString(USER_PASSWORD, userPasswordHash)
-                            editor.putInt(USER_ID, user.id.toInt())
-                            editor.putString(USER_HASH, user.hash)
+                            editor.putString(Constants.USER_NAME, userName)
+                            editor.putString(Constants.USER_PASSWORD, userPasswordHash)
+                            editor.putInt(Constants.USER_ID, user.id.toInt())
+                            editor.putString(Constants.USER_HASH, user.hash)
                             editor.apply()
                             editor.commit()
 
