@@ -47,7 +47,9 @@ class ReadFilesActivity : AppCompatActivity() {
 
     lateinit var string: String
 
-    var index:Int = -1
+    lateinit var lines:List<String>
+
+    var index = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -105,10 +107,11 @@ class ReadFilesActivity : AppCompatActivity() {
             Log.e("Stjepan ", textEditFile.text.toString())
 
             if (textEditMessage.text.isNotEmpty()) {
-                var lines =
+                lines =
                     searchFile(textEditFile.text.toString(), textEditMessage.text.toString())
                 Log.d("ingo", lines.toString())
                 Log.d("ingo", getLines(textEditFile.text.toString()).toString())
+                index = 0
             }
             //searchFileLine()
         }
@@ -146,14 +149,40 @@ class ReadFilesActivity : AppCompatActivity() {
                     visual_feedback_container.up()
                 } else if (tap == 3) {
                     visual_feedback_container.reset()
-                    //searchFileLine()
+                    vibrateLine()
                 } else if (tap == 4) {
                     onBackPressed()
-                } else if (tap == 6) {
-
+                }else if (tap == 5) {
+                    visual_feedback_container.reset()
+                    vibrator.vibrate(1)
                 }
             }
         })
+    }
+
+    private fun vibrateLine() {
+        if(lines.isNotEmpty()){
+
+            Log.e("Stjepan" , index.toString())
+
+            if (index == 0){
+                vibrate(lines[0])
+
+            }else if (index < lines.size-1){
+                vibrate(lines[index])
+
+            }else if(index == lines.size-1){
+                vibrate(lines[index])
+
+            }else if(index > lines.size-1){
+                index = 0
+                vibrate(lines[0])
+            }
+
+            index++
+
+        }
+
     }
 
     private fun getLines(file: String): MutableList<String>{
