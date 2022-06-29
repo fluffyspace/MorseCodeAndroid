@@ -253,7 +253,7 @@ class ChatActivity : AppCompatActivity() {
         chatAdapter!!.list.add(message)
         chatAdapter!!.notifyDataSetChanged()
         recyclerView.scrollToPosition(chatAdapter!!.list.size - 1)
-        //soundPool.play(message_received_sound, 1F, 1F, 1, 0, 1f)
+        soundPool.play(message_received_sound, 1F, 1F, 1, 0, 1f)
     }
 
     private fun saveMessage(message: Message) {

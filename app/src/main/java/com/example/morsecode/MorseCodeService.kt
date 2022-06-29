@@ -421,7 +421,7 @@ class MorseCodeService: Service(), CoroutineScope{
                 sb.append("–")
             }
         }
-        Log.d("ingo", "morse->" + sb.toString()) // print after delay
+        //Log.d("ingo", "morse->" + sb.toString()) // print after delay
         return sb.toString()
     }
 
