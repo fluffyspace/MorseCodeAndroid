@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         val userHash = sharedPreferences.getString(Constants.USER_HASH, "")
         val prefUserId = sharedPreferences.getInt("id", 0)
         val autoLogIn = sharedPreferences.getBoolean("autoLogIn", false)
-        findViewById<TextView>(R.id.welcome_message).text = "Welcome, ${sharedName}"
+        findViewById<TextView>(R.id.welcome_message).text = "Welcome, ${sharedName}!"
         /*findViewById<LinearLayout>(R.id.morse_in_action).setOnClickListener(){
             val intent = Intent(this, SendMorseActivity::class.java)
             startActivity(intent)

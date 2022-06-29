@@ -55,6 +55,9 @@ interface MessagesApiService {
 
     @GET("api/getNewMessages.php")
     suspend fun getNewMessages(@Query("id") id: Int, @Query("hash") hash: String?): List<Message>
+
+    @GET("api/deleteMessages.php")
+    suspend fun deleteMessages(@Query("id") id: Int, @Query("hash") hash: String?, @Query("contactId") contactId: Int): Boolean
 }
 
 

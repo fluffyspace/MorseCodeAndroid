@@ -209,7 +209,7 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater: MenuInflater = menuInflater
-        inflater.inflate(R.menu.chat_menu, menu)
+        inflater.inflate(R.menu.contacts_menu, menu)
         return true
     }
 

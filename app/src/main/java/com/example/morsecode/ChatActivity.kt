@@ -24,7 +24,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.Adapters.CustomAdapter
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.MessageDao
+import com.example.morsecode.models.EntitetKontakt
 import com.example.morsecode.models.Message
+import com.example.morsecode.network.ContactsApi
 import com.example.morsecode.network.MessagesApi
 import com.google.gson.Gson
 import io.socket.client.IO
@@ -69,6 +71,7 @@ class ChatActivity : AppCompatActivity() {
 
     var context = this
     var prefUserId = -1
+    var userHash = ""
 
     lateinit var soundPool: SoundPool
     var message_received_sound: Int = -1
@@ -103,7 +106,7 @@ class ChatActivity : AppCompatActivity() {
         sharedPreferences = this.getSharedPreferences(Constants.sharedPreferencesFile, Context.MODE_PRIVATE)
         val prefUserName: String = sharedPreferences.getString(Constants.USER_NAME, "").toString()
         prefUserId = sharedPreferences.getInt("id", 0)
-        val userHash = sharedPreferences.getString(Constants.USER_HASH, "")
+        userHash = sharedPreferences.getString(Constants.USER_HASH, "").toString()
 
         handsFreeOnChat = sharedPreferences.getBoolean("hands_free", false)
 
@@ -352,6 +355,33 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
+    fun deleteMessages(){
+        val ctx: Context = this
+        lifecycleScope.launch(Dispatchers.Default) {
+            try {
+                val db = AppDatabase.getInstance(ctx)
+                val messageDao: MessageDao = db.messageDao()
+                messageDao.deleteAll()
+                withContext(Dispatchers.Main){
+                    chatAdapter?.list = listOf()
+                    chatAdapter?.notifyDataSetChanged()
+                }
+
+                Log.d("ingo", "$prefUserId, $userHash, $contactId")
+                val deleted: Boolean =
+                    MessagesApi.retrofitService.deleteMessages(prefUserId, userHash, contactId)
+                if(deleted){
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(ctx, "Messages deleted successfuly", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.d("stjepan", "greska " + e)
+            }
+        }
+    }
+
     private fun vibrateMessage(lastMessage: String) {
         mAccessibilityService = MorseCodeService.getSharedInstance();
 
@@ -396,6 +426,10 @@ class ChatActivity : AppCompatActivity() {
 
                 Toast.makeText(this, "sync $sync", Toast.LENGTH_LONG).show()
                 Log.e("Stjepan ", "sync $sync")
+                true
+            }
+            R.id.clear_messages -> {
+                deleteMessages()
                 true
             }
             else -> super.onOptionsItemSelected(item)
