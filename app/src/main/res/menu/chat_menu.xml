@@ -14,7 +14,7 @@
         app:showAsAction="never" />
     <item
         android:id="@+id/sync"
-        android:title="Synch"
+        android:title="Sync"
         app:showAsAction="never" />
 
 </menu>

@@ -168,7 +168,7 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
                 true
             }
-            R.id.open_accessibility_settings -> {
+            /*R.id.open_accessibility_settings -> {
                 val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 startActivity(intent)
@@ -182,7 +182,7 @@ class MainActivity : AppCompatActivity() {
                 editor.putBoolean("hands_free", !hands_free)
                 editor.apply()
                 true
-            }
+            }*/
             R.id.log_out -> {
                 sharedPreferences =
                     this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)

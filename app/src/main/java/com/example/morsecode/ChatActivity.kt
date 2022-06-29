@@ -237,7 +237,7 @@ class ChatActivity : AppCompatActivity() {
         }
         /*saveMessage(message)
         addMessageToView(message)*/
-
+        Log.d("Stjepan ", "${Gson().toJson(message)} $prefUserId $contactId")
         if (message.receiverId == prefUserId) {
             Log.d("ingo", "message is for me :)")
             saveMessage(message)
@@ -481,7 +481,7 @@ class ChatActivity : AppCompatActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             // calibrate
             Log.d("ingo", "calibration started")
 
