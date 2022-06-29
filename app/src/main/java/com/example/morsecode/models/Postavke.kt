@@ -1,3 +1,12 @@
 package com.example.morsecode.models
 
-data class Postavke(var pwm_on: Long = 0, var pwm_off: Long = 0, var oneTimeUnit: Long = 0, var socketioIp: String = "")
+data class Postavke(
+    var pwm_on: Long = 0,
+    var pwm_off: Long = 0,
+    var oneTimeUnit: Long = 0,
+    var socketioIp: String = "",
+    var userId: Int = -1,
+    var username: String = "",
+    var userHash: String = "",
+    var handsFreeOnChat: Boolean = false,
+)

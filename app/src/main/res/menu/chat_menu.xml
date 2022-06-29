@@ -4,7 +4,7 @@
 
     <item
         android:id="@+id/hands_free"
-        android:title="Hands-free"
+        android:title="Toggle Hands-free"
         android:icon="@drawable/ic_baseline_waving_hand_24"
         app:showAsAction="never" />
     <item

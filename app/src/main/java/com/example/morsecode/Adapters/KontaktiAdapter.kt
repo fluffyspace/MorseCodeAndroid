@@ -3,30 +3,30 @@ package com.example.morsecode.Adapters
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.ImageView
-import android.widget.ShareActionProvider
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
-import androidx.cardview.widget.CardView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.ChatActivity
 import com.example.morsecode.ContactActivity
 import com.example.morsecode.R
 import com.example.morsecode.models.EntitetKontakt
-import com.example.morsecode.network.ContactsApi
-import kotlinx.coroutines.Dispatchers
 
 class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>, longClickListener: OnLongClickListener) :
     RecyclerView.Adapter<KontaktiAdapter.ViewHolder>() {
     var kontakt: List<EntitetKontakt>
     var context: Context
     var longClickListener: OnLongClickListener
+    var selectedContact:Int = -1
+
+    private val SELECTED = 1
+    private val NOT_SELECTED = 2
 
     init {
         this.kontakt = kontakt
@@ -38,10 +38,9 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>, longClickListen
         View.OnClickListener {
         val imePrezimeTV: TextView
         val contactImageIV: ImageView
-        private val cardView: CardView
+        val background: ConstraintLayout
         //var textView: TextView
         //var img: ImageView
-
 
         //This is the subclass ViewHolder which simply
         //'holds the views' for us to show on each row
@@ -49,7 +48,7 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>, longClickListen
             //Finds the views from our row.xml
             imePrezimeTV = itemView.findViewById(R.id.imePrezimeTV)
             contactImageIV = itemView.findViewById(R.id.contactImageIV)
-            cardView = itemView.findViewById(R.id.cardView)
+            background = itemView.findViewById(R.id.background)
             //textView = itemView.findViewById<View>(R.id.text) as TextView
             //img = itemView.findViewById<View>(R.id.img) as ImageView
 
@@ -61,12 +60,25 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>, longClickListen
         }
     }
 
+    fun selectContact(position: Int){
+        val oldSelectedContact = selectedContact
+        selectedContact = position
+        if(oldSelectedContact != -1) notifyItemChanged(oldSelectedContact)
+        if(selectedContact != -1) notifyItemChanged(selectedContact)
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        if(selectedContact == position) {
+            return SELECTED;
+        } else {
+            return NOT_SELECTED;
+        }
+    }
+
     override fun onBindViewHolder(viewHolder: ViewHolder, i: Int) {
         val ime = viewHolder.imePrezimeTV
-        val imeText = "${kontakt[i].username} (${kontakt[i].id})"
+        val imeText = "${kontakt[i].username} (id ${kontakt[i].id})"
         ime.text = imeText
-
-
 
         viewHolder.itemView.setOnClickListener{
             val activity = viewHolder.itemView.context as Activity
@@ -82,13 +94,15 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>, longClickListen
             intent.putExtra("idFriend", kontakt[i].id.toString())
             intent.putExtra("nameFriend", kontakt[i].username)
             viewHolder.itemView.context.startActivity(intent)*/
-
             true
+        }
+        if(viewHolder.itemViewType == SELECTED){
+            viewHolder.background.setBackgroundColor(Color.YELLOW)
+            viewHolder.imePrezimeTV.setTextColor(Color.BLACK)
         }
     }
 
     override fun getItemCount(): Int {
-
         //This method needs to be overridden so that Androids knows how many items
         //will be making it into the list
         Log.d("stjepan", kontakt.size.toString())

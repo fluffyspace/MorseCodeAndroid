@@ -13,6 +13,7 @@ import android.util.Log
 import android.view.*
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -52,6 +53,7 @@ class ChatActivity : AppCompatActivity() {
     lateinit var morseButton: Button
     lateinit var recyclerView: RecyclerView
     lateinit var textEditMessage: EditText
+    lateinit var handsFreeIndicator: TextView
 
     private var chatAdapter: CustomAdapter? = null
     lateinit var visual_feedback_container: VisualFeedbackFragment
@@ -80,7 +82,7 @@ class ChatActivity : AppCompatActivity() {
         contactId = intent.getLongExtra(Constants.USER_ID, -1).toInt()
 
         val vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        supportActionBar?.title = "$contactName ($contactId)"
+        supportActionBar?.title = "$contactName"
 
         accelerometer = Accelerometer(this)
         gyroscope = Gyroscope(this)
@@ -89,8 +91,9 @@ class ChatActivity : AppCompatActivity() {
         sendButton = findViewById(R.id.sendButton)
         morseButton = findViewById(R.id.sendMorseButton)
         textEditMessage = findViewById(R.id.enter_message_edittext)
+        handsFreeIndicator = findViewById(R.id.hands_free_indicator)
 
-        sharedPreferences = this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
+        sharedPreferences = this.getSharedPreferences(Constants.sharedPreferencesFile, Context.MODE_PRIVATE)
         val prefUserName: String = sharedPreferences.getString(Constants.USER_NAME, "").toString()
         prefUserId = sharedPreferences.getInt("id", 0)
         val userHash = sharedPreferences.getString(Constants.USER_HASH, "")
@@ -104,8 +107,6 @@ class ChatActivity : AppCompatActivity() {
             Log.e("connect0", "error");
         }
         mSocket.on("new message", onNewMessage);
-        mSocket.on("chat message", onChatMessage);
-        mSocket.on("test message", onTestMessage);
         mSocket.on(Socket.EVENT_CONNECT) { Log.d("ingo", "socket connected $it") }
         mSocket.on(Socket.EVENT_CONNECT_ERROR, onError)
         mSocket.disconnect().connect()
@@ -137,7 +138,6 @@ class ChatActivity : AppCompatActivity() {
                 if (gotovo){
                     sendButton.performClick()
                     vibrator.vibrate(100)
-
                 }
             }
         })
@@ -170,10 +170,9 @@ class ChatActivity : AppCompatActivity() {
         }
 
         gyroscope.setListener { rx, ry, rz ->
-            supportActionBar?.title = rx.toString()
+            //supportActionBar?.title = rx.toString()
             handsFree.followGyroscope(rx, ry, rz)
         }
-
 
         handsFree.setListener(object : HandsFree.Listener {
             override fun onTranslation(tap: Int) {
@@ -231,16 +230,6 @@ class ChatActivity : AppCompatActivity() {
                         addMessageToView(message)
                     }
                 }
-            })
-        }
-
-    private val onTestMessage =
-        Emitter.Listener { args ->
-            this.runOnUiThread(Runnable {
-                val message = args[0] as String
-
-                // add the message to view
-                Toast.makeText(this, message, Toast.LENGTH_SHORT)
             })
         }
 
@@ -386,11 +375,9 @@ class ChatActivity : AppCompatActivity() {
                         accelerometer.unregister()
                         gyroscope.unregister()
                         handsFreeOnChatSet(false)
+                        handsFreeIndicator.visibility = View.GONE
                     } else if(!handsFreeOnChat) {
-                        handsFreeOnChat = true
-                        accelerometer.register()
-                        gyroscope.register()
-                        handsFreeOnChatSet(true)
+                        turnHandsFreeOn()
                     }
 
                     Toast.makeText(
@@ -407,6 +394,14 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
+    fun turnHandsFreeOn(){
+        handsFreeOnChat = true
+        accelerometer.register()
+        gyroscope.register()
+        handsFreeOnChatSet(true)
+        handsFreeIndicator.visibility = View.VISIBLE
+    }
+
     private fun handsFreeOnChatSet(b: Boolean) {
         val editor = sharedPreferences.edit()
         editor.putBoolean("hands_free", b)
@@ -415,8 +410,7 @@ class ChatActivity : AppCompatActivity() {
 
     override fun onResume() {
         if (handsFreeOnChat) {
-            accelerometer.register()
-            gyroscope.register()
+            turnHandsFreeOn()
         }
         super.onResume()
     }

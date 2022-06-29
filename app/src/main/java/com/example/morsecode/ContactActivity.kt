@@ -10,6 +10,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -45,26 +46,30 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
     var userLoginHash: String = ""
 
     lateinit var sharedPreferences: SharedPreferences
+    lateinit var kontaktiRecyclerView: RecyclerView
+    lateinit var kontaktiRecyclerViewAdapter: KontaktiAdapter
+
+    lateinit var handsFreeIndicator: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_contact)
 
-
         sharedPreferences = this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
         userId = sharedPreferences.getInt("id", 0)
         userLoginHash = sharedPreferences.getString(Constants.USER_HASH, "noHash").toString();
-
         handsFreeOnChat = sharedPreferences.getBoolean("hands_free", false)
 
-        refreshContacts(userId, userLoginHash.toString())
+        handsFreeIndicator = findViewById(R.id.hands_free_indicator)
+        kontaktiRecyclerView = findViewById(R.id.recycler)
+        refreshContacts(userId, userLoginHash)
 
         accelerometer = Accelerometer(this)
         handsFreeContact1 = HandsFreeContact()
         handsFree = HandsFree()
 
         accelerometer.setListener { x, y, z, xG, yG, zG ->
-            supportActionBar?.title = z.toString()
+            //supportActionBar?.title = z.toString()
             handsFreeContact1.follow(x, y, z, xG, yG, zG)
         }
 
@@ -130,7 +135,6 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
     }
 
     fun refreshContacts(userId: Int, userHash: String) {
-        val kontaktiRecyclerView: RecyclerView = findViewById(R.id.recycler)
         kontaktiRecyclerView.layoutManager = LinearLayoutManager(this)
         val context = this
         lifecycleScope.launch(Dispatchers.Default) {
@@ -142,8 +146,11 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
 
                 //Log.e("max ", " $maxContactCounter")
                 withContext(Dispatchers.Main) {
-                    kontaktiRecyclerView.adapter =
-                        KontaktiAdapter(context, kontakti, this@ContactActivity)
+                    kontaktiRecyclerViewAdapter = KontaktiAdapter(context, kontakti, this@ContactActivity)
+                    if(handsFreeOnChat) {
+                        kontaktiRecyclerViewAdapter.selectContact(contactCounter)
+                    }
+                    kontaktiRecyclerView.adapter = kontaktiRecyclerViewAdapter
                 }
             } catch (e: Exception) {
                 Log.d("stjepan", "greska ")
@@ -157,9 +164,10 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
                 if (contactCounter < maxContactCounter) {
                     contactCounter++
                 } else {
-                    contactCounter = 1
+                    contactCounter = 0
                 }
                 vibrateName(contactCounter)
+                kontaktiRecyclerViewAdapter.selectContact(contactCounter)
             }
             4 -> {
                 if (contactCounter > 0) {
@@ -168,6 +176,7 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
                     contactCounter = maxContactCounter
                 }
                 vibrateName(contactCounter)
+                kontaktiRecyclerViewAdapter.selectContact(contactCounter)
             }
             1 -> {
                 startContactChat(contactCounter)
@@ -184,13 +193,12 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
 
     fun vibrateName(index: Int) {
         mAccessibilityService = MorseCodeService.getSharedInstance();
-
         mAccessibilityService?.vibrateWithPWM(mAccessibilityService!!.makeWaveformFromText(kontakt[index].username.toString()))
-        Toast.makeText(
+        /*Toast.makeText(
             applicationContext,
             "Current contact " + kontakt[index].username,
             Toast.LENGTH_LONG
-        ).show()
+        ).show()*/
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -214,23 +222,17 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
                     } else {
                         vibrator.vibrate(200)
                     }
-                    Constants.handsFreeOn = true
 
                     if (handsFreeOnChat) {
-
                         handsFreeOnChat = false
                         accelerometer.unregister()
                         handsFreeOnChatSet(false)
+                        handsFreeIndicator.visibility = View.GONE
+                        kontaktiRecyclerViewAdapter.selectContact(-1)
                     } else if(!handsFreeOnChat) {
                         handsFreeOnChat = true
-                        accelerometer.register()
-                        handsFreeOnChatSet(true)
+                        turnHandsFreeOn()
                     }
-                    Toast.makeText(
-                        this,
-                        "vibration" + Toast.LENGTH_SHORT.toString(),
-                        Toast.LENGTH_SHORT
-                    ).show()
                 } catch (e: Exception) {
                 }
 
@@ -240,11 +242,18 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
         }
     }
 
+    fun turnHandsFreeOn(){
+        accelerometer.register()
+        handsFreeOnChatSet(true)
+        handsFreeIndicator.visibility = View.VISIBLE
+        if(::kontaktiRecyclerViewAdapter.isInitialized) kontaktiRecyclerViewAdapter.selectContact(contactCounter)
+    }
+
     override fun onResume() {
         Log.e("handsfree" , handsFreeOnChat.toString())
 
         if (handsFreeOnChat) {
-            accelerometer.register()
+            turnHandsFreeOn()
         }
 
         super.onResume()

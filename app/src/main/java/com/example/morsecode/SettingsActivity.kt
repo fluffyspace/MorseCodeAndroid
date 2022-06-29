@@ -116,15 +116,13 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     fun setDeviceUuid(){
-        val preferences = sharedPreferences
-        val editor = preferences.edit()
+        val editor = sharedPreferences.edit()
         editor.putString("device_uuid", UUID.randomUUID().toString())
         editor.apply()
     }
 
     fun setPostavke(postavke:Postavke){
-        val preferences = sharedPreferences
-        val editor = preferences.edit()
+        val editor = sharedPreferences.edit()
         editor.putLong(Constants.PWM_ON, postavke.pwm_on)
         editor.putLong(Constants.PWM_OFF, postavke.pwm_off)
         editor.putLong(Constants.ONE_TIME_UNIT, postavke.oneTimeUnit)

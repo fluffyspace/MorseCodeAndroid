@@ -3,6 +3,7 @@ package com.example.morsecode
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.*
 import android.preference.PreferenceManager
 import android.util.Log
@@ -38,6 +39,7 @@ class MorseCodeService: Service(), CoroutineScope{
     var testing:Boolean = false
     val scope = CoroutineScope(Job() + Dispatchers.IO)
     var messageReceiveCallback: KFunction0<Unit>? = null // ovo je callback (funkcija) koji ovaj servis pozove kad završi slanjem poruke, moguće je registrirati bilo koju funkciju u bilo kojem activityu. Koristi se kao momentalni feedback da je poruka poslana.
+    lateinit var sharedPreferences: SharedPreferences
 
     var testMode = false
     val ONGOING_NOTIFICATION_ID = 1
@@ -251,6 +253,8 @@ class MorseCodeService: Service(), CoroutineScope{
 
 
     fun setup(){
+        sharedPreferences = this.getSharedPreferences(Constants.sharedPreferencesFile, Context.MODE_PRIVATE)
+
         createNotificationChannel()
         // Create an overlay and display the action bar
         vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
@@ -264,10 +268,14 @@ class MorseCodeService: Service(), CoroutineScope{
         }
         serviceSharedInstance = this
 
-        servicePostavke.pwm_on = PreferenceManager.getDefaultSharedPreferences(this).getLong("pwm_on", 5)
-        servicePostavke.pwm_off = PreferenceManager.getDefaultSharedPreferences(this).getLong("pwm_off", 1)
-        servicePostavke.oneTimeUnit = PreferenceManager.getDefaultSharedPreferences(this).getLong("oneTimeUnit", 400)
-        servicePostavke.socketioIp = PreferenceManager.getDefaultSharedPreferences(this).getString(Constants.SOCKETIO_IP, Constants.DEFAULT_SOCKETIO_IP).toString()
+        servicePostavke.pwm_on = sharedPreferences.getLong("pwm_on", 5)
+        servicePostavke.pwm_off = sharedPreferences.getLong("pwm_off", 1)
+        servicePostavke.oneTimeUnit = sharedPreferences.getLong("oneTimeUnit", 400)
+        servicePostavke.socketioIp = sharedPreferences.getString(Constants.SOCKETIO_IP, Constants.DEFAULT_SOCKETIO_IP).toString()
+        servicePostavke.username = sharedPreferences.getString(Constants.USER_NAME, "").toString()
+        servicePostavke.userId = sharedPreferences.getInt("id", 0)
+        servicePostavke.userHash = sharedPreferences.getString(Constants.USER_HASH, "").toString()
+        servicePostavke.handsFreeOnChat = sharedPreferences.getBoolean("hands_free", false)
 
         val notification = createNotification("Morse talk", "Running...")
         startForeground(ONGOING_NOTIFICATION_ID, notification)
@@ -330,7 +338,6 @@ class MorseCodeService: Service(), CoroutineScope{
     }
 
     fun isNumeric(str: String) = str.all { it in '0'..'9' }
-
 
     suspend fun sendMessage(stringZaPoslati:String){
         try {
@@ -470,6 +477,16 @@ class MorseCodeService: Service(), CoroutineScope{
 
     fun getPostavke(): Postavke {
         return Postavke(servicePostavke.pwm_on, servicePostavke.pwm_off, servicePostavke.oneTimeUnit)
+    }
+
+    fun savePostavke(){
+        val editor = sharedPreferences.edit()
+        editor.putLong(Constants.PWM_ON, servicePostavke.pwm_on)
+        editor.putLong(Constants.PWM_OFF, servicePostavke.pwm_off)
+        editor.putLong(Constants.ONE_TIME_UNIT, servicePostavke.oneTimeUnit)
+        editor.putString(Constants.SOCKETIO_IP, servicePostavke.socketioIp)
+        editor.putBoolean(Constants.HANDS_FREE, servicePostavke.handsFreeOnChat)
+        editor.apply()
     }
 
     fun setPostavke(novePostavke: Postavke){
