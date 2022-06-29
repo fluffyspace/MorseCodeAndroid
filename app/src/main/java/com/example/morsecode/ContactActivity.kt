@@ -66,8 +66,9 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
         handsFreeContact1 = HandsFreeContact()
         handsFree = HandsFree()
 
+        supportActionBar?.title = "Contacts"
+
         accelerometer.setListener { x, y, z, xG, yG, zG ->
-            supportActionBar?.title = z.toString()
             handsFreeContact1.follow(x, y, z, xG, yG, zG)
         }
 

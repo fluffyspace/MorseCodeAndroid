@@ -12,5 +12,9 @@
         android:title="Clear messages"
         android:icon="@drawable/ic_baseline_delete_24"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/sync"
+        android:title="Synch"
+        app:showAsAction="never" />
 
 </menu>

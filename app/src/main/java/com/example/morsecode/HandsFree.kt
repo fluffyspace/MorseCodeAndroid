@@ -6,6 +6,14 @@ import kotlin.math.min
 
 class HandsFree {
 
+    companion object {
+        const val UP = 1
+        const val DOWN = 2
+        const val BACK = 4
+        const val READ_LAST = 3
+        const val RETURN_MORSE = 5
+    }
+
     private var counter = 0
     private var threshold = 0.3f
     private var thresholdX = 0.5f
@@ -26,7 +34,6 @@ class HandsFree {
 
         if (zCounter < 3) {
             zCounter++
-            Log.e("SStjepan ", " counter = $zCounter")
             return
         }
 
@@ -53,14 +60,14 @@ class HandsFree {
                 if (x > threshold && goreDole && !leftRight) {
                     //Log.e("x je veci od threshoda ", " $x")
                     if (listener != null) {
-                        listener.onTranslation(1)
+                        listener.onTranslation(UP)
                     }
                     goreDole = !goreDole
 
                 } else if (x < -threshold && !goreDole && !leftRight) {
                     //Log.e("max manji od thresholda", " $x")
                     if (listener != null) {
-                        listener.onTranslation(2)
+                        listener.onTranslation(DOWN)
                     }
                     goreDole = !goreDole
                 } else if (z > thresholdX && counter < 0) {
@@ -69,12 +76,12 @@ class HandsFree {
                         if (listener != null) {
                             leftRight = false
                             Log.e("Stjepan ", " return to morse")
-                            listener.onTranslation(5)
+                            listener.onTranslation(RETURN_MORSE)
                         }
                     }else {
                         Log.e("Stjepan ", " back")
                         if (listener != null) {
-                            listener.onTranslation(4)
+                            listener.onTranslation(BACK)
                         }
                     }
                     counter = 3
@@ -82,7 +89,7 @@ class HandsFree {
                     Log.e("z ", " minus $z")
                     Log.e("Stjepan ", " read message")
                     if (listener != null) {
-                        listener.onTranslation(3)
+                        listener.onTranslation(READ_LAST)
                         leftRight = true
                     }
                     counter = 3
@@ -92,14 +99,14 @@ class HandsFree {
                if (z > threshold && goreDole && !leftRight) {
                     //Log.e("x je veci od threshoda ", " $x")
                     if (listener != null) {
-                        listener.onTranslation(1)
+                        listener.onTranslation(UP)
                     }
                     goreDole = !goreDole
 
                 } else if (z < -threshold && !goreDole && !leftRight) {
                     //Log.e("max manji od thresholda", " $x")
                     if (listener != null) {
-                        listener.onTranslation(2)
+                        listener.onTranslation(DOWN)
                     }
                     goreDole = !goreDole
                 } else if (x < -thresholdX && counter < 0) {
@@ -108,20 +115,19 @@ class HandsFree {
                         if (listener != null) {
                             leftRight = false
                             Log.e("Stjepan ", " return to morse")
-                            listener.onTranslation(5)
+                            listener.onTranslation(RETURN_MORSE)
                         }
                     }else {
-                        Log.e("Stjepan ", " back")
+                        Log.d("Stjepan ", " back")
                         if (listener != null) {
-                            listener.onTranslation(4)
+                            listener.onTranslation(BACK)
                         }
                     }
                     counter = 3
                 } else if (x > thresholdX && counter<0) {
-                    Log.e("z ", " minus $z")
-                    Log.e("Stjepan ", " read message")
+                    Log.d("Stjepan ", " read message")
                     if (listener != null) {
-                        listener.onTranslation(3)
+                        listener.onTranslation(READ_LAST)
                         leftRight = true
                     }
                     counter = 3
