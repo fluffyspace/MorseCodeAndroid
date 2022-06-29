@@ -35,10 +35,10 @@ interface VibrationMessagesApiService {
     //@Headers("Accept: text/html")
     //@Headers("Content-Type: application/json")
     @GET("api")
-    suspend fun sendMessage(@Query("poruka") poruka: String, @Query("token") token: String): VibrationMessage
+    suspend fun sendMessage(@Query("poruka") poruka: String): VibrationMessage
 
     @GET("api")
-    suspend fun getAllMessages(@Query("poruka") poruka: String, @Query("token") token: String): List<Zadatak>
+    suspend fun getAllMessages(@Query("poruka") poruka: String): List<Zadatak>
 }
 
 interface MessagesApiService {

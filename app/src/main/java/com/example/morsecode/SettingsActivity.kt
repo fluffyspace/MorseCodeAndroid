@@ -40,7 +40,7 @@ class SettingsActivity : AppCompatActivity() {
         aaa = sharedPreferences.getLong("pwm_on", 5)
         sss = sharedPreferences.getLong("pwm_off", 1)
         oneTimeUnit = sharedPreferences.getLong("oneTimeUnit", 400)
-        val socketioipPref = sharedPreferences.getString(Constants.SOCKETIO_IP, "http://10.0.2.2:3000").toString()
+        val socketioipPref = sharedPreferences.getString(Constants.SOCKETIO_IP, Constants.DEFAULT_SOCKETIO_IP).toString()
         device_uuid = sharedPreferences.getString("device_uuid", "").toString()
         if(device_uuid == "") setDeviceUuid()
 
@@ -125,10 +125,10 @@ class SettingsActivity : AppCompatActivity() {
     fun setPostavke(postavke:Postavke){
         val preferences = sharedPreferences
         val editor = preferences.edit()
-        editor.putLong("pwm_on", postavke.pwm_on)
-        editor.putLong("pwm_off", postavke.pwm_off)
-        editor.putLong("oneTimeUnit", postavke.oneTimeUnit)
-        editor.putString("token", postavke.token)
+        editor.putLong(Constants.PWM_ON, postavke.pwm_on)
+        editor.putLong(Constants.PWM_OFF, postavke.pwm_off)
+        editor.putLong(Constants.ONE_TIME_UNIT, postavke.oneTimeUnit)
+        editor.putString(Constants.SOCKETIO_IP, postavke.socketioIp)
         editor.apply()
         mAccessibilityService?.setPostavke(postavke)
     }

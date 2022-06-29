@@ -267,7 +267,7 @@ class MorseCodeService: Service(), CoroutineScope{
         servicePostavke.pwm_on = PreferenceManager.getDefaultSharedPreferences(this).getLong("pwm_on", 5)
         servicePostavke.pwm_off = PreferenceManager.getDefaultSharedPreferences(this).getLong("pwm_off", 1)
         servicePostavke.oneTimeUnit = PreferenceManager.getDefaultSharedPreferences(this).getLong("oneTimeUnit", 400)
-        servicePostavke.token = PreferenceManager.getDefaultSharedPreferences(this).getString("token", "").toString()
+        servicePostavke.socketioIp = PreferenceManager.getDefaultSharedPreferences(this).getString(Constants.SOCKETIO_IP, Constants.DEFAULT_SOCKETIO_IP).toString()
 
         val notification = createNotification("Morse talk", "Running...")
         startForeground(ONGOING_NOTIFICATION_ID, notification)
@@ -334,7 +334,7 @@ class MorseCodeService: Service(), CoroutineScope{
 
     suspend fun sendMessage(stringZaPoslati:String){
         try {
-            val response: VibrationMessage = VibrationMessagesApi.retrofitService.sendMessage(stringZaPoslati, servicePostavke.token)
+            val response: VibrationMessage = VibrationMessagesApi.retrofitService.sendMessage(stringZaPoslati)
             databaseAddNewPoruka(response)
             withContext(Dispatchers.Main){
                 //textView.setText(MORSECODE_ON + ": received " + response.poruka)
@@ -476,7 +476,7 @@ class MorseCodeService: Service(), CoroutineScope{
         servicePostavke.pwm_on = novePostavke.pwm_on
         servicePostavke.pwm_off = novePostavke.pwm_off
         servicePostavke.oneTimeUnit = novePostavke.oneTimeUnit
-        servicePostavke.token = novePostavke.token
+        servicePostavke.socketioIp = novePostavke.socketioIp
     }
 
     fun toggleTesting(testing: Boolean){

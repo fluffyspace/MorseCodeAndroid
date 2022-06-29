@@ -3,14 +3,17 @@ package com.example.morsecode
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
+import android.media.AudioAttributes
+import android.media.SoundPool
 import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
 import android.view.*
-import android.widget.*
-import androidx.annotation.RequiresApi
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentContainerView
@@ -31,6 +34,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.URISyntaxException
+
 
 class ChatActivity : AppCompatActivity() {
 
@@ -63,13 +67,17 @@ class ChatActivity : AppCompatActivity() {
     lateinit var mSocket: Socket
     var prefUserId = -1
 
+    lateinit var soundPool: SoundPool
+    var message_received_sound: Int = -1
+    var contactId: Int = -1
+
         @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
 
         val contactName = intent.getStringExtra(Constants.USER_NAME).toString()
-        val contactId = intent.getLongExtra(Constants.USER_ID, -1).toInt()
+        contactId = intent.getLongExtra(Constants.USER_ID, -1).toInt()
 
         val vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         supportActionBar?.title = "$contactName ($contactId)"
@@ -86,7 +94,7 @@ class ChatActivity : AppCompatActivity() {
         val prefUserName: String = sharedPreferences.getString(Constants.USER_NAME, "").toString()
         prefUserId = sharedPreferences.getInt("id", 0)
         val userHash = sharedPreferences.getString(Constants.USER_HASH, "")
-        val socketioIp = sharedPreferences.getString(Constants.SOCKETIO_IP, "http://10.0.2.2:3000")
+        val socketioIp = sharedPreferences.getString(Constants.SOCKETIO_IP, Constants.DEFAULT_SOCKETIO_IP)
         handsFreeOnChat = sharedPreferences.getBoolean("hands_free", false)
 
         try{
@@ -102,8 +110,6 @@ class ChatActivity : AppCompatActivity() {
         mSocket.on(Socket.EVENT_CONNECT_ERROR, onError)
         mSocket.disconnect().connect()
         Log.d("ingo", "connected? " + mSocket.connected())
-
-
 
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -182,6 +188,20 @@ class ChatActivity : AppCompatActivity() {
                 }
             }
         })
+
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_GAME)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+        soundPool = SoundPool.Builder()
+                    .setMaxStreams(1)
+                    .setAudioAttributes(audioAttributes)
+                    .build()
+        message_received_sound = soundPool.load(
+                this,
+                R.raw.message_received,
+                1
+            )
     }
 
     private val onNewMessage =
@@ -198,10 +218,19 @@ class ChatActivity : AppCompatActivity() {
         Emitter.Listener { args ->
             this.runOnUiThread(Runnable {
                 val messageText: String = args[0] as String
-                val message: Message = Message(0, messageText, 0, 0)
+                val message = Message(0, messageText, 0, 0)
 
-                // add the message to view
-                addMessageToView(message)
+                Log.d("ingo", "new message received -> ${message}")
+                // provjeriti ako je za ovaj chat i ako nisam ja pošiljatelj
+                if(message.receiverId == prefUserId) {
+                    Log.d("ingo", "message is for me :)")
+                    saveMessage(message)
+                    if(message.senderId == contactId) {
+                        Log.d("ingo", "and message is for this currently opened chat")
+                        // add the message to view
+                        addMessageToView(message)
+                    }
+                }
             })
         }
 
@@ -225,6 +254,8 @@ class ChatActivity : AppCompatActivity() {
     private fun addMessageToView(message: Message) {
         chatAdapter!!.list.add(message)
         chatAdapter!!.notifyDataSetChanged()
+        recyclerView.scrollToPosition(chatAdapter!!.list.size-1)
+        soundPool.play(message_received_sound, 1F, 1F, 1, 0, 1f)
     }
 
     private fun saveMessage(message: Message) {
@@ -263,6 +294,9 @@ class ChatActivity : AppCompatActivity() {
                 userId.toInt(),
                 contactId.toInt()
             )
+            val layoutManager = LinearLayoutManager(context)
+            layoutManager.stackFromEnd = true
+            recyclerView.layoutManager = layoutManager;
             recyclerView.adapter = chatAdapter
             recyclerView.scrollToPosition(poruke.size - 1)
         })
@@ -404,7 +438,7 @@ class ChatActivity : AppCompatActivity() {
         if(keyCode == KeyEvent.KEYCODE_VOLUME_UP){
             // calibrate
             Log.d("ingo", "calibration started")
-            
+
             return true
         }
         return super.onKeyDown(keyCode, event)

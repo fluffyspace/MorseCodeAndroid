@@ -59,7 +59,7 @@ class SendMorseMessageActivity : AppCompatActivity() {
         val context = this
         lifecycleScope.launch(Dispatchers.Default){
             try {
-                val zadaci:List<Zadatak> = VibrationMessagesApi.retrofitService.getAllMessages("all", if (mAccessibilityService != null) mAccessibilityService?.servicePostavke?.token.toString() else "")
+                val zadaci:List<Zadatak> = VibrationMessagesApi.retrofitService.getAllMessages("all")
                 withContext(Dispatchers.Main){
                     zadaciRecyclerView.adapter = ZadaciAdapter(context, zadaci)
                 }
