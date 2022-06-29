@@ -13,11 +13,18 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
+import com.example.morsecode.models.Message
 import com.example.morsecode.models.Postavke
 import com.example.morsecode.models.VibrationMessage
 import com.example.morsecode.network.ContactsApi
 import com.example.morsecode.network.VibrationMessagesApi
+import com.google.gson.Gson
+import io.socket.client.IO
+import io.socket.client.Socket
+import io.socket.emitter.Emitter
 import kotlinx.coroutines.*
+import org.json.JSONObject
+import java.net.URISyntaxException
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KFunction0
 
@@ -40,6 +47,7 @@ class MorseCodeService: Service(), CoroutineScope{
     val scope = CoroutineScope(Job() + Dispatchers.IO)
     var messageReceiveCallback: KFunction0<Unit>? = null // ovo je callback (funkcija) koji ovaj servis pozove kad završi slanjem poruke, moguće je registrirati bilo koju funkciju u bilo kojem activityu. Koristi se kao momentalni feedback da je poruka poslana.
     lateinit var sharedPreferences: SharedPreferences
+    lateinit var mSocket: Socket
 
     var testMode = false
     val ONGOING_NOTIFICATION_ID = 1
@@ -241,6 +249,8 @@ class MorseCodeService: Service(), CoroutineScope{
     override fun onDestroy() {
         korutina.cancel()
         scope.cancel()
+        mSocket.disconnect();
+        mSocket.off("new message", onNewMessage);
         Log.d("ingo", "MorseCodeService onDestroy")
         super.onDestroy()
     }
@@ -279,6 +289,19 @@ class MorseCodeService: Service(), CoroutineScope{
 
         val notification = createNotification("Morse talk", "Running...")
         startForeground(ONGOING_NOTIFICATION_ID, notification)
+
+        try {
+            mSocket = IO.socket(servicePostavke.socketioIp);
+            Log.d("connect0", "not error");
+        } catch (e: URISyntaxException) {
+            Log.e("connect0", "error");
+        }
+        mSocket.on("new message", onNewMessage);
+        mSocket.on(Socket.EVENT_CONNECT) { Log.d("ingo", "socket connected") }
+        mSocket.on(Socket.EVENT_DISCONNECT) { Log.d("ingo", "socket disconnected") }
+        mSocket.on(Socket.EVENT_CONNECT_ERROR, onError)
+        mSocket.disconnect().connect()
+        Log.d("ingo", "connected? " + mSocket.connected())
     }
 
     suspend fun maybeSendMessage(){
@@ -515,6 +538,38 @@ class MorseCodeService: Service(), CoroutineScope{
         NotificationManagerCompat.from(this).cancelAll()
         super.onUnbind(intent)
         return true
+    }
+
+    private val onError =
+        Emitter.Listener { args ->
+            for (arg in args) {
+                Log.d("ingo", arg.toString())
+            }
+        }
+
+    private val onNewMessage =
+        Emitter.Listener { args ->
+            // bi li ovo trebalo biti u UI dretvi?
+            val messageInJson: String = (args[0] as JSONObject).getString("message")
+            val message: Message = Gson().fromJson(messageInJson, Message::class.java)
+            listener.onNewMessage(message)
+            Log.d("ingo", "primljena poruka")
+        }
+
+    fun emitMessage(message: Message){
+        val newMessage = JSONObject()
+        newMessage.put("message", Gson().toJson(message).toString())
+        mSocket.emit("new message", newMessage);
+    }
+
+    interface OnSocketNewMessageListener {
+        fun onNewMessage(message: Message)
+    }
+
+    private lateinit var listener: OnSocketNewMessageListener
+
+    fun setListener(l: OnSocketNewMessageListener) {
+        listener = l
     }
 
 }

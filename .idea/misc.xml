@@ -9,7 +9,7 @@
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/drawable/ic_baseline_waving_hand_24.xml" value="0.1405" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/drawable/obrub.xml" value="0.196" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/action_bar.xml" value="0.11302083333333333" />
-        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_chat.xml" value="0.3009833262077811" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_chat.xml" value="0.33" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_contact.xml" value="0.3009833262077811" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_main.xml" value="0.1" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_playground.xml" value="0.1" />
@@ -42,7 +42,6 @@
         <entry key="app/src/main/res/layout/activity_log_in.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/activity_playground.xml" value="0.1" />
-        <entry key="app/src/main/res/layout/activity_read_files.xml" value="0.21804189824711415" />
         <entry key="app/src/main/res/layout/activity_register.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/activity_send_morse.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/activity_send_morse_message.xml" value="0.3703125" />
@@ -66,7 +65,7 @@
         <entry key="app/src/main/res/layout/view_bottom_banner.xml" value="0.3703125" />
         <entry key="app/src/main/res/layout/view_fullscreen_banner.xml" value="0.25" />
         <entry key="app/src/main/res/layout/view_fullscreen_banner1.xml" value="0.3703125" />
-        <entry key="app/src/main/res/menu/chat_menu.xml" value="0.3001266357112706" />
+        <entry key="app/src/main/res/menu/chat_menu.xml" value="0.1" />
         <entry key="app/src/main/res/menu/menu.xml" value="0.3039760581445062" />
       </map>
     </option>

@@ -24,55 +24,79 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:background="@color/blue_ribbon">
+        android:background="@color/antiobrub">
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/visual_feedback_container"
             android:layout_width="match_parent"
             android:layout_height="130dp"
-            app:layout_constraintBottom_toTopOf="@id/enter_message_edittext"
+            app:layout_constraintBottom_toTopOf="@id/edittext_container"
             tools:layout="@layout/fragment_visual_feedback_message"
             tools:layout_editor_absoluteX="2dp"
-            android:visibility="gone" />
-        <EditText
-            android:id="@+id/enter_message_edittext"
-            android:layout_width="398dp"
-            android:layout_height="49dp"
-            android:ems="10"
+            android:layout_marginHorizontal="10dp"
+            android:visibility="gone"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/edittext_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Message"
+            android:layout_marginHorizontal="10dp"
+            android:layout_marginBottom="5dp"
+            android:paddingTop="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/sendMorseButton">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/enter_message_edittext"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!--<EditText
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="19sp"
             android:hint="Enter message"
             android:inputType="textPersonName"
             android:textColor="@color/white"
-            android:layout_marginHorizontal="20dp"
+            android:padding="10dp"
+            android:layout_marginHorizontal="10dp"
+            android:layout_marginTop="10dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.122"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/sendMorseButton"/>
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/sendMorseButton"/>-->
         <Button
             android:id="@+id/sendMorseButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="25dp"
+            android:layout_marginBottom="10dp"
             android:text="Morse"
+            android:padding="15dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.057"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintLeft_toLeftOf="@id/edittext_container"
+/>
         <Button
             android:id="@+id/sendButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="25dp"
+            android:layout_marginBottom="10dp"
             android:text="Send"
+            android:padding="15dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.957"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintRight_toRightOf="@id/edittext_container" />
         <Button
             android:id="@+id/tap"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginBottom="25dp"
+            android:layout_marginBottom="10dp"
             android:text="TAP/HOLD"
+            android:padding="15dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />

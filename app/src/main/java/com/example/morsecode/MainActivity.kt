@@ -122,7 +122,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     private fun getNewMessages(id: Int, userHash: String?) {
         lifecycleScope.launch(Dispatchers.Default) {
             try {
