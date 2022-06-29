@@ -63,7 +63,6 @@ class VisualFeedbackFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        Log.d("Stjepan layout" , layout1.toString())
         var view = inflater.inflate(R.layout.fragment_visual_feedback_message,container,false)
 
         if (layout1){
@@ -148,6 +147,17 @@ class VisualFeedbackFragment : Fragment() {
         if(up_or_down){
             // down
             progressbar_down.setNewProgress(progress)
+            if(progress > oneTimeUnit*7){
+                cancelKorutina()
+                if(testing) {
+                    mAccessibilityService?.buttonHistory?.clear()
+                    if (listener != null){
+                        listener!!.finish(false)
+                    }
+                }
+                //progressbar_up.setNewProgress(0)
+                // send happens
+            }
         } else {
             // up
             progressbar_up.setNewProgress(progress)
@@ -155,7 +165,6 @@ class VisualFeedbackFragment : Fragment() {
                 cancelKorutina()
                 if(testing) {
                     mAccessibilityService?.buttonHistory?.clear()
-                    Log.e("gotovo" , "gotovo")
                     if (listener != null){
                         listener!!.finish(true)
                     }

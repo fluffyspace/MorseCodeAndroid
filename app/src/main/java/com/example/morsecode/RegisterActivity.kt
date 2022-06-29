@@ -42,7 +42,7 @@ class RegisterActivity : AppCompatActivity() {
 
             if (userNameText.text.isNotEmpty()) {
                 var passed = registerUser(username, MD5pass)
-                Log.e("Stjepan", "preslo je ili " + passed)
+                Log.e("Stjepan", "user registriran? $passed")
             }
 
         }

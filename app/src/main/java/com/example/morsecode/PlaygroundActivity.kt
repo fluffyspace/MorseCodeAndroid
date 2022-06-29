@@ -30,8 +30,6 @@ class PlaygroundActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_playground)
 
-        val vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-
         accelerometer = Accelerometer(this)
         gyroscope = Gyroscope(this)
         handsFree = HandsFree()
@@ -125,10 +123,8 @@ class PlaygroundActivity : AppCompatActivity() {
 
     override fun onResume() {
         toggleTesting(true)
-
             accelerometer.register()
             gyroscope.register()
-
         super.onResume()
     }
 

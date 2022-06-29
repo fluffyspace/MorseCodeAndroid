@@ -6,16 +6,17 @@ import kotlin.math.min
 
 class HandsFree {
 
+    companion object {
+        const val UP = 1
+        const val DOWN = 2
+        const val BACK = 4
+        const val READ_LAST = 3
+        const val RETURN_MORSE = 5
+    }
+
     private var counter = 0
     private var threshold = 0.3f
-
-    private var xG = 0f
-
-    //gyroscope min max values
-    private var minX = 0f
-    private var maxX = 0f
-    private var minZ = 0f
-    private var maxZ = 0f
+    private var thresholdX = 0.5f
 
     private var zCounter = 0
 
@@ -26,12 +27,12 @@ class HandsFree {
     private var lastZGsum = 0f
     private var gCounter = 9
 
-
     private var goreDole = true
+    private var leftRight = false
 
     fun followAccelerometer(x: Float, y: Float, z: Float, xG: Float, yG: Float, zG: Float) {
 
-        if (zCounter < 10) {
+        if (zCounter < 3) {
             zCounter++
             return
         }
@@ -50,92 +51,90 @@ class HandsFree {
 
     fun followGyroscope(x: Float, y: Float, z: Float) {
 
-        if (abs(x) > threshold || abs(z) > threshold) {
+        if (counter >= 0)
+            counter--
 
+        if (abs(x) > threshold || abs(z) > threshold) {
             if (abs(lastXGsum) < (abs(lastZGsum))) {
 
-                if (x > threshold && goreDole) {
-                    Log.e("max ", " x minus")
+                if (x > threshold && goreDole && !leftRight) {
+                    //Log.e("x je veci od threshoda ", " $x")
                     if (listener != null) {
-                        listener.onTranslation(1)
+                        listener.onTranslation(UP)
                     }
                     goreDole = !goreDole
 
-                } else if (x < -threshold && !goreDole) {
-                    Log.e("max ", " x +")
+                } else if (x < -threshold && !goreDole && !leftRight) {
+                    //Log.e("max manji od thresholda", " $x")
                     if (listener != null) {
-                        listener.onTranslation(2)
+                        listener.onTranslation(DOWN)
                     }
                     goreDole = !goreDole
-                } else if (z > threshold) {
-                     Log.e("z ", " plus")
-                    if (listener != null) {
-                        //listener.onTranslation(3)
+                } else if (z > thresholdX && counter < 0) {
+                    Log.e("z ", " plius  $z")
+                    if (leftRight){
+                        if (listener != null) {
+                            leftRight = false
+                            Log.e("Stjepan ", " return to morse")
+                            listener.onTranslation(RETURN_MORSE)
+                        }
+                    }else {
+                        Log.e("Stjepan ", " back")
+                        if (listener != null) {
+                            listener.onTranslation(BACK)
+                        }
                     }
-
-                } else if (z < -threshold ) {
-                    Log.e("z ", " minus")
+                    counter = 3
+                } else if (z < -thresholdX && counter<0) {
+                    Log.e("z ", " minus $z")
+                    Log.e("Stjepan ", " read message")
                     if (listener != null) {
-                        listener.onTranslation(4)
+                        listener.onTranslation(READ_LAST)
+                        leftRight = true
                     }
-
+                    counter = 3
                 }
 
-
             } else if (abs(lastXGsum) > (abs(lastZGsum))) {
-                if (z > threshold && goreDole) {
-                    Log.e("max ", " z minus")
+               if (z > threshold && goreDole && !leftRight) {
+                    //Log.e("x je veci od threshoda ", " $x")
                     if (listener != null) {
-                        listener.onTranslation(1)
+                        listener.onTranslation(UP)
                     }
                     goreDole = !goreDole
 
-                } else if (z < -threshold && !goreDole) {
-                    Log.e("max ", " z +")
+                } else if (z < -threshold && !goreDole && !leftRight) {
+                    //Log.e("max manji od thresholda", " $x")
                     if (listener != null) {
-                        listener.onTranslation(2)
+                        listener.onTranslation(DOWN)
                     }
                     goreDole = !goreDole
-                } else if (x > threshold && counter < 0) {
-                    //Log.e("max ", " x minus")
-                    if (listener != null) {
-                        listener.onTranslation(3)
+                } else if (x < -thresholdX && counter < 0) {
+                    Log.e("z ", " plius  $z")
+                    if (leftRight){
+                        if (listener != null) {
+                            leftRight = false
+                            Log.e("Stjepan ", " return to morse")
+                            listener.onTranslation(RETURN_MORSE)
+                        }
+                    }else {
+                        Log.d("Stjepan ", " back")
+                        if (listener != null) {
+                            listener.onTranslation(BACK)
+                        }
                     }
-                    counter = 10
-                } else if (x < -threshold && counter < 0) {
-                    //Log.e("max ", " x +")
+                    counter = 3
+                } else if (x > thresholdX && counter<0) {
+                    Log.d("Stjepan ", " read message")
                     if (listener != null) {
-                        listener.onTranslation(4)
+                        listener.onTranslation(READ_LAST)
+                        leftRight = true
                     }
-                    counter = 10
+                    counter = 3
                 }
 
             }
         }
-/*
-
-
-        }
-        if(x < minX){
-            minX = x
-            Log.e("min x" , minX.toString())
-        }
-
-        if (x > maxX){
-            maxX = x
-            Log.e("max x" , maxX.toString())
-        }
-
-        if(x < minZ){
-            minZ = x
-            Log.e("min z" , minZ.toString())
-        }
-
-        if (x > maxZ){
-            maxZ = x
-            Log.e("max z" , maxZ.toString())
-        }
-*/
     }
 
     interface Listener {

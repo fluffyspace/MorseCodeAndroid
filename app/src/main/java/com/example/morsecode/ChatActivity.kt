@@ -31,6 +31,7 @@ import io.socket.client.IO
 import io.socket.client.Socket
 import io.socket.emitter.Emitter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -73,7 +74,12 @@ class ChatActivity : AppCompatActivity() {
     var message_received_sound: Int = -1
     var contactId: Int = -1
 
-        @SuppressLint("ClickableViewAccessibility")
+    var mAccessibilityService: MorseCodeService? = null
+
+    var sync = false
+    var lastMessage: String = "e"
+
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
@@ -97,13 +103,14 @@ class ChatActivity : AppCompatActivity() {
         val prefUserName: String = sharedPreferences.getString(Constants.USER_NAME, "").toString()
         prefUserId = sharedPreferences.getInt("id", 0)
         val userHash = sharedPreferences.getString(Constants.USER_HASH, "")
-        val socketioIp = sharedPreferences.getString(Constants.SOCKETIO_IP, Constants.DEFAULT_SOCKETIO_IP)
+        val socketioIp =
+            sharedPreferences.getString(Constants.SOCKETIO_IP, Constants.DEFAULT_SOCKETIO_IP)
         handsFreeOnChat = sharedPreferences.getBoolean("hands_free", false)
 
-        try{
+        try {
             mSocket = IO.socket(socketioIp);
             Log.d("connect0", "not error");
-        }catch (e: URISyntaxException) {
+        } catch (e: URISyntaxException) {
             Log.e("connect0", "error");
         }
         mSocket.on("new message", onNewMessage);
@@ -123,7 +130,8 @@ class ChatActivity : AppCompatActivity() {
             .add(R.id.visual_feedback_container, visual_feedback_container, "main")
             .commitNow()
 
-        getNewMessages(prefUserId,userHash)
+
+        getNewMessages(prefUserId, userHash, false)
         populateData(context, recyclerView, prefUserId, contactId)
 
         //message listeners
@@ -131,19 +139,19 @@ class ChatActivity : AppCompatActivity() {
             override fun onTranslation(changeText: String) {
                 visual_feedback_container.setMessage(changeText)
                 textEditMessage.setText(changeText)
-                //Log.e("Stjepan " , visual_feedback_container.getMessage())
             }
 
             override fun finish(gotovo: Boolean) {
-                if (gotovo){
+                if (gotovo) {
                     sendButton.performClick()
+                    vibrator.vibrate(100)
+                } else {
                     vibrator.vibrate(100)
                 }
             }
         })
 
         sendButton.setOnClickListener {
-            Log.d("stjepan", "sendButton " + visual_feedback_container.getMessage())
             performSendMessage(prefUserId, userHash, contactId)
         }
 
@@ -170,7 +178,6 @@ class ChatActivity : AppCompatActivity() {
         }
 
         gyroscope.setListener { rx, ry, rz ->
-            //supportActionBar?.title = rx.toString()
             handsFree.followGyroscope(rx, ry, rz)
         }
 
@@ -180,10 +187,24 @@ class ChatActivity : AppCompatActivity() {
                     visual_feedback_container.down()
                 } else if (tap == 2) {
                     visual_feedback_container.up()
-                } else if(tap == 3){
+                } else if (tap == 3) {
                     visual_feedback_container.reset()
-                } else if(tap == 4){
+
+                    getNewMessages(prefUserId, userHash, false)
+
+                    vibrateLastMessage(prefUserId, contactId)
+
+                } else if (tap == 4) {
                     onBackPressed()
+                } else if (tap == 5) {
+                    visual_feedback_container.reset()
+                    mAccessibilityService = MorseCodeService.getSharedInstance();
+
+                    mAccessibilityService?.vibrateWithPWM(
+                        mAccessibilityService!!.makeWaveformFromText(
+                            "e"
+                        )
+                    )
                 }
             }
         })
@@ -193,14 +214,22 @@ class ChatActivity : AppCompatActivity() {
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
         soundPool = SoundPool.Builder()
-                    .setMaxStreams(1)
-                    .setAudioAttributes(audioAttributes)
-                    .build()
+            .setMaxStreams(1)
+            .setAudioAttributes(audioAttributes)
+            .build()
         message_received_sound = soundPool.load(
-                this,
-                R.raw.message_received,
-                1
-            )
+            this,
+            R.raw.message_received,
+            1
+        )
+    }
+
+    private fun vibrateLastMessage(prefUserId: Int, contactId: Int) {
+        val db = AppDatabase.getInstance(this)
+        val messageDao: MessageDao = db.messageDao()
+        val message = messageDao.getLastReceived(prefUserId,contactId)
+
+        vibrateMessage(message[0].message.toString())
     }
 
     private val onNewMessage =
@@ -208,6 +237,10 @@ class ChatActivity : AppCompatActivity() {
             this.runOnUiThread(Runnable {
                 val messageInJson: String = (args[0] as JSONObject).getString("message")
                 val message: Message = Gson().fromJson(messageInJson, Message::class.java)
+                if (sync) {
+                    vibrateMessage(message.message.toString())
+                    Log.d("Stjepan ", "vibrate message ${message.message.toString()}")
+                }
                 saveMessage(message)
                 addMessageToView(message)
             })
@@ -221,10 +254,10 @@ class ChatActivity : AppCompatActivity() {
 
                 Log.d("ingo", "new message received -> ${message}")
                 // provjeriti ako je za ovaj chat i ako nisam ja pošiljatelj
-                if(message.receiverId == prefUserId) {
+                if (message.receiverId == prefUserId) {
                     Log.d("ingo", "message is for me :)")
                     saveMessage(message)
-                    if(message.senderId == contactId) {
+                    if (message.senderId == contactId) {
                         Log.d("ingo", "and message is for this currently opened chat")
                         // add the message to view
                         addMessageToView(message)
@@ -235,7 +268,7 @@ class ChatActivity : AppCompatActivity() {
 
     private val onError =
         Emitter.Listener { args ->
-            for(arg in args) {
+            for (arg in args) {
                 Log.d("ingo", arg.toString())
             }
         }
@@ -243,8 +276,8 @@ class ChatActivity : AppCompatActivity() {
     private fun addMessageToView(message: Message) {
         chatAdapter!!.list.add(message)
         chatAdapter!!.notifyDataSetChanged()
-        recyclerView.scrollToPosition(chatAdapter!!.list.size-1)
-        soundPool.play(message_received_sound, 1F, 1F, 1, 0, 1f)
+        recyclerView.scrollToPosition(chatAdapter!!.list.size - 1)
+        //soundPool.play(message_received_sound, 1F, 1F, 1, 0, 1f)
     }
 
     private fun saveMessage(message: Message) {
@@ -252,11 +285,10 @@ class ChatActivity : AppCompatActivity() {
             val db = AppDatabase.getInstance(this)
             val messageDao: MessageDao = db.messageDao()
             messageDao.insertAll(message)
-            Log.d("stjepan", "db uspelo")
-        } catch (e: android.database.sqlite.SQLiteConstraintException){
-            
+
+            Log.e("stjepan", "db uspjelo")
         } catch (e: Exception) {
-            Log.e("stjepan", "db neje uspelo " + e.stackTraceToString() + e.message.toString())
+            Log.e("stjepan", "db nije uspjelo " + e.stackTraceToString() + e.message.toString())
         }
     }
 
@@ -301,12 +333,13 @@ class ChatActivity : AppCompatActivity() {
                     textEditMessage.text.toString()
                 )
                 Log.d("stjepan", "poslana poruka? $id")
-                withContext(Dispatchers.Main){
-                    if(id != -1L) {
+                withContext(Dispatchers.Main) {
+                    if (id != -1L) {
                         Log.d("ingo", "poruka $id uspješno poslana")
-                        val poruka = Message(id, textEditMessage.text.toString(), contactId, prefUserId)
+                        val poruka =
+                            Message(id, textEditMessage.text.toString(), contactId, prefUserId)
                         saveMessage(poruka)
-                        addMessageToView(poruka)
+
                         textEditMessage.setText("")
                         visual_feedback_container.setMessage("")
                         val newMessage = JSONObject()
@@ -324,7 +357,7 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
-    private fun getNewMessages(id: Int, userHash: String?) {
+    private fun getNewMessages(id: Int, userHash: String?, b: Boolean) {
         lifecycleScope.launch(Dispatchers.Default) {
             try {
                 val response: List<Message> = MessagesApi.retrofitService.getNewMessages(
@@ -344,6 +377,17 @@ class ChatActivity : AppCompatActivity() {
                 Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
             }
         }
+    }
+
+    private fun vibrateMessage(lastMessage: String) {
+        mAccessibilityService = MorseCodeService.getSharedInstance();
+
+        mAccessibilityService?.vibrateWithPWM(
+            mAccessibilityService!!.makeWaveformFromText(
+                lastMessage
+            )
+        )
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -390,6 +434,13 @@ class ChatActivity : AppCompatActivity() {
                 }
                 true
             }
+            R.id.sync -> {
+                sync = !sync
+
+                Toast.makeText(this, "sync $sync", Toast.LENGTH_LONG).show()
+                Log.e("Stjepan ", "sync $sync")
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -429,7 +480,7 @@ class ChatActivity : AppCompatActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if(keyCode == KeyEvent.KEYCODE_VOLUME_UP){
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             // calibrate
             Log.d("ingo", "calibration started")
 

@@ -17,10 +17,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MorseCode">
         <activity
+            android:name=".ReadFilesActivity"
+            android:exported="false" />
+        <activity
             android:name=".sockets.TestActivity"
-            android:exported="true" >
-
-        </activity>
+            android:exported="true"></activity>
         <activity
             android:name=".ChatActivity"
             android:exported="true"
@@ -32,8 +33,8 @@
         <activity
             android:name=".LogInActivity"
             android:exported="true"
-            android:screenOrientation="portrait"
-            android:noHistory="true">
+            android:noHistory="true"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -72,7 +73,7 @@
 
         <service
             android:name=".MorseCodeService"
-            android:exported="true"/>
+            android:exported="true" />
         <service
             android:name=".PhysicalButtonsService"
             android:exported="true"

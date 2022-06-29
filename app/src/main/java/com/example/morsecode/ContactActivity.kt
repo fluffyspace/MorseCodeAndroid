@@ -51,9 +51,13 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
 
     lateinit var handsFreeIndicator: TextView
 
+    lateinit var vibrator: Vibrator
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_contact)
+
+        vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
         sharedPreferences = this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
         userId = sharedPreferences.getInt("id", 0)
@@ -68,8 +72,9 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
         handsFreeContact1 = HandsFreeContact()
         handsFree = HandsFree()
 
+        supportActionBar?.title = "Contacts"
+
         accelerometer.setListener { x, y, z, xG, yG, zG ->
-            //supportActionBar?.title = z.toString()
             handsFreeContact1.follow(x, y, z, xG, yG, zG)
         }
 
@@ -185,6 +190,7 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
     }
 
     private fun startContactChat(index: Int) {
+        vibrator.vibrate(1)
         val intent = Intent(this, ChatActivity::class.java)
         intent.putExtra(Constants.USER_NAME, kontakt[index].username)
         intent.putExtra(Constants.USER_ID, kontakt[index].id!!.toInt())
@@ -211,7 +217,7 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
         return when (item.itemId) {
             R.id.hands_free -> {
                 try {
-                    val vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                    vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
                     if (Build.VERSION.SDK_INT >= 26) {
                         vibrator.vibrate(
                             VibrationEffect.createOneShot(
