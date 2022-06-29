@@ -37,7 +37,7 @@ class ReadFilesActivity : AppCompatActivity() {
 
     private lateinit var gyroscope: Gyroscope
 
-    private lateinit var handsFree: HandsFree
+    private lateinit var handsFree: HandsFreeFile
 
     var context = this
 
@@ -47,6 +47,8 @@ class ReadFilesActivity : AppCompatActivity() {
 
     lateinit var string: String
 
+    var index:Int = -1
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_read_files)
@@ -55,7 +57,7 @@ class ReadFilesActivity : AppCompatActivity() {
 
         accelerometer = Accelerometer(this)
         gyroscope = Gyroscope(this)
-        handsFree = HandsFree()
+        handsFree = HandsFreeFile()
 
         sendButton = findViewById(R.id.sendButton)
         morseButton = findViewById(R.id.sendMorseButton)
@@ -67,6 +69,7 @@ class ReadFilesActivity : AppCompatActivity() {
             this.getSharedPreferences(ChatActivity.sharedPreferencesFile, Context.MODE_PRIVATE)
         val file = sharedPreferences.getString("file", "")
         string = file.toString()
+
         handsFreeOnChat = sharedPreferences.getBoolean("hands_free", false)
 
         textEditFileView.text = file
@@ -103,7 +106,7 @@ class ReadFilesActivity : AppCompatActivity() {
 
             if (textEditMessage.text.isNotEmpty())
                 searchFile(textEditMessage.text.toString())
-
+            searchFileLine(0)
         }
 
         morseButton.setOnClickListener {
@@ -131,7 +134,7 @@ class ReadFilesActivity : AppCompatActivity() {
         gyroscope.setListener { rx, ry, rz ->
             handsFree.followGyroscope(rx, ry, rz)
         }
-        handsFree.setListener(object : HandsFree.Listener {
+        handsFree.setListener(object : HandsFreeFile.Listener {
             override fun onTranslation(tap: Int) {
                 if (tap == 1) {
                     visual_feedback_container.down()
@@ -139,18 +142,31 @@ class ReadFilesActivity : AppCompatActivity() {
                     visual_feedback_container.up()
                 } else if (tap == 3) {
                     visual_feedback_container.reset()
-
+                    searchFileLine()
                 } else if (tap == 4) {
                     onBackPressed()
-                } else if (tap == 5) {
-                    visual_feedback_container.reset()
+                } else if (tap == 6) {
 
                 }
             }
         })
     }
+    private fun searchFileLine() {
+
+
+        var s = this.string.split('\n')
+
+        if (index > s.size){
+            index = 0
+        }
+
+        Log.e("Stjepan dsd", s[3])
+
+    }
+
 
     private fun searchFile(string: String) {
+
         val st = string.toRegex()
         val match = st.find(this.string)
         if (match != null) {
@@ -164,7 +180,7 @@ class ReadFilesActivity : AppCompatActivity() {
                     pocetak = i
                     break
                 }
-                Log.e("Stjepan", this.string[i].toString())
+
             }
             for (i in match.range.last until this.string.length) {
                 if (this.string[i] == '\n') {
@@ -172,7 +188,7 @@ class ReadFilesActivity : AppCompatActivity() {
                     break
                 }
             }
-
+            Log.e("Stjepan",this.string.substring(pocetak, kraj))
             vibrate(this.string.substring(pocetak, kraj))
 
         }
