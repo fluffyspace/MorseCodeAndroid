@@ -3,38 +3,31 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
+    <LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".MainActivity"
         android:orientation="vertical">
         <TextView
-            android:id="@+id/service_not_started"
+            android:id="@+id/welcome_message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/service_not_started_tap_to_try_again"
-            android:textSize="20sp"
-            android:gravity="center"
-            android:background="#ff0000"
-            android:textColor="@color/white"
-            android:padding="20dp"
-            android:visibility="gone"/>
-
+            android:textSize="25sp"
+            android:padding="10dp"
+            android:gravity="center_horizontal"/>
         <LinearLayout
             android:id="@+id/contacts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginTop="50dp"
             android:layout_marginLeft="50dp"
             android:layout_marginRight="50dp"
             android:layout_marginBottom="15dp">
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:src="@drawable/elementary_classroom_in_alaska"
+                android:src="@drawable/defenceforcesmorse"
                 android:scaleType="fitXY"
                 android:adjustViewBounds="true"/>
             <TextView
@@ -42,9 +35,40 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="Contacts"
+                android:textSize="20sp"
                 android:padding="10dp"/>
         </LinearLayout>
-
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/obrub"/>
+        <LinearLayout
+            android:id="@+id/files"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="25dp"
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="50dp"
+            android:layout_marginBottom="15dp">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:src="@drawable/read"
+                android:scaleType="fitXY"
+                android:adjustViewBounds="true"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Read from notes"
+                android:textSize="20sp"
+                android:padding="10dp"/>
+        </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/obrub"/>
         <LinearLayout
             android:id="@+id/tutorial"
             android:layout_width="match_parent"
@@ -65,7 +89,8 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="Tutorial"
-                android:padding="10dp"/>
+                android:padding="10dp"
+                android:textSize="20sp"/>
         </LinearLayout>
         <View
             android:layout_width="match_parent"
@@ -91,9 +116,10 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="Playground"
-            android:padding="10dp"/>
+            android:padding="10dp"
+            android:textSize="20sp"/>
         </LinearLayout>
-        <View
+        <!--<View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/obrub"/>
@@ -118,11 +144,12 @@
                 android:gravity="center"
                 android:text="Send Morse code to others"
                 android:padding="10dp"/>
-        </LinearLayout>
+        </LinearLayout>-->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/obrub"/>
+        <!--
         <Button
             android:id="@+id/reload_from_service"
             android:layout_gravity="center"
@@ -136,5 +163,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"/>
-    </LinearLayout>
+            -->
+    </LinearLayout >
 </androidx.core.widget.NestedScrollView>

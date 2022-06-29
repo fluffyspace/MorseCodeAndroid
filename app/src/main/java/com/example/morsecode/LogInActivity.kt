@@ -14,10 +14,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.morsecode.ChatActivity.Companion.USER_HASH
-import com.example.morsecode.ChatActivity.Companion.USER_ID
-import com.example.morsecode.ChatActivity.Companion.USER_NAME
-import com.example.morsecode.ChatActivity.Companion.USER_PASSWORD
 import com.example.morsecode.models.EntitetKontakt
 import com.example.morsecode.models.LogInResponse
 import com.example.morsecode.models.RegisterResponse
@@ -50,10 +46,13 @@ class LogInActivity : AppCompatActivity() {
         val sharedPassword = sharedPreferences.getString("password", "").toString()
         val sharedId = sharedPreferences.getInt("id", 0)
 
-        Log.e("stjepan", "id$sharedId")
+        Log.d("stjepan", "id$sharedId")
 
         if (sharedName != "" && sharedPassword != "" && sharedId != 0) {
-            Log.e("stjepann", "id$sharedId")
+            Log.d("stjepann", "id$sharedId")
+            val editor = sharedPreferences.edit()
+            editor.putBoolean("autoLogIn", true)
+            editor.apply()
             val intent = Intent(this@LogInActivity, MainActivity::class.java)
             startActivity(intent)
         }else{
@@ -63,40 +62,34 @@ class LogInActivity : AppCompatActivity() {
         val userNameEditText = findViewById<EditText>(R.id.editTextName)
         val userPasswordEditTet = findViewById<EditText>(R.id.editTextPassword)
 
-
-        val but = findViewById<Button>(R.id.logInButton)
-
-        but.setOnClickListener {
+        findViewById<Button>(R.id.logInButton).setOnClickListener {
             val userName: String = userNameEditText.text.toString()
             val userPassword: String = userPasswordEditTet.text.toString()
             val userPasswordHash = getMd5(userPassword)
 
             if (userName.isEmpty() || userPassword.isEmpty()) {
-                Toast.makeText(applicationContext, "Error", Toast.LENGTH_LONG).show()
+                Toast.makeText(applicationContext, "Username or password missing", Toast.LENGTH_SHORT).show()
             } else if (userName.isNotEmpty() || userPassword.isNotEmpty()) {
                 lifecycleScope.launch(Dispatchers.Default) {
                     try {
-
                         var user: LogInResponse = ContactsApi.retrofitService.logInUser(userName, userPasswordHash)
-
 
                         Log.e("stjepan", "${user.hash}")
                         Log.e("stjepan", "$userPasswordHash")
 
                         if (user.success == true){
-
                             val editor = sharedPreferences.edit()
-                            editor.putString(USER_NAME, userName)
-                            editor.putString(USER_PASSWORD, userPasswordHash)
-                            editor.putInt(USER_ID, user.id.toInt())
-                            editor.putString(USER_HASH, user.hash)
+                            editor.putString(Constants.USER_NAME, userName)
+                            editor.putString(Constants.USER_PASSWORD, userPasswordHash)
+                            editor.putInt(Constants.USER_ID, user.id.toInt())
+                            editor.putString(Constants.USER_HASH, user.hash)
                             editor.apply()
                             editor.commit()
 
                             val intent = Intent(this@LogInActivity, MainActivity::class.java)
                             startActivity(intent)
                         } else {
-                            Toast.makeText(applicationContext,"Log in error",Toast.LENGTH_SHORT).show()
+                            Toast.makeText(applicationContext, "The username or password is incorrect", Toast.LENGTH_SHORT).show()
                         }
                     } catch (e: Exception) {
                         Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())

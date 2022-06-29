@@ -3,16 +3,14 @@ package com.example.morsecode
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.os.Build
-import android.os.Bundle
-import android.os.VibrationEffect
-import android.os.Vibrator
+import android.os.*
 import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -21,51 +19,71 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.Adapters.KontaktiAdapter
-import com.example.morsecode.ChatActivity.Companion.handsFreeOn
+import com.example.morsecode.Adapters.OnLongClickListener
+import com.example.morsecode.ChatActivity.Companion.USER_HASH
 import com.example.morsecode.ChatActivity.Companion.sharedPreferencesFile
 import com.example.morsecode.models.EntitetKontakt
+import com.example.morsecode.models.GetIdResponse
 import com.example.morsecode.network.ContactsApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ContactActivity : AppCompatActivity() {
+class ContactActivity : AppCompatActivity(), OnLongClickListener {
 
-    private var found = false
     private lateinit var kontakt: List<EntitetKontakt>
     private lateinit var accelerometer: Accelerometer
-    private lateinit var handsFreeContact: HandsFreeContact
+    private lateinit var handsFreeContact1: HandsFreeContact
     private lateinit var handsFree: HandsFree
     private var contactCounter = 0
-    private var maxContactCounter = 0
+    private var maxContactCounter: Int = 0
 
-    private var start = true
+    private var handsFreeOnChat = false
+
+    var mAccessibilityService: MorseCodeService? = null
+
+    var userId: Int = 0
+    var userLoginHash: String = ""
+
+    lateinit var sharedPreferences: SharedPreferences
+    lateinit var kontaktiRecyclerView: RecyclerView
+    lateinit var kontaktiRecyclerViewAdapter: KontaktiAdapter
+
+    lateinit var handsFreeIndicator: TextView
+
+    lateinit var vibrator: Vibrator
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_contact)
 
-        val sharedPreferences: SharedPreferences =
-            this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
-        val userId = sharedPreferences.getInt("id", 0)
+        vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
-        refreshContacts(userId)
+        sharedPreferences = this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
+        userId = sharedPreferences.getInt("id", 0)
+        userLoginHash = sharedPreferences.getString(Constants.USER_HASH, "noHash").toString();
+        handsFreeOnChat = sharedPreferences.getBoolean("hands_free", false)
+
+        handsFreeIndicator = findViewById(R.id.hands_free_indicator)
+        kontaktiRecyclerView = findViewById(R.id.recycler)
+        refreshContacts(userId, userLoginHash)
 
         accelerometer = Accelerometer(this)
-        handsFreeContact = HandsFreeContact()
+        handsFreeContact1 = HandsFreeContact()
         handsFree = HandsFree()
 
-        accelerometer.setListener{ x, y, z ->
-            supportActionBar?.title = x.toString()
-            handsFreeContact.follow(x, z)
+        supportActionBar?.title = "Contacts"
+
+        accelerometer.setListener { x, y, z, xG, yG, zG ->
+            handsFreeContact1.follow(x, y, z, xG, yG, zG)
         }
 
-        handsFreeContact.setListener(object : HandsFreeContact.Listener {
+
+        handsFreeContact1.setListener(object : HandsFreeContact.Listener {
             override fun onTranslation(tap: Int) {
                 selectContact(tap)
             }
         })
-
 
         val fab: View = findViewById(R.id.floatingActionButton)
         fab.setOnClickListener { view ->
@@ -73,61 +91,71 @@ class ContactActivity : AppCompatActivity() {
             val inflater = layoutInflater
             builder.setTitle("Add New Contact")
             val dialogLayout = inflater.inflate(R.layout.add_contact_dialog, null)
-            val editText  = dialogLayout.findViewById<EditText>(R.id.editText)
+            val editText = dialogLayout.findViewById<EditText>(R.id.editText)
             builder.setView(dialogLayout)
+            builder.setNegativeButton("Close") { dialogInterface, i ->
+                dialogInterface.dismiss()
+            }
             builder.setPositiveButton("OK") { dialogInterface, i ->
+                val friendName = editText.text.toString()
 
-                //val found = checkNewUser(editText.text.toString())
-                Log.e("new User" , editText.text.toString())
+                if (friendName != "") {
+                    lifecycleScope.launch(Dispatchers.Default) {
+                        try {
+                            var friend: GetIdResponse
 
-                Toast.makeText(applicationContext, "EditText is $found", Toast.LENGTH_SHORT).show()
+                            friend = ContactsApi.retrofitService.getUserByUsername(
+                                userId,
+                                userLoginHash, friendName
+                            )
+
+                            val friendId = friend?.id
+                            var add = ContactsApi.retrofitService.addFriend(
+                                userId,
+                                userLoginHash, friendId
+                            )
+                            lifecycleScope.launch(Dispatchers.Main) {
+                                refreshContacts(userId, userLoginHash)
+
+                                Toast.makeText(
+                                    applicationContext,
+                                    friendName + "",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        } catch (e: Exception) {
+                            //Toast.makeText(applicationContext, "There is no contact under that name", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+
+                } else {
+                    Toast.makeText(applicationContext, "No name entered", Toast.LENGTH_SHORT).show()
+                    fab.performClick()
+                }
+
             }
             builder.show()
         }
-
-        if (handsFreeOn){
-            onResume()
-        }
-        //Log.e("kontakti " , " $kontakt")
-
-    }
-/*
-    private fun checkNewUser(newUser: String): Boolean {
-        found = false
-
-        lifecycleScope.launch(Dispatchers.Default) {
-            try {
-                kontakt = ContactsApi.retrofitService.getAllContacts()
-
-                for (x in kontakt){
-                    Log.e("finduser", " " + x.username)
-                    if (x.username == newUser){
-                        found = true
-                        return@launch
-                    }
-                }
-
-            } catch (e: Exception) {
-                Log.d("stjepan", "greska ")
-            }
-        }
-        return found
     }
 
-
- */
-    fun refreshContacts(userId: Int) {
-        val kontaktiRecyclerView: RecyclerView = findViewById(R.id.recycler)
+    fun refreshContacts(userId: Int, userHash: String) {
         kontaktiRecyclerView.layoutManager = LinearLayoutManager(this)
         val context = this
         lifecycleScope.launch(Dispatchers.Default) {
             try {
-                val kontakti: List<EntitetKontakt> = ContactsApi.retrofitService.getAllContacts()
+                val kontakti: List<EntitetKontakt> =
+                    ContactsApi.retrofitService.getMyFriends(userId, userHash)
                 kontakt = kontakti
-                maxContactCounter = kontakti.size-1
-                Log.e("max ", " $maxContactCounter")
+                maxContactCounter = kontakti.size - 1
+
+                //Log.e("max ", " $maxContactCounter")
                 withContext(Dispatchers.Main) {
-                    kontaktiRecyclerView.adapter = KontaktiAdapter(context, kontakti)
+                    kontaktiRecyclerViewAdapter = KontaktiAdapter(context, kontakti, this@ContactActivity)
+                    if(handsFreeOnChat) {
+                        kontaktiRecyclerViewAdapter.selectContact(contactCounter)
+                    }
+                    kontaktiRecyclerView.adapter = kontaktiRecyclerViewAdapter
                 }
             } catch (e: Exception) {
                 Log.d("stjepan", "greska ")
@@ -135,23 +163,25 @@ class ContactActivity : AppCompatActivity() {
         }
     }
 
-    fun selectContact(command: Int){
-
-        when(command){
+    fun selectContact(command: Int) {
+        when (command) {
             3 -> {
-                if (contactCounter < maxContactCounter){
+                if (contactCounter < maxContactCounter) {
                     contactCounter++
-                }else{
-                    contactCounter = 1
+                } else {
+                    contactCounter = 0
                 }
+                vibrateName(contactCounter)
+                kontaktiRecyclerViewAdapter.selectContact(contactCounter)
             }
             4 -> {
-                if (contactCounter > 0){
+                if (contactCounter > 0) {
                     contactCounter--
-                }else{
+                } else {
                     contactCounter = maxContactCounter
                 }
                 vibrateName(contactCounter)
+                kontaktiRecyclerViewAdapter.selectContact(contactCounter)
             }
             1 -> {
                 startContactChat(contactCounter)
@@ -160,27 +190,34 @@ class ContactActivity : AppCompatActivity() {
     }
 
     private fun startContactChat(index: Int) {
+        vibrator.vibrate(1)
         val intent = Intent(this, ChatActivity::class.java)
-        intent.putExtra("username", kontakt[index].username)
-        intent.putExtra("id", kontakt[index].id.toString())
+        intent.putExtra(Constants.USER_NAME, kontakt[index].username)
+        intent.putExtra(Constants.USER_ID, kontakt[index].id!!.toInt())
         ContextCompat.startActivity(this, intent, null)
     }
 
-    fun vibrateName(index: Int){
-        //TODO vibrate contact name
-        Toast.makeText(applicationContext, "vibrate Name " + kontakt[index].username + " id " + kontakt[index].id, Toast.LENGTH_LONG).show()
+    fun vibrateName(index: Int) {
+        mAccessibilityService = MorseCodeService.getSharedInstance();
+        mAccessibilityService?.vibrateWithPWM(mAccessibilityService!!.makeWaveformFromText(kontakt[index].username.toString()))
+        /*Toast.makeText(
+            applicationContext,
+            "Current contact " + kontakt[index].username,
+            Toast.LENGTH_LONG
+        ).show()*/
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater: MenuInflater = menuInflater
-        inflater.inflate(R.menu.chat_menu, menu)
+        inflater.inflate(R.menu.contacts_menu, menu)
         return true
     }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.hands_free -> {
                 try {
-                    val vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                    vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
                     if (Build.VERSION.SDK_INT >= 26) {
                         vibrator.vibrate(
                             VibrationEffect.createOneShot(
@@ -191,21 +228,18 @@ class ContactActivity : AppCompatActivity() {
                     } else {
                         vibrator.vibrate(200)
                     }
-                    handsFreeOn = true
 
-                    Toast.makeText(
-                        this,
-                        "vibration" + Toast.LENGTH_SHORT.toString(),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    if (handsFreeOnChat) {
+                        handsFreeOnChat = false
+                        accelerometer.unregister()
+                        handsFreeOnChatSet(false)
+                        handsFreeIndicator.visibility = View.GONE
+                        kontaktiRecyclerViewAdapter.selectContact(-1)
+                    } else if(!handsFreeOnChat) {
+                        handsFreeOnChat = true
+                        turnHandsFreeOn()
+                    }
                 } catch (e: Exception) {
-
-                }
-
-                if (accelerometer.on) {
-                    onPause()
-                } else {
-                    onResume()
                 }
 
                 true
@@ -214,17 +248,61 @@ class ContactActivity : AppCompatActivity() {
         }
     }
 
+    fun turnHandsFreeOn(){
+        accelerometer.register()
+        handsFreeOnChatSet(true)
+        handsFreeIndicator.visibility = View.VISIBLE
+        if(::kontaktiRecyclerViewAdapter.isInitialized) kontaktiRecyclerViewAdapter.selectContact(contactCounter)
+    }
+
     override fun onResume() {
-        if (!start) {
-            accelerometer.register()
-        } else {
-            start = false
+        Log.e("handsfree" , handsFreeOnChat.toString())
+
+        if (handsFreeOnChat) {
+            turnHandsFreeOn()
         }
+
         super.onResume()
+    }
+
+    private fun handsFreeOnChatSet(b: Boolean) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean("hands_free", b)
+        editor.apply()
     }
 
     override fun onPause() {
         accelerometer.unregister()
         super.onPause()
     }
+
+    override fun longHold(id: Int, username: String) {
+        Log.d("ingo", "long hold ${id} ${username}")
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Delete contact $username")
+        builder.setNegativeButton("Close") { dialogInterface, i ->
+            dialogInterface.dismiss()
+        }
+        builder.setPositiveButton("OK") { dialogInterface, i ->
+            lifecycleScope.launch(Dispatchers.Default) {
+                try {
+                    var response = id?.let {
+                        ContactsApi.retrofitService.removeFriend(
+                            userId, userLoginHash.toString(),
+                            it
+                        )
+                    }
+                    withContext(Dispatchers.Main) {
+                        refreshContacts(userId, userLoginHash.toString())
+                    }
+
+                } catch (e: Exception) {
+                    Log.d("stjepan", "greska ")
+                }
+            }
+        }
+        builder.show()
+    }
+
+
 }

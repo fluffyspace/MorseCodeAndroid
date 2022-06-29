@@ -3,28 +3,31 @@ package com.example.morsecode
 import android.app.*
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
-import android.graphics.PixelFormat
+import android.content.SharedPreferences
 import android.os.*
 import android.preference.PreferenceManager
 import android.util.Log
-import android.view.Gravity
 import android.view.KeyEvent
-import android.view.LayoutInflater
-import android.view.WindowManager
-import android.widget.FrameLayout
-import android.widget.TextView
 import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
-import com.example.morsecode.models.VibrationMessage
+import com.example.morsecode.models.Message
 import com.example.morsecode.models.Postavke
+import com.example.morsecode.models.VibrationMessage
 import com.example.morsecode.network.ContactsApi
 import com.example.morsecode.network.VibrationMessagesApi
+import com.google.gson.Gson
+import io.socket.client.IO
+import io.socket.client.Socket
+import io.socket.emitter.Emitter
 import kotlinx.coroutines.*
+import org.json.JSONObject
+import java.net.URISyntaxException
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KFunction0
+
 
 private val VIBRATE_PATTERN: List<Long> = listOf(500, 500)
 private val MORSE = arrayOf(".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..", ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----.", "-----")
@@ -43,6 +46,8 @@ class MorseCodeService: Service(), CoroutineScope{
     var testing:Boolean = false
     val scope = CoroutineScope(Job() + Dispatchers.IO)
     var messageReceiveCallback: KFunction0<Unit>? = null // ovo je callback (funkcija) koji ovaj servis pozove kad završi slanjem poruke, moguće je registrirati bilo koju funkciju u bilo kojem activityu. Koristi se kao momentalni feedback da je poruka poslana.
+    lateinit var sharedPreferences: SharedPreferences
+    lateinit var mSocket: Socket
 
     var testMode = false
     val ONGOING_NOTIFICATION_ID = 1
@@ -95,7 +100,7 @@ class MorseCodeService: Service(), CoroutineScope{
         return vvv.toList()
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun onKeyEvent(event: KeyEvent) {
         /*
             KEYCODE_HEADSETHOOK = middle button on phone headset
@@ -146,41 +151,40 @@ class MorseCodeService: Service(), CoroutineScope{
         //textView.setText(MORSECODE_ON + ": " + getMessage())
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun vibrateWithPWM(listWithoutPWM: List<Long>) {
-        var nisu_sve_nule = false
-        listWithoutPWM.forEach{
-            if(it != 0L){
-                nisu_sve_nule = true
-            }
-        }
-        if(!nisu_sve_nule) return
-        var listWithPWM = mutableListOf<Long>()
-        listWithoutPWM.forEachIndexed{ index, item ->
-            if(index % 2 == 0){
-                listWithPWM.add(item)
-            } else {
-                var counter = 0
-                repeat((item/(servicePostavke.pwm_off+servicePostavke.pwm_on)).toInt()){
-                    if(counter % 2 == 0){
-                        listWithPWM.add(servicePostavke.pwm_on)
-                    } else {
-                        listWithPWM.add(servicePostavke.pwm_off)
-                    }
-                    counter++
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            var nisu_sve_nule = false
+            listWithoutPWM.forEach {
+                if (it != 0L) {
+                    nisu_sve_nule = true
                 }
-                if(counter % 2 == 0) listWithPWM.add(servicePostavke.pwm_on)
             }
+            if (!nisu_sve_nule) return
+            var listWithPWM = mutableListOf<Long>()
+            listWithoutPWM.forEachIndexed { index, item ->
+                if (index % 2 == 0) {
+                    listWithPWM.add(item)
+                } else {
+                    var counter = 0
+                    repeat((item / (servicePostavke.pwm_off + servicePostavke.pwm_on)).toInt()) {
+                        if (counter % 2 == 0) {
+                            listWithPWM.add(servicePostavke.pwm_on)
+                        } else {
+                            listWithPWM.add(servicePostavke.pwm_off)
+                        }
+                        counter++
+                    }
+                    if (counter % 2 == 0) listWithPWM.add(servicePostavke.pwm_on)
+                }
+            }
+            val vibrationEffect: VibrationEffect = VibrationEffect.createWaveform(listWithPWM.toLongArray(), -1)
+            vibrator.vibrate(vibrationEffect)
+        }else{
+            vibrator.vibrate(listWithoutPWM.toLongArray(), -1)
         }
-        val vibrationEffect: VibrationEffect = VibrationEffect.createWaveform(listWithPWM.toLongArray(), -1)
-        vibrator.vibrate(vibrationEffect)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun createNotification(): Notification {
-
-        // If the notification supports a direct reply action, use
-// PendingIntent.FLAG_MUTABLE instead.
+    fun createNotification(title: String, text: String): Notification {
         val pendingIntent: PendingIntent =
             Intent(this, MainActivity::class.java).let { notificationIntent ->
                 PendingIntent.getActivity(
@@ -188,45 +192,44 @@ class MorseCodeService: Service(), CoroutineScope{
                     PendingIntent.FLAG_IMMUTABLE
                 )
             }
-
-        return Notification.Builder(this, CHANNEL_ID)
-            .setContentTitle("Morse talk")
-            .setContentText("Running...")
-            .setSmallIcon(R.drawable.ic_baseline_check_circle_24)
-            .setContentIntent(pendingIntent)
-            .setTicker("Ticker text")
-            .build()
-
-        /*// Create an explicit intent for an Activity in your app
-        val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        val intentStopService = Intent(this, StopServiceReceiver::class.java)
+        val stopServicePendingIntent = PendingIntent.getBroadcast(
+            this,
+            System.currentTimeMillis().toInt(),
+            intentStopService,
+            PendingIntent.FLAG_CANCEL_CURRENT
+        )
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder(this, CHANNEL_ID)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setSmallIcon(R.drawable.ic_baseline_check_circle_24)
+                .setContentIntent(pendingIntent)
+                .addAction(R.drawable.ic_baseline_cancel_24, getString(R.string.stopService),
+                    stopServicePendingIntent)
+                .setOnlyAlertOnce(true)
+                .build()
+        } else {
+            NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setSmallIcon(R.drawable.ic_baseline_check_circle_24)
+                .setContentIntent(pendingIntent)
+                .addAction(R.drawable.ic_baseline_cancel_24, getString(R.string.stopService),
+                    stopServicePendingIntent)
+                .setOnlyAlertOnce(true)
+                .build()
         }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-        var notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_baseline_play_arrow_24)
-            .setContentTitle("Morse Talk")
-            .setContentText("Running...")
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-            .setContentIntent(pendingIntent)
-            .setOngoing(true)
-            .build()
-
-        return notification
-*/
-        /*with(NotificationManagerCompat.from(this)) {
-            // notificationId is a unique int for each notification that you must define
-            notify(1, notification)
-        }*/
     }
 
     private fun createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = getString(R.string.channel_name)
             val descriptionText = getString(R.string.channel_description)
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val importance = NotificationManager.IMPORTANCE_LOW
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
             }
@@ -235,9 +238,9 @@ class MorseCodeService: Service(), CoroutineScope{
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
+
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         setup()
         return super.onStartCommand(intent, flags, startId)
@@ -246,35 +249,28 @@ class MorseCodeService: Service(), CoroutineScope{
     override fun onDestroy() {
         korutina.cancel()
         scope.cancel()
-        Log.d("ingo", "oncancel")
+        mSocket.disconnect();
+        mSocket.off("new message", onNewMessage);
+        Log.d("ingo", "MorseCodeService onDestroy")
         super.onDestroy()
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     override fun onBind(intent: Intent?): IBinder? {
 
         return binder
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun setup(){
+        sharedPreferences = this.getSharedPreferences(Constants.sharedPreferencesFile, Context.MODE_PRIVATE)
+
         createNotificationChannel()
         // Create an overlay and display the action bar
-        /*val wm = getSystemService(WINDOW_SERVICE) as WindowManager
-        mLayout = FrameLayout(this)
-        val lp = WindowManager.LayoutParams()
-        lp.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
-        lp.format = PixelFormat.TRANSLUCENT
-        lp.flags = lp.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-        lp.width = WindowManager.LayoutParams.WRAP_CONTENT
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-        lp.gravity = Gravity.TOP
-        val inflater = LayoutInflater.from(this)
-        var view = inflater.inflate(R.layout.action_bar, mLayout)
-        wm.addView(mLayout, lp)
-        textView = view.findViewById<TextView>(R.id.power)*/
         vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
+
         vibrateWithPWM(VIBRATE_PATTERN)
+
         //maybeSendMessageCoroutineLoop()
         korutina = scope.launch {
             // New coroutine that can call suspend functions
@@ -282,19 +278,34 @@ class MorseCodeService: Service(), CoroutineScope{
         }
         serviceSharedInstance = this
 
-        servicePostavke.pwm_on = PreferenceManager.getDefaultSharedPreferences(this).getLong("pwm_on", 5)
-        servicePostavke.pwm_off = PreferenceManager.getDefaultSharedPreferences(this).getLong("pwm_off", 1)
-        servicePostavke.oneTimeUnit = PreferenceManager.getDefaultSharedPreferences(this).getLong("oneTimeUnit", 400)
-        servicePostavke.token = PreferenceManager.getDefaultSharedPreferences(this).getString("token", "").toString()
+        servicePostavke.pwm_on = sharedPreferences.getLong("pwm_on", 5)
+        servicePostavke.pwm_off = sharedPreferences.getLong("pwm_off", 1)
+        servicePostavke.oneTimeUnit = sharedPreferences.getLong("oneTimeUnit", 400)
+        servicePostavke.socketioIp = sharedPreferences.getString(Constants.SOCKETIO_IP, Constants.DEFAULT_SOCKETIO_IP).toString()
+        servicePostavke.username = sharedPreferences.getString(Constants.USER_NAME, "").toString()
+        servicePostavke.userId = sharedPreferences.getInt("id", 0)
+        servicePostavke.userHash = sharedPreferences.getString(Constants.USER_HASH, "").toString()
+        servicePostavke.handsFreeOnChat = sharedPreferences.getBoolean("hands_free", false)
 
-        val notification = createNotification()
-
+        val notification = createNotification("Morse talk", "Running...")
         startForeground(ONGOING_NOTIFICATION_ID, notification)
+
+        try {
+            mSocket = IO.socket(servicePostavke.socketioIp);
+            Log.d("connect0", "not error");
+        } catch (e: URISyntaxException) {
+            Log.e("connect0", "error");
+        }
+        mSocket.on("new message", onNewMessage);
+        mSocket.on(Socket.EVENT_CONNECT) { Log.d("ingo", "socket connected") }
+        mSocket.on(Socket.EVENT_DISCONNECT) { Log.d("ingo", "socket disconnected") }
+        mSocket.on(Socket.EVENT_CONNECT_ERROR, onError)
+        mSocket.disconnect().connect()
+        Log.d("ingo", "connected? " + mSocket.connected())
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun maybeSendMessage(){
-        Log.d("ingo", "maybeSendMessage")
+        //Log.d("ingo", "maybeSendMessage")
         val diff:Int = getTimeDifference()
         if(buttonHistory.size > 0 && diff > servicePostavke.oneTimeUnit*7){
             Log.d("ingo", "buttonHistory not empty, time difference is big enough")
@@ -351,10 +362,9 @@ class MorseCodeService: Service(), CoroutineScope{
 
     fun isNumeric(str: String) = str.all { it in '0'..'9' }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun sendMessage(stringZaPoslati:String){
         try {
-            val response: VibrationMessage = VibrationMessagesApi.retrofitService.sendMessage(stringZaPoslati, servicePostavke.token)
+            val response: VibrationMessage = VibrationMessagesApi.retrofitService.sendMessage(stringZaPoslati)
             databaseAddNewPoruka(response)
             withContext(Dispatchers.Main){
                 //textView.setText(MORSECODE_ON + ": received " + response.poruka)
@@ -372,7 +382,7 @@ class MorseCodeService: Service(), CoroutineScope{
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     suspend fun maybeSendMessageCoroutineLoop() { // this: CoroutineScope
         while(true) {
             delay(1000L) // non-blocking delay for 1 second (default time unit is ms)
@@ -411,7 +421,7 @@ class MorseCodeService: Service(), CoroutineScope{
                 sb.append("–")
             }
         }
-        Log.d("ingo", "morse->" + sb.toString()) // print after delay
+        //Log.d("ingo", "morse->" + sb.toString()) // print after delay
         return sb.toString()
     }
 
@@ -492,11 +502,21 @@ class MorseCodeService: Service(), CoroutineScope{
         return Postavke(servicePostavke.pwm_on, servicePostavke.pwm_off, servicePostavke.oneTimeUnit)
     }
 
+    fun savePostavke(){
+        val editor = sharedPreferences.edit()
+        editor.putLong(Constants.PWM_ON, servicePostavke.pwm_on)
+        editor.putLong(Constants.PWM_OFF, servicePostavke.pwm_off)
+        editor.putLong(Constants.ONE_TIME_UNIT, servicePostavke.oneTimeUnit)
+        editor.putString(Constants.SOCKETIO_IP, servicePostavke.socketioIp)
+        editor.putBoolean(Constants.HANDS_FREE, servicePostavke.handsFreeOnChat)
+        editor.apply()
+    }
+
     fun setPostavke(novePostavke: Postavke){
         servicePostavke.pwm_on = novePostavke.pwm_on
         servicePostavke.pwm_off = novePostavke.pwm_off
         servicePostavke.oneTimeUnit = novePostavke.oneTimeUnit
-        servicePostavke.token = novePostavke.token
+        servicePostavke.socketioIp = novePostavke.socketioIp
     }
 
     fun toggleTesting(testing: Boolean){
@@ -518,6 +538,38 @@ class MorseCodeService: Service(), CoroutineScope{
         NotificationManagerCompat.from(this).cancelAll()
         super.onUnbind(intent)
         return true
+    }
+
+    private val onError =
+        Emitter.Listener { args ->
+            for (arg in args) {
+                Log.d("ingo", arg.toString())
+            }
+        }
+
+    private val onNewMessage =
+        Emitter.Listener { args ->
+            // bi li ovo trebalo biti u UI dretvi?
+            val messageInJson: String = (args[0] as JSONObject).getString("message")
+            val message: Message = Gson().fromJson(messageInJson, Message::class.java)
+            listener.onNewMessage(message)
+            Log.d("ingo", "primljena poruka")
+        }
+
+    fun emitMessage(message: Message){
+        val newMessage = JSONObject()
+        newMessage.put("message", Gson().toJson(message).toString())
+        mSocket.emit("new message", newMessage);
+    }
+
+    interface OnSocketNewMessageListener {
+        fun onNewMessage(message: Message)
+    }
+
+    private lateinit var listener: OnSocketNewMessageListener
+
+    fun setListener(l: OnSocketNewMessageListener) {
+        listener = l
     }
 
 }

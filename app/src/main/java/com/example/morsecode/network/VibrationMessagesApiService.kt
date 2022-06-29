@@ -35,26 +35,29 @@ interface VibrationMessagesApiService {
     //@Headers("Accept: text/html")
     //@Headers("Content-Type: application/json")
     @GET("api")
-    suspend fun sendMessage(@Query("poruka") poruka: String, @Query("token") token: String): VibrationMessage
+    suspend fun sendMessage(@Query("poruka") poruka: String): VibrationMessage
 
     @GET("api")
-    suspend fun getAllMessages(@Query("poruka") poruka: String, @Query("token") token: String): List<Zadatak>
+    suspend fun getAllMessages(@Query("poruka") poruka: String): List<Zadatak>
 }
 
 interface MessagesApiService {
     //@Headers("Accept: text/html")
     //@Headers("Content-Type: application/json")
     @GET("api/sendMessage.php")
-    suspend fun sendMessage(@Query("id") senderId: Long, @Query("hash") password: String?, @Query("to") receiverId: Integer, @Query("message") message: String): Boolean
+    suspend fun sendMessage(@Query("id") senderId: Long, @Query("hash") password: String?, @Query("to") receiverId: Int, @Query("message") message: String): Long
 
     @GET("api/getMessages.php")
-    suspend fun getMessages(@Query("id") senderId: Long, @Query("hash") password: String?, @Query("contactId") receiverId: Integer): List<Message>
+    suspend fun getMessages(@Query("id") senderId: Long, @Query("hash") password: String?, @Query("contactId") receiverId: Int): List<Message>
 
     @GET("api/getContactsWithMessages.php")
     suspend fun getMessageContact(@Query("id") id: Int, @Query("hash") hash: String?): List<ContactListResponse>
 
     @GET("api/getNewMessages.php")
     suspend fun getNewMessages(@Query("id") id: Int, @Query("hash") hash: String?): List<Message>
+
+    @GET("api/deleteMessages.php")
+    suspend fun deleteMessages(@Query("id") id: Int, @Query("hash") hash: String?, @Query("contactId") contactId: Int): Boolean
 }
 
 
@@ -71,9 +74,23 @@ interface ContactsApiService {
     @GET("api/register.php")
     suspend fun registerContact(@Query("username") username: String, @Query("password") password: String): RegisterResponse
 
+    @GET("api/addFriend.php")
+    suspend fun addFriend(@Query("id") id: Int, @Query("hash") hash: String, @Query("friendId") friendId: Long?): Boolean
+
     @GET("api/login.php")
     suspend fun logInUser(@Query("username") username: String, @Query("password") password: String): LogInResponse
+
+    @GET("api/getUserByUsername.php")
+    suspend fun getUserByUsername(@Query("id") id: Int, @Query("hash") hash: String,@Query("username") username: String): GetIdResponse
+
+    @GET("api/getMyFriends.php")
+    suspend fun getMyFriends(@Query("id") id: Int, @Query("hash") hash: String): List<EntitetKontakt>
+
+    @GET("api/removeFriend.php")
+    suspend fun removeFriend(@Query("id") id: Int, @Query("hash") hash: String, @Query("friendId") friendId: Int): Boolean
 }
+
+
 
 /**
  * A public Api object that exposes the lazy-initialized Retrofit service

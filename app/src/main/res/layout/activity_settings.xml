@@ -14,17 +14,6 @@
         android:orientation="vertical"
         android:layout_margin="10dp">
         <TextView
-            android:id="@+id/service_not_started"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Service not started!"
-            android:textSize="20sp"
-            android:gravity="center"
-            android:background="#ff0000"
-            android:textColor="@color/white"
-            android:padding="20dp"
-            android:visibility="gone"/>
-        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Vibration configuration: "
@@ -132,35 +121,19 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Token (10 chars): "
+            android:text="SocketIO IP"
             android:layout_gravity="center"
             android:textSize="25sp"
             android:paddingTop="10dp"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Enter known token or generate a new one. Token is used to connect with another device. Devices with same token can communicate."
-            android:padding="10dp"/>
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Token number (length=10)">
-
+            android:hint="http://">
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/token"
+                android:id="@+id/socketioip"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                />
-
+                android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
-
-        <Button
-            android:id="@+id/generate_token"
-            android:layout_gravity="center"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Generate new token"
-            android:padding="20dp"/>
 
         <LinearLayout
             android:layout_width="match_parent"

@@ -3,16 +3,18 @@ package com.example.morsecode
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
+import android.media.AudioAttributes
+import android.media.SoundPool
 import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.MotionEvent
-import android.widget.*
+import android.view.*
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentContainerView
@@ -22,10 +24,21 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.Adapters.CustomAdapter
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.MessageDao
+import com.example.morsecode.models.EntitetKontakt
 import com.example.morsecode.models.Message
+import com.example.morsecode.network.ContactsApi
 import com.example.morsecode.network.MessagesApi
+import com.google.gson.Gson
+import io.socket.client.IO
+import io.socket.client.Socket
+import io.socket.emitter.Emitter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.URISyntaxException
+
 
 class ChatActivity : AppCompatActivity() {
 
@@ -35,7 +48,7 @@ class ChatActivity : AppCompatActivity() {
         val USER_PASSWORD = "password"
         val USER_HASH = "logInHash"
         val sharedPreferencesFile = "MyPrefs"
-        var handsFreeOn = false
+
     }
 
     lateinit var tapButton: Button
@@ -43,49 +56,71 @@ class ChatActivity : AppCompatActivity() {
     lateinit var morseButton: Button
     lateinit var recyclerView: RecyclerView
     lateinit var textEditMessage: EditText
-    lateinit var textViewMessage: TextView
-    private val sharedPreferencesFile = "MyPrefs"
+    lateinit var handsFreeIndicator: TextView
 
+    private var chatAdapter: CustomAdapter? = null
     lateinit var visual_feedback_container: VisualFeedbackFragment
     private lateinit var accelerometer: Accelerometer
 
-    private lateinit var handsFree: HandsFree
-    private var morseOn = false
+    private lateinit var gyroscope: Gyroscope
 
-    private var start = true
+    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var handsFree: HandsFree
+    private var handsFreeOnChat = false
+    lateinit var fragmentContainerView: FragmentContainerView
 
     var context = this
+    var prefUserId = -1
+    var userHash = ""
+
+    lateinit var soundPool: SoundPool
+    var message_received_sound: Int = -1
+    var contactId: Int = -1
+
+    var mAccessibilityService: MorseCodeService? = null
+
+    var sync = false
+    var lastMessage: String = "e"
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
+        mAccessibilityService = MorseCodeService.getSharedInstance();
+        fragmentContainerView = findViewById(R.id.visual_feedback_container)
+        val contactName = intent.getStringExtra(Constants.USER_NAME).toString()
+        contactId = intent.getLongExtra(Constants.USER_ID, -1).toInt()
 
-        val contactName = intent.getStringExtra(USER_NAME).toString()
-        val contactId = Integer(intent.getStringExtra(USER_ID))
+        val vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         supportActionBar?.title = "$contactName"
 
         accelerometer = Accelerometer(this)
+        gyroscope = Gyroscope(this)
         handsFree = HandsFree()
 
         sendButton = findViewById(R.id.sendButton)
         morseButton = findViewById(R.id.sendMorseButton)
-        val layoutTop = findViewById<LinearLayout>(R.id.topLayout)
-        val layBottom = findViewById<LinearLayout>(R.id.layoutBottom)
-        textEditMessage = findViewById(R.id.playground_text)
-        textViewMessage = findViewById(R.id.playground_text)
+        textEditMessage = findViewById(R.id.enter_message_edittext)
+        handsFreeIndicator = findViewById(R.id.hands_free_indicator)
 
-        val sharedPreferences: SharedPreferences =
-            this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
-        val prefUserName: String = sharedPreferences.getString(USER_NAME, "").toString()
-        val prefUserId = sharedPreferences.getInt("id", 0)
-        val prefUserPassword = sharedPreferences.getString(USER_PASSWORD, "")
-        val userId = Integer(prefUserId)
-        val userHash = sharedPreferences.getString(USER_HASH, "")
+        sharedPreferences = this.getSharedPreferences(Constants.sharedPreferencesFile, Context.MODE_PRIVATE)
+        val prefUserName: String = sharedPreferences.getString(Constants.USER_NAME, "").toString()
+        prefUserId = sharedPreferences.getInt("id", 0)
+        userHash = sharedPreferences.getString(Constants.USER_HASH, "").toString()
+
+        handsFreeOnChat = sharedPreferences.getBoolean("hands_free", false)
+
+        mAccessibilityService?.setListener(object : MorseCodeService.OnSocketNewMessageListener {
+            override fun onNewMessage(message: Message) {
+                Log.e("ingo", "poruka bi kao trebala dojti")
+                this@ChatActivity.runOnUiThread {
+                    onNewMessageReceived(message)
+                }
+            }
+        })
 
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        context = this
 
         visual_feedback_container = VisualFeedbackFragment()
         visual_feedback_container.testing = true
@@ -96,65 +131,32 @@ class ChatActivity : AppCompatActivity() {
             .commitNow()
 
 
-        getNewMessages(userId, userHash, contactId)
-        //populateData(context, recyclerView, userId, contactId)
+        getNewMessages(prefUserId, userHash, false)
+        populateData(context, recyclerView, prefUserId, contactId)
 
         //message listeners
         visual_feedback_container.setListener(object : VisualFeedbackFragment.Listener {
             override fun onTranslation(changeText: String) {
-                textViewMessage.text = changeText + ""
+                visual_feedback_container.setMessage(changeText)
+                textEditMessage.setText(changeText)
+            }
+
+            override fun finish(gotovo: Boolean) {
+                if (gotovo) {
+                    sendButton.performClick()
+                    vibrator.vibrate(100)
+                } else {
+                    vibrator.vibrate(100)
+                }
             }
         })
 
         sendButton.setOnClickListener {
-            Log.e("stjepan", "sendButton" + visual_feedback_container.getMessage())
-            performSendMessage(userId, userHash, contactId)
-            val poruka = Message(textEditMessage.text.toString(), contactId, userId)
-            saveMessage(userId, contactId, listOf(poruka))
-            textViewMessage.text = ""
+            performSendMessage(prefUserId, userHash, contactId)
         }
 
         morseButton.setOnClickListener {
-            var fra: FragmentContainerView = findViewById(R.id.visual_feedback_container)
-            if (!morseOn) {
-                val param = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    0,
-                    0.6f
-                )
-                layoutTop.layoutParams = param
-                val param1 = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    0,
-                    0.4f
-                )
-                layBottom.layoutParams = param1
-                morseOn = true
-
-                fra.isVisible = true
-            } else {
-                val param = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    0,
-                    0.75f
-                )
-                layoutTop.layoutParams = param
-                val param1 = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    0,
-                    0.25f
-                )
-                layBottom.layoutParams = param1
-                morseOn = false
-                fra.isVisible = false
-            }
-
-/*
-            LargeBanner.make(it, "Ceci est une snackbar LARGE", LargeBanner.LENGTH_INDEFINITE)
-                .setAction()
-                .show()
-*/
-
+            fragmentContainerView.isVisible = !(fragmentContainerView.isVisible)
         }
 
         tapButton = findViewById(R.id.tap)
@@ -170,72 +172,107 @@ class ChatActivity : AppCompatActivity() {
             true
         }
 
-        accelerometer.setListener { x, y, z ->
-            supportActionBar?.title = x.toString()
-            handsFree.follow(x, z)
+        accelerometer.setListener { x, y, z, xG, yG, zG ->
+            handsFree.followAccelerometer(x, y, z, xG, yG, zG)
+        }
+
+        gyroscope.setListener { rx, ry, rz ->
+            handsFree.followGyroscope(rx, ry, rz)
         }
 
         handsFree.setListener(object : HandsFree.Listener {
             override fun onTranslation(tap: Int) {
                 if (tap == 1) {
-                   // visual_feedback_container.down()
+                    visual_feedback_container.down()
                 } else if (tap == 2) {
-                  //  visual_feedback_container.up()
-                } else if(tap == 3){
+                    visual_feedback_container.up()
+                } else if (tap == 3) {
+                    visual_feedback_container.reset()
+
+                    getNewMessages(prefUserId, userHash, false)
+
+                    vibrateLastMessage(prefUserId, contactId)
+
+                } else if (tap == 4) {
                     onBackPressed()
+                } else if (tap == 5) {
+                    visual_feedback_container.reset()
+
+                    mAccessibilityService?.vibrateWithPWM(
+                        mAccessibilityService!!.makeWaveformFromText(
+                            "e"
+                        )
+                    )
                 }
             }
         })
 
-        if (handsFreeOn){
-            onResume()
-        }
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_GAME)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+        soundPool = SoundPool.Builder()
+            .setMaxStreams(1)
+            .setAudioAttributes(audioAttributes)
+            .build()
+        message_received_sound = soundPool.load(
+            this,
+            R.raw.message_received,
+            1
+        )
     }
 
-    private fun getNewMessages(id: Integer, userHash: String?, contactId: Integer) {
-        lifecycleScope.launch(Dispatchers.Default) {
-            try {
-                val response: List<Message> = MessagesApi.retrofitService.getNewMessages(
-                    id.toInt(),
-                    userHash
-                )
-                Log.e("stjepan", "poslana poruka$response")
-                if (response.isNotEmpty()) {
-                    saveMessage(id, contactId, response)
-                }
+    private fun vibrateLastMessage(prefUserId: Int, contactId: Int) {
+        val db = AppDatabase.getInstance(this)
+        val messageDao: MessageDao = db.messageDao()
+        val message = messageDao.getLastReceived(prefUserId,contactId)
 
-            } catch (e: Exception) {
-                Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
+        vibrateMessage(message[0].message.toString())
+    }
+
+    fun onNewMessageReceived(message: Message) {
+        if (sync) {
+            vibrateMessage(message.message.toString())
+            Log.d("Stjepan ", "vibrate message ${message.message.toString()}")
+        }
+        /*saveMessage(message)
+        addMessageToView(message)*/
+        Log.d("Stjepan ", "${Gson().toJson(message)} $prefUserId $contactId")
+        if (message.receiverId == prefUserId) {
+            Log.d("ingo", "message is for me :)")
+            saveMessage(message)
+            if (message.senderId == contactId) {
+                Log.d("ingo", "and message is for this currently opened chat")
+                // add the message to view
+                addMessageToView(message)
             }
         }
     }
 
-    private fun saveMessage(userId: Integer, contactId: Integer, list: List<Message>) {
-        if (list.isEmpty()) {
-            return
-        }
-        try {
+    private fun addMessageToView(message: Message) {
+        chatAdapter!!.list.add(message)
+        chatAdapter!!.notifyDataSetChanged()
+        recyclerView.scrollToPosition(chatAdapter!!.list.size - 1)
+        soundPool.play(message_received_sound, 1F, 1F, 1, 0, 1f)
+    }
 
+    private fun saveMessage(message: Message) {
+        try {
             val db = AppDatabase.getInstance(this)
             val messageDao: MessageDao = db.messageDao()
-            for (x in list) {
-                val poruka = Message(x.message, x.receiverId, x.senderId)
-                messageDao.insertAll(poruka)
-            }
+            messageDao.insertAll(message)
 
-            populateData(context, recyclerView, userId, contactId)
-
-            Log.e("stjepan", "db uspelo")
+            Log.e("stjepan", "db uspjelo")
         } catch (e: Exception) {
-            Log.e("stjepan", "db neje uspelo" + e.stackTraceToString() + e.message.toString())
+            Log.e("stjepan", "db nije uspjelo " + e.stackTraceToString() + e.message.toString())
         }
     }
 
     private fun populateData(
         context: Context,
         recyclerView: RecyclerView,
-        userId: Integer,
-        contactId: Integer
+        userId: Int,
+        contactId: Int
     ) {
         val db = AppDatabase.getInstance(this)
         val messageDao: MessageDao = db.messageDao()
@@ -246,73 +283,114 @@ class ChatActivity : AppCompatActivity() {
         } else {
             poruke = messageDao.getAllReceived(contactId, userId)
         }
+        Log.d("ingo", "broj poruka -> " + poruke.size)
         this@ChatActivity.runOnUiThread(java.lang.Runnable {
-            recyclerView.adapter = CustomAdapter(
+            chatAdapter = CustomAdapter(
                 context,
                 poruke,
                 userId.toInt(),
                 contactId.toInt()
             )
+            val layoutManager = LinearLayoutManager(context)
+            layoutManager.stackFromEnd = true
+            recyclerView.layoutManager = layoutManager;
+            recyclerView.adapter = chatAdapter
             recyclerView.scrollToPosition(poruke.size - 1)
         })
     }
 
-    private fun performSendMessage(id: Integer, sharedPassword: String?, contactId: Integer) {
-
-        val textMessage = findViewById<EditText>(R.id.playground_text)
+    private fun performSendMessage(userId: Int, sharedPassword: String?, contactId: Int) {
         lifecycleScope.launch(Dispatchers.Default) {
             try {
-                val response: Boolean = MessagesApi.retrofitService.sendMessage(
-                    id.toLong(),
+                val id = MessagesApi.retrofitService.sendMessage(
+                    userId.toLong(),
                     sharedPassword,
                     contactId,
-                    textMessage.text.toString()
+                    textEditMessage.text.toString()
                 )
-                Log.e("stjepan", "poslana poruka$response")
+                Log.d("stjepan", "poslana poruka? $id")
+                withContext(Dispatchers.Main) {
+                    if (id != -1L) {
+                        Log.d("ingo", "poruka $id uspješno poslana")
+                        val poruka =
+                            Message(id, textEditMessage.text.toString(), contactId, prefUserId)
+                        saveMessage(poruka)
+                        addMessageToView(poruka)
+
+                        textEditMessage.setText("")
+                        visual_feedback_container.setMessage("")
+
+                        mAccessibilityService?.emitMessage(poruka)
+                    } else {
+                        Log.d("ingo", "poruka nije poslana")
+                    }
+                }
+
             } catch (e: Exception) {
-                Log.e("Stjepan", "poslana poruka $id + $sharedPassword + $contactId ")
+                Log.e("Stjepan", "poslana poruka $contactId + $sharedPassword + $contactId ")
                 Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
             }
         }
     }
-/*
-    private fun getMessageContacts(id: Long, sharedPassword: String?){
+
+    private fun getNewMessages(id: Int, userHash: String?, b: Boolean) {
         lifecycleScope.launch(Dispatchers.Default) {
-
             try {
-                val response = MessagesApi.retrofitService.getMessages(
+                val response: List<Message> = MessagesApi.retrofitService.getNewMessages(
                     id,
-                    sharedPassword
-
+                    userHash
                 )
+                if (response.isNotEmpty()) {
 
-                Log.e("stjepan", "poslana poruka$response")
+                    for (message in response) {
+                        withContext(Dispatchers.Main) {
+                            saveMessage(message)
+                        }
+                    }
+                }
+
             } catch (e: Exception) {
-                Log.e("Stjepan", "poslana poruka $id + $sharedPassword + ")
                 Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
             }
-
         }
     }
 
-
- */
-
-    private fun getMessages(id: Long, sharedPassword: String?, contactId: Integer) {
+    fun deleteMessages(){
+        val ctx: Context = this
         lifecycleScope.launch(Dispatchers.Default) {
-
             try {
-                val response = MessagesApi.retrofitService.getMessages(
-                    id,
-                    sharedPassword,
-                    contactId
-                )
-                Log.e("stjepan", "poslana poruka$response")
+                val db = AppDatabase.getInstance(ctx)
+                val messageDao: MessageDao = db.messageDao()
+                messageDao.deleteAll()
+                withContext(Dispatchers.Main){
+                    chatAdapter?.list = listOf()
+                    chatAdapter?.notifyDataSetChanged()
+                }
+
+                Log.d("ingo", "$prefUserId, $userHash, $contactId")
+                val deleted: Boolean =
+                    MessagesApi.retrofitService.deleteMessages(prefUserId, userHash, contactId)
+                if(deleted){
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(ctx, "Messages deleted successfuly", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                }
             } catch (e: Exception) {
-                Log.e("Stjepan", "poslana poruka $id + $sharedPassword + ")
-                Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
+                Log.d("stjepan", "greska " + e)
             }
         }
+    }
+
+    private fun vibrateMessage(lastMessage: String) {
+        mAccessibilityService = MorseCodeService.getSharedInstance();
+
+        mAccessibilityService?.vibrateWithPWM(
+            mAccessibilityService!!.makeWaveformFromText(
+                lastMessage
+            )
+        )
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -336,40 +414,79 @@ class ChatActivity : AppCompatActivity() {
                     } else {
                         vibrator.vibrate(200)
                     }
-                    morseButton.performClick()
+                    toggleHandsFree()
 
-                    Toast.makeText(
-                        this,
-                        "vibration" + Toast.LENGTH_SHORT.toString(),
-                        Toast.LENGTH_SHORT
-                    ).show()
                 } catch (e: Exception) {
 
                 }
-/*
-                if (accelerometer.on) {
-                    onPause()
-                } else {
-                    onResume()
-                }
-*/
+                true
+            }
+            R.id.sync -> {
+                sync = !sync
+
+                Toast.makeText(this, "sync $sync", Toast.LENGTH_LONG).show()
+                Log.e("Stjepan ", "sync $sync")
+                true
+            }
+            R.id.clear_messages -> {
+                deleteMessages()
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
+    fun toggleHandsFree(){
+        if (handsFreeOnChat) {
+            accelerometer.unregister()
+            gyroscope.unregister()
+            handsFreeOnChatSet(false)
+            handsFreeIndicator.visibility = View.GONE
+        } else if(!handsFreeOnChat) {
+            turnHandsFreeOn()
+        }
+        handsFreeOnChat = !handsFreeOnChat
+
+        fragmentContainerView.isVisible = handsFreeOnChat
+    }
+
+    fun turnHandsFreeOn(){
+        accelerometer.register()
+        gyroscope.register()
+        handsFreeOnChatSet(true)
+        handsFreeIndicator.visibility = View.VISIBLE
+    }
+
+    private fun handsFreeOnChatSet(b: Boolean) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean("hands_free", b)
+        editor.apply()
+    }
+
     override fun onResume() {
-        if (!start) {
-            accelerometer.register()
-        } else {
-            start = false
+        if (handsFreeOnChat) {
+            turnHandsFreeOn()
         }
         super.onResume()
     }
 
     override fun onPause() {
+        gyroscope.unregister()
         accelerometer.unregister()
         super.onPause()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            // calibrate
+            Log.d("ingo", "calibration started")
+
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
     }
 }

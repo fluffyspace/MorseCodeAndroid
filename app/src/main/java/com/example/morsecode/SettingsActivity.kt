@@ -1,11 +1,12 @@
 package com.example.morsecode
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.util.Log
-import android.view.View
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.AppCompatImageButton
@@ -27,18 +28,20 @@ class SettingsActivity : AppCompatActivity() {
     lateinit var oneTimeUnitStatus:TextView
     lateinit var timing_status:TextView
     var mAccessibilityService:MorseCodeService? = null
-    lateinit var service_not_started:TextView
+    lateinit var sharedPreferences: SharedPreferences
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        aaa = PreferenceManager.getDefaultSharedPreferences(this).getLong("pwm_on", 5)
-        sss = PreferenceManager.getDefaultSharedPreferences(this).getLong("pwm_off", 1)
-        oneTimeUnit = PreferenceManager.getDefaultSharedPreferences(this).getLong("oneTimeUnit", 400)
-        val token_value = PreferenceManager.getDefaultSharedPreferences(this).getString("token", "").toString()
-        device_uuid = PreferenceManager.getDefaultSharedPreferences(this).getString("device_uuid", "").toString()
+        sharedPreferences = this.getSharedPreferences(Constants.sharedPreferencesFile, Context.MODE_PRIVATE)
+
+        aaa = sharedPreferences.getLong("pwm_on", 5)
+        sss = sharedPreferences.getLong("pwm_off", 1)
+        oneTimeUnit = sharedPreferences.getLong("oneTimeUnit", 400)
+        val socketioipPref = sharedPreferences.getString(Constants.SOCKETIO_IP, Constants.DEFAULT_SOCKETIO_IP).toString()
+        device_uuid = sharedPreferences.getString("device_uuid", "").toString()
         if(device_uuid == "") setDeviceUuid()
 
         mAccessibilityService = MorseCodeService.getSharedInstance();
@@ -47,27 +50,22 @@ class SettingsActivity : AppCompatActivity() {
         pwmOffStatus = findViewById<TextView>(R.id.pwm_off_status)
         oneTimeUnitStatus = findViewById<TextView>(R.id.otu_status)
         timing_status = findViewById(R.id.morse_timing)
-        service_not_started = findViewById(R.id.service_not_started)
 
         refreshStatus()
 
-        val token = findViewById<EditText>(R.id.token)
-        token.setText(token_value)
+        val socketioip = findViewById<EditText>(R.id.socketioip)
+        socketioip.setText(socketioipPref)
         val text = findViewById<EditText>(R.id.vibrate_letters)
         findViewById<Button>(R.id.save_settings).setOnClickListener{
-            setPostavke(Postavke(aaa, sss, oneTimeUnit, token.text.toString()))
+            setPostavke(Postavke(aaa, sss, oneTimeUnit, socketioip.text.toString()))
             Toast.makeText(this, "Settings saved.", Toast.LENGTH_SHORT).show()
             //finish()
-        }
-
-        findViewById<Button>(R.id.generate_token).setOnClickListener{
-            generateToken(token)
         }
         findViewById<Button>(R.id.reset_settings).setOnClickListener{
             aaa = 10
             sss = 2
             oneTimeUnit = 400
-            setPostavke(Postavke(aaa, sss, oneTimeUnit, token.text.toString()))
+            setPostavke(Postavke(aaa, sss, oneTimeUnit, socketioip.text.toString()))
             Toast.makeText(this, "Settings reset.", Toast.LENGTH_SHORT).show()
             refreshStatus()
             //finish()
@@ -118,19 +116,17 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     fun setDeviceUuid(){
-        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
-        val editor = preferences.edit()
+        val editor = sharedPreferences.edit()
         editor.putString("device_uuid", UUID.randomUUID().toString())
         editor.apply()
     }
 
     fun setPostavke(postavke:Postavke){
-        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
-        val editor = preferences.edit()
-        editor.putLong("pwm_on", postavke.pwm_on)
-        editor.putLong("pwm_off", postavke.pwm_off)
-        editor.putLong("oneTimeUnit", postavke.oneTimeUnit)
-        editor.putString("token", postavke.token)
+        val editor = sharedPreferences.edit()
+        editor.putLong(Constants.PWM_ON, postavke.pwm_on)
+        editor.putLong(Constants.PWM_OFF, postavke.pwm_off)
+        editor.putLong(Constants.ONE_TIME_UNIT, postavke.oneTimeUnit)
+        editor.putString(Constants.SOCKETIO_IP, postavke.socketioIp)
         editor.apply()
         mAccessibilityService?.setPostavke(postavke)
     }
@@ -143,17 +139,13 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     fun refreshStatus(){
-        if(mAccessibilityService == null) {
-            service_not_started.visibility = View.VISIBLE
-        } else {
-            pwmOnStatus.text = getString(R.string.pwm_on) + aaa.toString()
-            pwmOffStatus.text = getString(R.string.pwm_off) + sss.toString()
-            oneTimeUnitStatus.text = getString(R.string.otu) + oneTimeUnit.toString()
-            timing_status.text = "Dot: up to 1 unit (<" + (oneTimeUnit).toString() + " ms)\n" +
-                    "Dash: from 1 unit up (>" + (oneTimeUnit).toString() + " ms)\n" +
-                    "Intra-character space (the gap between dots and dashs within a character): up to 1 unit (" + (oneTimeUnit).toString() + " ms)\n" +
-                    "Inter-character space (the gap between the characters of a word): from 1 unit up to 3 units (" + (oneTimeUnit).toString() + " - " + (oneTimeUnit * 3).toString() + " ms)\n" +
-                    "Word space (the gap between two words): from 3 units up (>" + (oneTimeUnit * 3).toString() + " ms)"
-        }
+        pwmOnStatus.text = getString(R.string.pwm_on) + aaa.toString()
+        pwmOffStatus.text = getString(R.string.pwm_off) + sss.toString()
+        oneTimeUnitStatus.text = getString(R.string.otu) + oneTimeUnit.toString()
+        timing_status.text = "Dot: up to 1 unit (<" + (oneTimeUnit).toString() + " ms)\n" +
+                "Dash: from 1 unit up (>" + (oneTimeUnit).toString() + " ms)\n" +
+                "Intra-character space (the gap between dots and dashs within a character): up to 1 unit (" + (oneTimeUnit).toString() + " ms)\n" +
+                "Inter-character space (the gap between the characters of a word): from 1 unit up to 3 units (" + (oneTimeUnit).toString() + " - " + (oneTimeUnit * 3).toString() + " ms)\n" +
+                "Word space (the gap between two words): from 3 units up (>" + (oneTimeUnit * 3).toString() + " ms)"
     }
 }

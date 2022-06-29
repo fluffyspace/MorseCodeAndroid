@@ -25,7 +25,6 @@ class RegisterActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_log_in)
 
-
         var logIn: Button = findViewById(R.id.logInButton)
         var registerButton: Button = findViewById(R.id.registerButton)
         var userNameText: EditText = findViewById(R.id.editTextName)
@@ -34,20 +33,16 @@ class RegisterActivity : AppCompatActivity() {
         logIn.isClickable = false
         logIn.visibility = View.GONE
 
-
-
         registerButton.setOnClickListener {
             val username = userNameText.text.toString()
-
             val pass = userPasswordText.text.toString()
             Log.e("Stjepan", "password - $pass");
             val MD5pass = getMd5(pass)
             Log.e("stjepan", "hash - $MD5pass");
 
             if (userNameText.text.isNotEmpty()) {
-
                 var passed = registerUser(username, MD5pass)
-                Log.e("Stjepan", "preslo je ili " + passed)
+                Log.e("Stjepan", "user registriran? $passed")
             }
 
         }
@@ -71,7 +66,6 @@ class RegisterActivity : AppCompatActivity() {
 
     private fun registerUser(name: String, hash: String): Boolean {
         var flag = false
-
         lifecycleScope.launch(Dispatchers.Default) {
             try {
                 val passed: RegisterResponse =
@@ -94,5 +88,7 @@ class RegisterActivity : AppCompatActivity() {
         return flag
     }
 
+    override fun onBackPressed() {
 
+    }
 }

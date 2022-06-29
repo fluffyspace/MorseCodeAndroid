@@ -101,6 +101,7 @@ class CustomProgressBarView(context: Context, attrs: AttributeSet) : View(contex
         this.progress = progress
         invalidate()
         requestLayout()
+
     }
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
