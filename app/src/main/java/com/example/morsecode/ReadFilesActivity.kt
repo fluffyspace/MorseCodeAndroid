@@ -104,9 +104,13 @@ class ReadFilesActivity : AppCompatActivity() {
             editor.apply()
             Log.e("Stjepan ", textEditFile.text.toString())
 
-            if (textEditMessage.text.isNotEmpty())
-                searchFile(textEditMessage.text.toString())
-            searchFileLine(0)
+            if (textEditMessage.text.isNotEmpty()) {
+                var lines =
+                    searchFile(textEditFile.text.toString(), textEditMessage.text.toString())
+                Log.d("ingo", lines.toString())
+                Log.d("ingo", getLines(textEditFile.text.toString()).toString())
+            }
+            //searchFileLine()
         }
 
         morseButton.setOnClickListener {
@@ -142,7 +146,7 @@ class ReadFilesActivity : AppCompatActivity() {
                     visual_feedback_container.up()
                 } else if (tap == 3) {
                     visual_feedback_container.reset()
-                    searchFileLine()
+                    //searchFileLine()
                 } else if (tap == 4) {
                     onBackPressed()
                 } else if (tap == 6) {
@@ -151,17 +155,50 @@ class ReadFilesActivity : AppCompatActivity() {
             }
         })
     }
-    private fun searchFileLine() {
 
-
-        var s = this.string.split('\n')
-
-        if (index > s.size){
-            index = 0
+    private fun getLines(file: String): MutableList<String>{
+        val lines = mutableListOf<String>()
+        var pocetak = 0
+        for (i in 0 until file.length) {
+            if (file[i] == '\n') {
+                lines.add(file.substring(pocetak, i))
+                pocetak = i+1
+            }
         }
+        lines.add(file.substring(pocetak, file.length))
+        return lines
+    }
 
-        Log.e("Stjepan dsd", s[3])
+    private fun getLineByIndex(file: String, index: Int): String {
+        var pocetak = 0
+        var kraj = file.length
+        for (i in index downTo 0) {
+            if (file[i] == '\n') {
+                pocetak = i+1
+                break
+            }
+        }
+        for (i in index until file.length) {
+            if (file[i] == '\n') {
+                kraj = i
+                break
+            }
+        }
+        Log.e("stjepan", "$pocetak, $kraj")
+        return file.substring(pocetak, kraj)
+    }
 
+    private fun searchFile(file: String, query: String): List<String> {
+        val matches = query.toRegex().findAll(file).toList()
+        val lines = mutableListOf<String>()
+        for(match in matches) {
+
+            val linja = getLineByIndex(file, match.range.first)
+
+            Log.e("Stjepan", "$linja")
+            lines.add(linja)
+        }
+        return lines.distinct()
     }
 
 
