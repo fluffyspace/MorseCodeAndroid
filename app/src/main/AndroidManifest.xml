@@ -18,7 +18,9 @@
         android:theme="@style/Theme.MorseCode">
         <activity
             android:name=".ReadFilesActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".sockets.TestActivity"
             android:exported="true"></activity>

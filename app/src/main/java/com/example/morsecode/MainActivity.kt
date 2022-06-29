@@ -55,6 +55,10 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, PlaygroundActivity::class.java)
             startActivity(intent)
         }
+        findViewById<LinearLayout>(R.id.files).setOnClickListener(){
+            val intent = Intent(this, ReadFilesActivity::class.java)
+            startActivity(intent)
+        }
 
         val sharedPreferences: SharedPreferences =
             this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
