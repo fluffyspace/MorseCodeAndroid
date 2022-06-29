@@ -17,6 +17,14 @@
         app:layout_constraintTop_toTopOf="parent"
         />
 
+    <EditText
+        android:id="@+id/read_file"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="vcvsd \n fdasdfsd"
+        android:gravity="top"
+        android:padding="30dp"/>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layoutBottom"
         android:layout_width="match_parent"
