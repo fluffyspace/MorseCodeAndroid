@@ -71,6 +71,8 @@ class ChatActivity : AppCompatActivity() {
     var message_received_sound: Int = -1
     var contactId: Int = -1
 
+    var mAccessibilityService: MorseCodeService? = null
+
         @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -122,7 +124,7 @@ class ChatActivity : AppCompatActivity() {
             .add(R.id.visual_feedback_container, visual_feedback_container, "main")
             .commitNow()
 
-        getNewMessages(prefUserId,userHash)
+        getNewMessages(prefUserId, userHash, false)
         populateData(context, recyclerView, prefUserId, contactId)
 
         //message listeners
@@ -170,7 +172,7 @@ class ChatActivity : AppCompatActivity() {
         }
 
         gyroscope.setListener { rx, ry, rz ->
-            supportActionBar?.title = rx.toString()
+            supportActionBar?.title = rz.toString()
             handsFree.followGyroscope(rx, ry, rz)
         }
 
@@ -183,8 +185,14 @@ class ChatActivity : AppCompatActivity() {
                     visual_feedback_container.up()
                 } else if(tap == 3){
                     visual_feedback_container.reset()
+                    getNewMessages(prefUserId, userHash, true)
                 } else if(tap == 4){
                     onBackPressed()
+                }else if(tap == 5){
+                    visual_feedback_container.reset()
+                    mAccessibilityService = MorseCodeService.getSharedInstance();
+
+                    mAccessibilityService?.vibrateWithPWM(mAccessibilityService!!.makeWaveformFromText("e"))
                 }
             }
         })
@@ -255,7 +263,7 @@ class ChatActivity : AppCompatActivity() {
         chatAdapter!!.list.add(message)
         chatAdapter!!.notifyDataSetChanged()
         recyclerView.scrollToPosition(chatAdapter!!.list.size-1)
-        soundPool.play(message_received_sound, 1F, 1F, 1, 0, 1f)
+        //soundPool.play(message_received_sound, 1F, 1F, 1, 0, 1f)
     }
 
     private fun saveMessage(message: Message) {
@@ -263,9 +271,10 @@ class ChatActivity : AppCompatActivity() {
             val db = AppDatabase.getInstance(this)
             val messageDao: MessageDao = db.messageDao()
             messageDao.insertAll(message)
-            Log.d("stjepan", "db uspelo")
-        } catch (e: android.database.sqlite.SQLiteConstraintException){
-            
+
+            addMessageToView(message)
+
+            Log.e("stjepan", "db uspelo")
         } catch (e: Exception) {
             Log.e("stjepan", "db neje uspelo " + e.stackTraceToString() + e.message.toString())
         }
@@ -317,7 +326,7 @@ class ChatActivity : AppCompatActivity() {
                         Log.d("ingo", "poruka $id uspješno poslana")
                         val poruka = Message(id, textEditMessage.text.toString(), contactId, prefUserId)
                         saveMessage(poruka)
-                        addMessageToView(poruka)
+
                         textEditMessage.setText("")
                         visual_feedback_container.setMessage("")
                         val newMessage = JSONObject()
@@ -335,7 +344,7 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
-    private fun getNewMessages(id: Int, userHash: String?) {
+    private fun getNewMessages(id: Int, userHash: String?, b: Boolean) {
         lifecycleScope.launch(Dispatchers.Default) {
             try {
                 val response: List<Message> = MessagesApi.retrofitService.getNewMessages(
@@ -349,12 +358,25 @@ class ChatActivity : AppCompatActivity() {
                             saveMessage(message)
                         }
                     }
+                    if (b){
+                        var lastMessage = response[response.size-1].message
+                        if (lastMessage != null) {
+                            vibrateMessage(lastMessage)
+                        }
+                    }
                 }
 
             } catch (e: Exception) {
                 Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
             }
         }
+    }
+
+    private fun vibrateMessage(lastMessage: String) {
+        mAccessibilityService = MorseCodeService.getSharedInstance();
+
+        mAccessibilityService?.vibrateWithPWM(mAccessibilityService!!.makeWaveformFromText(lastMessage))
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

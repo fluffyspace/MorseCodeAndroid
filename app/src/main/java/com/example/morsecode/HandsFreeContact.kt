@@ -6,9 +6,11 @@ import kotlin.math.abs
 class HandsFreeContact {
 
     private var zCounter = 0
-    private var counter: Long = 0
+    private var counter = 0
     private var threshold = 1.5f
-    private var lowThreshold = 1.2f
+    private var lowThreshold = 1.0f
+
+    private var holdCounter = 0
 
     private var xGsum = 0f
     private var zGsum = 0f
@@ -19,7 +21,7 @@ class HandsFreeContact {
 
 
     fun follow(x: Float, y: Float, z: Float, xG: Float, yG: Float, zG: Float) {
-        if (zCounter < 10) {
+        if (zCounter < 3) {
             zCounter++
             return
         }
@@ -44,63 +46,62 @@ class HandsFreeContact {
             if (abs(lastXGsum) < (abs(lastZGsum))) {
                 //Log.e(" ravni mob ", " ${abs(lastXGsum)} ${abs(lastZGsum)} x $x counter $counter")
 
-                if (x > threshold && counter < 0) {
+                if (x > threshold) {
                     //Log.e("max ", " x minus")
                     if (listener != null) {
                         listener.onTranslation(3)
                     }
-                    counter = 10
-                } else if (x < -threshold && counter < 0) {
+                    zCounter = holdCounter
+                } else if (x < -threshold) {
                     //Log.e("max ", " x +")
                     if (listener != null) {
                         listener.onTranslation(4)
                     }
-                    counter = 10
-                } else if (z > threshold && counter < 0) {
+                    zCounter = holdCounter
+                } else if (z > lowThreshold && counter < 0) {
                    // Log.e("max ", " x minus")
                     if (listener != null) {
                         listener.onTranslation(1)
                     }
-                    counter = 10
-                } else if (z < -threshold && counter < 0) {
+                    zCounter = holdCounter
+                } else if (z < -lowThreshold) {
                     //Log.e("max ", " x +")
                     if (listener != null) {
                         listener.onTranslation(1)
                     }
-                    counter = 10
+                    zCounter = holdCounter
                 }
                 //sideways phone
             } else if (abs(lastXGsum) > (abs(lastZGsum))) {
                 //Log.e( " obrnuti mob  "," ${abs(lastXGsum)} ${abs(lastZGsum)} x $x counter $counter")
 
-                if (z > threshold && counter < 0) {
+                if (z > threshold) {
                     //Log.e("max ", " x minus")
                     if (listener != null) {
                         listener.onTranslation(3)
                     }
-                    counter = 10
-                } else if (z < -threshold && counter < 0) {
+                    zCounter = holdCounter
+                } else if (z < -threshold) {
                     //Log.e("max ", " x +")
                     if (listener != null) {
                         listener.onTranslation(4)
                     }
-                    counter = 10
-                } else if (x > lowThreshold && counter < 0) {
+                    zCounter = holdCounter
+                } else if (x > lowThreshold) {
                     //Log.e("max ", " x minus")
                     if (listener != null) {
                         listener.onTranslation(1)
                     }
-                    counter = 10
-                } else if (x < -lowThreshold && counter < 0) {
+                    zCounter = holdCounter
+                } else if (x < -lowThreshold) {
                     //Log.e("max ", " x +")
                     if (listener != null) {
                         listener.onTranslation(1)
                     }
-                    counter = 10
+                    zCounter = holdCounter
                 }
             }
         }
-        counter--
     }
 
     interface Listener {
