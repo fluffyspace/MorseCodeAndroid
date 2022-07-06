@@ -5,9 +5,9 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import android.view.*
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
@@ -15,16 +15,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.MessageDao
-import com.example.morsecode.models.EntitetKontakt
+import com.example.morsecode.models.Contact
 import com.example.morsecode.models.Message
-import com.example.morsecode.network.ContactsApi
-import com.example.morsecode.network.MessagesApi
-import io.socket.client.IO
-import io.socket.client.Socket
+import com.example.morsecode.network.ContactIdRequest
+import com.example.morsecode.network.getContactsApiService
+import com.example.morsecode.network.getMessagesApiService
+import com.example.morsecode.sockets.TestActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.net.URISyntaxException
 
 class MainActivity : AppCompatActivity() {
     var mAccessibilityService:MorseCodeService? = null
@@ -47,6 +45,11 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        findViewById<Button>(R.id.test_activity).setOnClickListener() {
+            val intent = Intent(this, TestActivity::class.java)
+            startActivity(intent)
+        }
+
         findViewById<LinearLayout>(R.id.tutorial).setOnClickListener() {
             val intent = Intent(this, TutorialActivity::class.java)
             startActivity(intent)
@@ -65,8 +68,8 @@ class MainActivity : AppCompatActivity() {
 
         val sharedName: String = sharedPreferences.getString("username", "").toString()
         val userHash = sharedPreferences.getString(Constants.USER_HASH, "")
-        val prefUserId = sharedPreferences.getInt("id", 0)
-        val autoLogIn = sharedPreferences.getBoolean("autoLogIn", false)
+        val prefUserId = sharedPreferences.getInt(Constants.USER_ID, 0)
+        val autoLogIn = sharedPreferences.getBoolean(Constants.AUTO_LOGIN, false)
         findViewById<TextView>(R.id.welcome_message).text = "Welcome, ${sharedName}!"
         /*findViewById<LinearLayout>(R.id.morse_in_action).setOnClickListener(){
             val intent = Intent(this, SendMorseActivity::class.java)
@@ -78,27 +81,19 @@ class MainActivity : AppCompatActivity() {
 
         getNewMessages(prefUserId, userHash)
 
-
-        val intent = Intent(this, MorseCodeService::class.java) // Build the intent for the service
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            applicationContext.startForegroundService(intent)
-        } else {
-            applicationContext.startService(intent)
-        }
     }
 
     private fun getFriends(prefUserId: Int, userHash: String?) {
         lifecycleScope.launch(Dispatchers.Default) {
             try {
-                val kontakti: List<EntitetKontakt> =
-                    ContactsApi.retrofitService.getMyFriends(prefUserId, userHash.toString())
+                val kontakti: List<Contact> =
+                    getContactsApiService(this@MainActivity).getMyFriends()
 
                 for (friends in kontakti) {
-
                     getMessages(prefUserId, userHash, friends.id!!.toInt() )
                 }
             } catch (e: Exception) {
-                Log.d("stjepan", "greska ")
+                Log.d("stjepan", "greska getFriends $e")
             }
         }
     }
@@ -106,22 +101,21 @@ class MainActivity : AppCompatActivity() {
     private fun getMessages(prefUserId: Int, userHash: String?, idContact: Int?) {
         val db = AppDatabase.getInstance(this)
         val messageDao: MessageDao = db.messageDao()
-
         lifecycleScope.launch(Dispatchers.Default) {
             try {
-
                 val response: List<Message> =
                     idContact?.let {
-                        MessagesApi.retrofitService.getMessages(prefUserId.toLong(), userHash,
-                            it
+                        getMessagesApiService(this@MainActivity).getMessages(
+                            it.toLong()
                         )
                     }!!
 
+                messageDao.insertAll(*response.toTypedArray())
                 for (poruka in response) {
-                    messageDao.insertAll(poruka)
+                    // TODO: CHECK if it works
                 }
             } catch (e: Exception) {
-                Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
+                Log.e("stjepan", "greska getMessages" + e.stackTraceToString() + e.message.toString())
             }
         }
     }
@@ -129,10 +123,7 @@ class MainActivity : AppCompatActivity() {
     private fun getNewMessages(id: Int, userHash: String?) {
         lifecycleScope.launch(Dispatchers.Default) {
             try {
-                val response: List<Message> = MessagesApi.retrofitService.getNewMessages(
-                    id,
-                    userHash
-                )
+                val response: List<Message> = getMessagesApiService(this@MainActivity).getNewMessages()
                 Log.d("stjepan", "dohvacene poruke $response")
 
                 if (response.isNotEmpty()) {
@@ -141,7 +132,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             } catch (e: Exception) {
-                Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
+                Log.e("stjepan", "greska getNewMessages " + e.stackTraceToString() + e.message.toString())
             }
         }
     }

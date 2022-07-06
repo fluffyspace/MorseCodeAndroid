@@ -1,10 +1,9 @@
-package com.example.morsecode.models
+package com.example.morsecode.network
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.squareup.moshi.Json
 
-@Entity
 data class RegisterResponse(
     @Json(name = "success") val success:Boolean?,
     @Json(name = "error") val error:String?,

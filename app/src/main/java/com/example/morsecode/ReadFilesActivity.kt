@@ -18,16 +18,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentContainerView
-import androidx.recyclerview.widget.RecyclerView
-import com.example.morsecode.baza.AppDatabase
-import com.example.morsecode.baza.MessageDao
 
 class ReadFilesActivity : AppCompatActivity() {
 
     lateinit var tapButton: Button
     lateinit var sendButton: Button
     lateinit var morseButton: Button
-    lateinit var recyclerView: RecyclerView
     lateinit var textEditMessage: EditText
     lateinit var textEditFile: EditText
     lateinit var textEditFileView: TextView
@@ -68,7 +64,7 @@ class ReadFilesActivity : AppCompatActivity() {
         textEditFileView = findViewById(R.id.read_file)
 
         sharedPreferences =
-            this.getSharedPreferences(ChatActivity.sharedPreferencesFile, Context.MODE_PRIVATE)
+            this.getSharedPreferences(Constants.sharedPreferencesFile, Context.MODE_PRIVATE)
         val file = sharedPreferences.getString("file", "")
         string = file.toString()
 

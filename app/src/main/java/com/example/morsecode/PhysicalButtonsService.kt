@@ -27,8 +27,6 @@ import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
 import com.example.morsecode.models.VibrationMessage
 import com.example.morsecode.models.Postavke
-import com.example.morsecode.network.ContactsApi
-import com.example.morsecode.network.VibrationMessagesApi
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KFunction0

@@ -1,4 +1,4 @@
-package com.example.morsecode.models
+package com.example.morsecode.network
 
 import androidx.room.PrimaryKey
 import androidx.room.ColumnInfo

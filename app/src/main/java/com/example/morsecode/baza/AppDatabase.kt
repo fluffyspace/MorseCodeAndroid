@@ -5,16 +5,18 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.example.morsecode.models.EntitetKontakt
+import com.example.morsecode.models.Contact
+import com.example.morsecode.models.LegProfile
 import com.example.morsecode.models.Message
 import com.example.morsecode.models.VibrationMessage
 
-@Database(entities = arrayOf(Message::class, VibrationMessage::class, EntitetKontakt::class), version = 2)
+@Database(entities = arrayOf(Message::class, VibrationMessage::class, Contact::class, LegProfile::class), version = 2)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun porukaDao(): PorukaDao
     abstract fun kontaktDao(): EntitetKontaktADao
     abstract fun messageDao(): MessageDao
+    abstract fun legProfileDao(): LegProfileDao
 
     companion object {
 

@@ -20,18 +20,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.Adapters.KontaktiAdapter
 import com.example.morsecode.Adapters.OnLongClickListener
-import com.example.morsecode.ChatActivity.Companion.USER_HASH
-import com.example.morsecode.ChatActivity.Companion.sharedPreferencesFile
-import com.example.morsecode.models.EntitetKontakt
-import com.example.morsecode.models.GetIdResponse
-import com.example.morsecode.network.ContactsApi
+import com.example.morsecode.models.Contact
+import com.example.morsecode.network.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class ContactActivity : AppCompatActivity(), OnLongClickListener {
 
-    private lateinit var kontakt: List<EntitetKontakt>
+    private lateinit var kontakt: List<Contact>
     private lateinit var accelerometer: Accelerometer
     private lateinit var handsFreeContact1: HandsFreeContact
     private lateinit var handsFree: HandsFree
@@ -59,13 +56,14 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
 
         vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
-        sharedPreferences = this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
+        sharedPreferences = this.getSharedPreferences(Constants.sharedPreferencesFile, Context.MODE_PRIVATE)
         userId = sharedPreferences.getInt("id", 0)
         userLoginHash = sharedPreferences.getString(Constants.USER_HASH, "noHash").toString();
         handsFreeOnChat = sharedPreferences.getBoolean("hands_free", false)
 
         handsFreeIndicator = findViewById(R.id.hands_free_indicator)
         kontaktiRecyclerView = findViewById(R.id.recycler)
+        kontaktiRecyclerViewAdapter = KontaktiAdapter(this, listOf(), this)
         refreshContacts(userId, userLoginHash)
 
         accelerometer = Accelerometer(this)
@@ -100,26 +98,21 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
                 val friendName = editText.text.toString()
 
                 if (friendName != "") {
+                    val ctx = this
                     lifecycleScope.launch(Dispatchers.Default) {
                         try {
                             var friend: GetIdResponse
 
-                            friend = ContactsApi.retrofitService.getUserByUsername(
-                                userId,
-                                userLoginHash, friendName
-                            )
+                            friend = getContactsApiService(ctx).getUserByUsername(friendName)
 
-                            val friendId = friend?.id
-                            var add = ContactsApi.retrofitService.addFriend(
-                                userId,
-                                userLoginHash, friendId
-                            )
+                            val friendId = friend.id
+                            var add = getContactsApiService(ctx).addFriend(friendId!!)
                             lifecycleScope.launch(Dispatchers.Main) {
                                 refreshContacts(userId, userLoginHash)
 
                                 Toast.makeText(
                                     applicationContext,
-                                    friendName + "",
+                                    friendName + " dodan kao prijatelj!",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
@@ -141,31 +134,31 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
 
     fun refreshContacts(userId: Int, userHash: String) {
         kontaktiRecyclerView.layoutManager = LinearLayoutManager(this)
-        val context = this
+        val ctx = this
         lifecycleScope.launch(Dispatchers.Default) {
             try {
-                val kontakti: List<EntitetKontakt> =
-                    ContactsApi.retrofitService.getMyFriends(userId, userHash)
+                val kontakti: List<Contact> =
+                    getContactsApiService(ctx).getMyFriends()
                 kontakt = kontakti
                 maxContactCounter = kontakti.size - 1
 
                 //Log.e("max ", " $maxContactCounter")
                 withContext(Dispatchers.Main) {
-                    kontaktiRecyclerViewAdapter = KontaktiAdapter(context, kontakti, this@ContactActivity)
+                    kontaktiRecyclerViewAdapter.kontakt = kontakt
                     if(handsFreeOnChat) {
                         kontaktiRecyclerViewAdapter.selectContact(contactCounter)
                     }
                     kontaktiRecyclerView.adapter = kontaktiRecyclerViewAdapter
                 }
             } catch (e: Exception) {
-                Log.d("stjepan", "greska ")
+                Log.d("stjepan", "contacts greska $e")
             }
         }
     }
 
     fun selectContact(command: Int) {
         when (command) {
-            3 -> {
+            4 -> {
                 if (contactCounter < maxContactCounter) {
                     contactCounter++
                 } else {
@@ -174,7 +167,7 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
                 vibrateName(contactCounter)
                 kontaktiRecyclerViewAdapter.selectContact(contactCounter)
             }
-            4 -> {
+            3 -> {
                 if (contactCounter > 0) {
                     contactCounter--
                 } else {
@@ -231,10 +224,7 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
 
                     if (handsFreeOnChat) {
                         handsFreeOnChat = false
-                        accelerometer.unregister()
-                        handsFreeOnChatSet(false)
-                        handsFreeIndicator.visibility = View.GONE
-                        kontaktiRecyclerViewAdapter.selectContact(-1)
+                        turnHandsFreeOff()
                     } else if(!handsFreeOnChat) {
                         handsFreeOnChat = true
                         turnHandsFreeOn()
@@ -248,6 +238,14 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
         }
     }
 
+    fun turnHandsFreeOff(){
+        handsFreeOnChat = false
+        accelerometer.unregister()
+        handsFreeOnChatSet(false)
+        handsFreeIndicator.visibility = View.GONE
+        kontaktiRecyclerViewAdapter.selectContact(-1)
+    }
+
     fun turnHandsFreeOn(){
         accelerometer.register()
         handsFreeOnChatSet(true)
@@ -256,10 +254,13 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
     }
 
     override fun onResume() {
+        handsFreeOnChat = sharedPreferences.getBoolean("hands_free", false)
         Log.e("handsfree" , handsFreeOnChat.toString())
 
         if (handsFreeOnChat) {
             turnHandsFreeOn()
+        } else {
+            turnHandsFreeOff()
         }
 
         super.onResume()
@@ -284,20 +285,18 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
             dialogInterface.dismiss()
         }
         builder.setPositiveButton("OK") { dialogInterface, i ->
+            val ctx = this
             lifecycleScope.launch(Dispatchers.Default) {
                 try {
                     var response = id?.let {
-                        ContactsApi.retrofitService.removeFriend(
-                            userId, userLoginHash.toString(),
-                            it
-                        )
+                        getContactsApiService(ctx).removeFriend(it.toLong())
                     }
                     withContext(Dispatchers.Main) {
                         refreshContacts(userId, userLoginHash.toString())
                     }
 
                 } catch (e: Exception) {
-                    Log.d("stjepan", "greska ")
+                    Log.d("stjepan", "greska removeFriend $e")
                 }
             }
         }

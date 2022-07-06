@@ -14,13 +14,12 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.ChatActivity
-import com.example.morsecode.ContactActivity
 import com.example.morsecode.R
-import com.example.morsecode.models.EntitetKontakt
+import com.example.morsecode.models.Contact
 
-class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>, longClickListener: OnLongClickListener) :
+class KontaktiAdapter(c: Context, kontakt: List<Contact>, longClickListener: OnLongClickListener) :
     RecyclerView.Adapter<KontaktiAdapter.ViewHolder>() {
-    var kontakt: List<EntitetKontakt>
+    var kontakt: List<Contact>
     var context: Context
     var longClickListener: OnLongClickListener
     var selectedContact:Int = -1
@@ -37,7 +36,7 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>, longClickListen
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
         View.OnClickListener {
         val imePrezimeTV: TextView
-        val contactImageIV: ImageView
+        //val contactImageIV: ImageView
         val background: ConstraintLayout
         //var textView: TextView
         //var img: ImageView
@@ -47,7 +46,7 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>, longClickListen
         init {
             //Finds the views from our row.xml
             imePrezimeTV = itemView.findViewById(R.id.imePrezimeTV)
-            contactImageIV = itemView.findViewById(R.id.contactImageIV)
+            //contactImageIV = itemView.findViewById(R.id.contactImageIV)
             background = itemView.findViewById(R.id.background)
             //textView = itemView.findViewById<View>(R.id.text) as TextView
             //img = itemView.findViewById<View>(R.id.img) as ImageView

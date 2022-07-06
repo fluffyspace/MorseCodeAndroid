@@ -15,4 +15,5 @@
     <color name="blue_ribbon">#0066ff</color>
     <color name="green">#34ce34</color>
     <color name="morse_color">#1495A6</color>
+    <color name="morse_color_darker">#0d6773</color>
 </resources>
