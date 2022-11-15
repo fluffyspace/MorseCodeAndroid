@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.morsecode.R;
 import com.example.morsecode.models.Message;
 
-public class CustomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final Context context;
     public List<Message> list;
     private Integer idSender;
@@ -23,7 +23,7 @@ public class CustomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public static final int MESSAGE_TYPE_IN = 1;
     public static final int MESSAGE_TYPE_OUT = 2;
 
-    public CustomAdapter(Context context, List<Message> list, Integer id, Integer idReceiver) { // you can pass other parameters in constructor
+    public ChatAdapter(Context context, List<Message> list, Integer id, Integer idReceiver) { // you can pass other parameters in constructor
         this.context = context;
         this.list = list;
         this.idSender = id;

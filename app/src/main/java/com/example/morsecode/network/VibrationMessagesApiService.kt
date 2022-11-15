@@ -1,15 +1,19 @@
 package com.example.morsecode.network
 
+import android.content.Context
 import com.example.morsecode.models.*
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
-import retrofit2.http.GET
-import retrofit2.http.Query
+import retrofit2.http.Body
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
+import retrofit2.http.POST
 
 private const val BASE_URL =
-    "https://kodba.eu/morse/"
+    "https://kodba.eu/morse2/"
 
 /**
  * Build the Moshi object that Retrofit will be using, making sure to add the Kotlin adapter for
@@ -23,86 +27,96 @@ private val moshi = Moshi.Builder()
  * Use the Retrofit builder to build a retrofit object using a Moshi converter with our Moshi
  * object.
  */
-private val retrofit = Retrofit.Builder()
-    .addConverterFactory(MoshiConverterFactory.create(moshi))
-    .baseUrl(BASE_URL)
-    .build()
 
-/**
- * A public interface that exposes the [getPhotos] method
- */
-interface VibrationMessagesApiService {
-    //@Headers("Accept: text/html")
-    //@Headers("Content-Type: application/json")
-    @GET("api")
-    suspend fun sendMessage(@Query("poruka") poruka: String): VibrationMessage
+private lateinit var apiMessagesService: MessagesApiService
+private lateinit var apiContactsService: ContactsApiService
 
-    @GET("api")
-    suspend fun getAllMessages(@Query("poruka") poruka: String): List<Zadatak>
+private fun okhttpClient(context: Context): OkHttpClient {
+    return OkHttpClient.Builder()
+        .addInterceptor(AuthInterceptor(context))
+        .build()
+}
+
+fun getMessagesApiService(context: Context): MessagesApiService {
+
+    // Initialize ApiService if not initialized yet
+    if (!::apiMessagesService.isInitialized) {
+        val retrofit = Retrofit.Builder()
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .baseUrl(BASE_URL)
+            .client(okhttpClient(context)) // Add our Okhttp client
+            .build()
+
+        apiMessagesService = retrofit.create(MessagesApiService::class.java)
+    }
+
+    return apiMessagesService
+}
+
+fun getContactsApiService(context: Context): ContactsApiService {
+
+    // Initialize ApiService if not initialized yet
+    if (!::apiContactsService.isInitialized) {
+        val retrofit = Retrofit.Builder()
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .baseUrl(BASE_URL)
+            .client(okhttpClient(context)) // Add our Okhttp client
+            .build()
+
+        apiContactsService = retrofit.create(ContactsApiService::class.java)
+    }
+
+    return apiContactsService
 }
 
 interface MessagesApiService {
-    //@Headers("Accept: text/html")
-    //@Headers("Content-Type: application/json")
-    @GET("api/sendMessage.php")
-    suspend fun sendMessage(@Query("id") senderId: Long, @Query("hash") password: String?, @Query("to") receiverId: Int, @Query("message") message: String): Long
+    @FormUrlEncoded
+    @POST("sendMessage.php")
+    suspend fun sendMessage(@Field("to") to: Int, @Field("message") message: String): Long
 
-    @GET("api/getMessages.php")
-    suspend fun getMessages(@Query("id") senderId: Long, @Query("hash") password: String?, @Query("contactId") receiverId: Int): List<Message>
+    @FormUrlEncoded
+    @POST("getMessages.php")
+    suspend fun getMessages(@Field("contactId") contactId: Long): List<Message>
 
-    @GET("api/getContactsWithMessages.php")
-    suspend fun getMessageContact(@Query("id") id: Int, @Query("hash") hash: String?): List<ContactListResponse>
+    @POST("getContactsWithMessages.php")
+    suspend fun getMessageContact(): List<ContactListResponse>
 
-    @GET("api/getNewMessages.php")
-    suspend fun getNewMessages(@Query("id") id: Int, @Query("hash") hash: String?): List<Message>
+    @POST("getNewMessages.php")
+    suspend fun getNewMessages(): List<Message>
 
-    @GET("api/deleteMessages.php")
-    suspend fun deleteMessages(@Query("id") id: Int, @Query("hash") hash: String?, @Query("contactId") contactId: Int): Boolean
+    @FormUrlEncoded
+    @POST("deleteMessages.php")
+    suspend fun deleteMessages(@Field("contactId") contactId: Long): Boolean
 }
-
-
 
 interface ContactsApiService {
-    //@Headers("Accept: text/html")
-    //@Headers("Content-Type: application/json")
-    @GET("api/kontakt.php")
-    suspend fun getAllContacts(): List<EntitetKontakt>
+    @POST("kontakt.php")
+    suspend fun getAllContacts(): List<Contact>
 
-    @GET("api/kontakt.php")
-    suspend fun getContact(@Query("username") username: String): RegisterResponse
+    @FormUrlEncoded
+    @POST("kontakt.php")
+    suspend fun getContact(@Field("username") username: String): RegisterResponse
 
-    @GET("api/register.php")
-    suspend fun registerContact(@Query("username") username: String, @Query("password") password: String): RegisterResponse
+    @FormUrlEncoded
+    @POST("register.php")
+    suspend fun registerContact(@Field("username") username: String, @Field("password") password: String): RegisterResponse
 
-    @GET("api/addFriend.php")
-    suspend fun addFriend(@Query("id") id: Int, @Query("hash") hash: String, @Query("friendId") friendId: Long?): Boolean
+    @FormUrlEncoded
+    @POST("addFriend.php")
+    suspend fun addFriend(@Field("contactId") contactId: Long): Boolean
 
-    @GET("api/login.php")
-    suspend fun logInUser(@Query("username") username: String, @Query("password") password: String): LogInResponse
+    @FormUrlEncoded
+    @POST("removeFriend.php")
+    suspend fun removeFriend(@Field("contactId") contactId: Long): Boolean
 
-    @GET("api/getUserByUsername.php")
-    suspend fun getUserByUsername(@Query("id") id: Int, @Query("hash") hash: String,@Query("username") username: String): GetIdResponse
+    @FormUrlEncoded
+    @POST("login.php")
+    suspend fun logInUser(@Field("username") username: String, @Field("password") password: String): LogInResponse
 
-    @GET("api/getMyFriends.php")
-    suspend fun getMyFriends(@Query("id") id: Int, @Query("hash") hash: String): List<EntitetKontakt>
+    @FormUrlEncoded
+    @POST("getUserByUsername.php")
+    suspend fun getUserByUsername(@Field("username") username: String): GetIdResponse
 
-    @GET("api/removeFriend.php")
-    suspend fun removeFriend(@Query("id") id: Int, @Query("hash") hash: String, @Query("friendId") friendId: Int): Boolean
-}
-
-
-
-/**
- * A public Api object that exposes the lazy-initialized Retrofit service
- */
-object VibrationMessagesApi {
-    val retrofitService: VibrationMessagesApiService by lazy { retrofit.create(VibrationMessagesApiService::class.java) }
-}
-
-object MessagesApi {
-    val retrofitService: MessagesApiService by lazy { retrofit.create(MessagesApiService::class.java) }
-}
-
-object ContactsApi {
-    val retrofitService: ContactsApiService by lazy { retrofit.create(ContactsApiService::class.java) }
+    @POST("getMyFriends.php")
+    suspend fun getMyFriends(): List<Contact>
 }

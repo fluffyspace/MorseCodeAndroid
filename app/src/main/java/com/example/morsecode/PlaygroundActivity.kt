@@ -71,8 +71,12 @@ class PlaygroundActivity : AppCompatActivity() {
                 } else if(tap == 3){
                     visual_feedback_container.reset()
                 } else if(tap == 4){
-                    onBackPressed()
+                    //onBackPressed()
                 }
+            }
+
+            override fun onNewData(x: Float, y: Float, z: Float) {
+                //TODO("Not yet implemented")
             }
         })
     }

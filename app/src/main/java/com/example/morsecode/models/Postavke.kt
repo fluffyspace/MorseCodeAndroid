@@ -9,4 +9,5 @@ data class Postavke(
     var username: String = "",
     var userHash: String = "",
     var handsFreeOnChat: Boolean = false,
+    var lastLegProfile: Long = -1,
 )

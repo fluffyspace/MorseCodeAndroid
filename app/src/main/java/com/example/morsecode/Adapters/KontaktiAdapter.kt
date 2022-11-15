@@ -8,19 +8,17 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.ChatActivity
-import com.example.morsecode.ContactActivity
 import com.example.morsecode.R
-import com.example.morsecode.models.EntitetKontakt
+import com.example.morsecode.models.Contact
 
-class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>, longClickListener: OnLongClickListener) :
+class KontaktiAdapter(c: Context, contacts: List<Contact>, longClickListener: OnLongClickListener) :
     RecyclerView.Adapter<KontaktiAdapter.ViewHolder>() {
-    var kontakt: List<EntitetKontakt>
+    var contacts: List<Contact>
     var context: Context
     var longClickListener: OnLongClickListener
     var selectedContact:Int = -1
@@ -29,7 +27,7 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>, longClickListen
     private val NOT_SELECTED = 2
 
     init {
-        this.kontakt = kontakt
+        this.contacts = contacts
         context = c
         this.longClickListener = longClickListener
     }
@@ -37,7 +35,7 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>, longClickListen
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
         View.OnClickListener {
         val imePrezimeTV: TextView
-        val contactImageIV: ImageView
+        //val contactImageIV: ImageView
         val background: ConstraintLayout
         //var textView: TextView
         //var img: ImageView
@@ -47,7 +45,7 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>, longClickListen
         init {
             //Finds the views from our row.xml
             imePrezimeTV = itemView.findViewById(R.id.imePrezimeTV)
-            contactImageIV = itemView.findViewById(R.id.contactImageIV)
+            //contactImageIV = itemView.findViewById(R.id.contactImageIV)
             background = itemView.findViewById(R.id.background)
             //textView = itemView.findViewById<View>(R.id.text) as TextView
             //img = itemView.findViewById<View>(R.id.img) as ImageView
@@ -77,19 +75,19 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>, longClickListen
 
     override fun onBindViewHolder(viewHolder: ViewHolder, i: Int) {
         val ime = viewHolder.imePrezimeTV
-        val imeText = "${kontakt[i].username} (id ${kontakt[i].id})"
+        val imeText = "${contacts[i].username} (id ${contacts[i].id})"
         ime.text = imeText
 
         viewHolder.itemView.setOnClickListener{
             val activity = viewHolder.itemView.context as Activity
             val intent = Intent(activity, ChatActivity::class.java)
-            intent.putExtra("username", kontakt[i].username)
-            intent.putExtra("id", kontakt[i].id)
+            intent.putExtra("username", contacts[i].username)
+            intent.putExtra("id", contacts[i].id)
             startActivity(activity,intent,null)
         }
 
         viewHolder.itemView.setOnLongClickListener {
-            longClickListener.longHold(kontakt[i].id!!.toInt(), kontakt[i].username)
+            longClickListener.longHold(contacts[i].id!!.toInt(), contacts[i].username)
             /*val intent = Intent(viewHolder.itemView.context, ContactActivity::class.java)
             intent.putExtra("idFriend", kontakt[i].id.toString())
             intent.putExtra("nameFriend", kontakt[i].username)
@@ -105,8 +103,8 @@ class KontaktiAdapter(c: Context, kontakt: List<EntitetKontakt>, longClickListen
     override fun getItemCount(): Int {
         //This method needs to be overridden so that Androids knows how many items
         //will be making it into the list
-        Log.d("stjepan", kontakt.size.toString())
-        return kontakt.size
+        Log.d("stjepan", contacts.size.toString())
+        return contacts.size
     }
 
     override fun onCreateViewHolder(

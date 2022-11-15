@@ -13,11 +13,12 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
+import com.example.morsecode.models.LegProfile
 import com.example.morsecode.models.Message
 import com.example.morsecode.models.Postavke
 import com.example.morsecode.models.VibrationMessage
-import com.example.morsecode.network.ContactsApi
-import com.example.morsecode.network.VibrationMessagesApi
+import com.example.morsecode.network.ByUsernameRequest
+import com.example.morsecode.network.getContactsApiService
 import com.google.gson.Gson
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -28,8 +29,6 @@ import java.net.URISyntaxException
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KFunction0
 
-
-private val VIBRATE_PATTERN: List<Long> = listOf(500, 500)
 private val MORSE = arrayOf(".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..", ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----.", "-----")
 private val ALPHANUM:String = "abcdefghijklmnopqrstuvwxyz1234567890"
 // ABCDEFGHIJKLMNOPQRSTUVWXYZ
@@ -42,7 +41,7 @@ class MorseCodeService: Service(), CoroutineScope{
     lateinit var korutina:Job
     lateinit var vibrator:Vibrator
     var lastMessage: String = ""
-    var servicePostavke: Postavke = Postavke(5, 1, 400L)
+    var servicePostavke: Postavke = Postavke()
     var testing:Boolean = false
     val scope = CoroutineScope(Job() + Dispatchers.IO)
     var messageReceiveCallback: KFunction0<Unit>? = null // ovo je callback (funkcija) koji ovaj servis pozove kad završi slanjem poruke, moguće je registrirati bilo koju funkciju u bilo kojem activityu. Koristi se kao momentalni feedback da je poruka poslana.
@@ -51,6 +50,8 @@ class MorseCodeService: Service(), CoroutineScope{
 
     var testMode = false
     val ONGOING_NOTIFICATION_ID = 1
+
+    var profile: LegProfile? = null
 
     private var coroutineJob: Job = Job()
     override val coroutineContext: CoroutineContext
@@ -151,32 +152,50 @@ class MorseCodeService: Service(), CoroutineScope{
         //textView.setText(MORSECODE_ON + ": " + getMessage())
     }
 
+    fun transformToPWM(listWithoutPWM: List<Long>): MutableList<Long>{
+        var nisu_sve_nule = false
+        listWithoutPWM.forEach {
+            if (it != 0L) {
+                nisu_sve_nule = true
+            }
+        }
+        if (!nisu_sve_nule) return mutableListOf()
+        var listWithPWM = mutableListOf<Long>()
+        listWithoutPWM.forEachIndexed { index, item ->
+            if (index % 2 == 0) {
+                listWithPWM.add(item)
+            } else {
+                var counter = 0
+                repeat((item / (servicePostavke.pwm_off + servicePostavke.pwm_on)).toInt()) {
+                    if (counter % 2 == 0) {
+                        listWithPWM.add(servicePostavke.pwm_on)
+                    } else {
+                        listWithPWM.add(servicePostavke.pwm_off)
+                    }
+                    counter++
+                }
+                if (counter % 2 == 0) listWithPWM.add(servicePostavke.pwm_on)
+            }
+        }
+        return listWithPWM
+    }
+
+    fun vibrate(duration: Long){
+        this.vibrate(longArrayOf(duration, duration))
+    }
+
+    fun vibrate(longArray: LongArray){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val vibrationEffect: VibrationEffect = VibrationEffect.createWaveform(longArray, -1)
+            vibrator.vibrate(vibrationEffect)
+        }else{
+            vibrator.vibrate(longArray, -1)
+        }
+    }
+
     fun vibrateWithPWM(listWithoutPWM: List<Long>) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            var nisu_sve_nule = false
-            listWithoutPWM.forEach {
-                if (it != 0L) {
-                    nisu_sve_nule = true
-                }
-            }
-            if (!nisu_sve_nule) return
-            var listWithPWM = mutableListOf<Long>()
-            listWithoutPWM.forEachIndexed { index, item ->
-                if (index % 2 == 0) {
-                    listWithPWM.add(item)
-                } else {
-                    var counter = 0
-                    repeat((item / (servicePostavke.pwm_off + servicePostavke.pwm_on)).toInt()) {
-                        if (counter % 2 == 0) {
-                            listWithPWM.add(servicePostavke.pwm_on)
-                        } else {
-                            listWithPWM.add(servicePostavke.pwm_off)
-                        }
-                        counter++
-                    }
-                    if (counter % 2 == 0) listWithPWM.add(servicePostavke.pwm_on)
-                }
-            }
+            var listWithPWM = transformToPWM(listWithoutPWM)
             val vibrationEffect: VibrationEffect = VibrationEffect.createWaveform(listWithPWM.toLongArray(), -1)
             vibrator.vibrate(vibrationEffect)
         }else{
@@ -197,7 +216,8 @@ class MorseCodeService: Service(), CoroutineScope{
             this,
             System.currentTimeMillis().toInt(),
             intentStopService,
-            PendingIntent.FLAG_CANCEL_CURRENT
+            PendingIntent.FLAG_IMMUTABLE
+
         )
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(this, CHANNEL_ID)
@@ -264,12 +284,12 @@ class MorseCodeService: Service(), CoroutineScope{
 
     fun setup(){
         sharedPreferences = this.getSharedPreferences(Constants.sharedPreferencesFile, Context.MODE_PRIVATE)
+        loadPostavke()
 
         createNotificationChannel()
-        // Create an overlay and display the action bar
-        vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
 
-        vibrateWithPWM(VIBRATE_PATTERN)
+        vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
+        //vibrate(500)
 
         //maybeSendMessageCoroutineLoop()
         korutina = scope.launch {
@@ -277,15 +297,6 @@ class MorseCodeService: Service(), CoroutineScope{
             maybeSendMessageCoroutineLoop()
         }
         serviceSharedInstance = this
-
-        servicePostavke.pwm_on = sharedPreferences.getLong("pwm_on", 5)
-        servicePostavke.pwm_off = sharedPreferences.getLong("pwm_off", 1)
-        servicePostavke.oneTimeUnit = sharedPreferences.getLong("oneTimeUnit", 400)
-        servicePostavke.socketioIp = sharedPreferences.getString(Constants.SOCKETIO_IP, Constants.DEFAULT_SOCKETIO_IP).toString()
-        servicePostavke.username = sharedPreferences.getString(Constants.USER_NAME, "").toString()
-        servicePostavke.userId = sharedPreferences.getInt("id", 0)
-        servicePostavke.userHash = sharedPreferences.getString(Constants.USER_HASH, "").toString()
-        servicePostavke.handsFreeOnChat = sharedPreferences.getBoolean("hands_free", false)
 
         val notification = createNotification("Morse talk", "Running...")
         startForeground(ONGOING_NOTIFICATION_ID, notification)
@@ -301,15 +312,16 @@ class MorseCodeService: Service(), CoroutineScope{
         mSocket.on(Socket.EVENT_DISCONNECT) { Log.d("ingo", "socket disconnected") }
         mSocket.on(Socket.EVENT_CONNECT_ERROR, onError)
         mSocket.disconnect().connect()
-        Log.d("ingo", "connected? " + mSocket.connected())
     }
 
     suspend fun maybeSendMessage(){
+        return
         //Log.d("ingo", "maybeSendMessage")
         val diff:Int = getTimeDifference()
         if(buttonHistory.size > 0 && diff > servicePostavke.oneTimeUnit*7){
             Log.d("ingo", "buttonHistory not empty, time difference is big enough")
             val porukaIzMorsea:String = getMessage()
+            Log.d("ingo", porukaIzMorsea)
             if(porukaIzMorsea.isEmpty()) return
             buttonHistory.clear()
             if(isNumeric(porukaIzMorsea[0].toString())){
@@ -364,7 +376,7 @@ class MorseCodeService: Service(), CoroutineScope{
 
     suspend fun sendMessage(stringZaPoslati:String){
         try {
-            val response: VibrationMessage = VibrationMessagesApi.retrofitService.sendMessage(stringZaPoslati)
+            val response: VibrationMessage = VibrationMessage(0, "haha", "haha")//VibrationMessagesApi.retrofitService.sendMessage(stringZaPoslati)
             databaseAddNewPoruka(response)
             withContext(Dispatchers.Main){
                 //textView.setText(MORSECODE_ON + ": received " + response.poruka)
@@ -378,14 +390,14 @@ class MorseCodeService: Service(), CoroutineScope{
             if(response.poruka != null) Log.d("ingo", "poruka: " + response.poruka)
             buttonHistory.clear()
         } catch (e: Exception) {
-            Log.d("ingo", "greska " + e.stackTraceToString() + e.message.toString())
+            Log.d("ingo", "greska sendMessage " + e.stackTraceToString() + e.message.toString())
         }
     }
 
 
     suspend fun maybeSendMessageCoroutineLoop() { // this: CoroutineScope
         while(true) {
-            delay(1000L) // non-blocking delay for 1 second (default time unit is ms)
+            delay(servicePostavke.oneTimeUnit) // non-blocking delay for one dot duration (default time unit is ms)
             if(!testMode) maybeSendMessage()
         }
     }
@@ -399,7 +411,7 @@ class MorseCodeService: Service(), CoroutineScope{
 
     fun retrofitFetchUserIp(username: String){
         scope.launch {
-            ContactsApi.retrofitService.getContact(username);
+            getContactsApiService(this@MorseCodeService).getContact(username)
         }
     }
 
@@ -416,13 +428,26 @@ class MorseCodeService: Service(), CoroutineScope{
                 sb.append(" ")
             }
             if(duration < servicePostavke.oneTimeUnit) {
-                sb.append("•")
+                sb.append(".")
             } else {
-                sb.append("–")
+                sb.append("-")
             }
         }
-        //Log.d("ingo", "morse->" + sb.toString()) // print after delay
+        Log.d("ingo", "morse->" + sb.toString()) // print after delay
         return sb.toString()
+    }
+
+    fun prettifyMorse(morse: String){
+        var sb:StringBuilder = StringBuilder()
+        for(i in 0..morse.length){
+            if(morse[i] == '.'){
+                sb.append('•')
+            } else if(morse[i] == '-'){
+                sb.append('–')
+            } else {
+                sb.append(' ')
+            }
+        }
     }
 
     fun setMessageFeedback(callback: KFunction0<Unit>?){
@@ -445,39 +470,22 @@ class MorseCodeService: Service(), CoroutineScope{
 
     fun getMessage():String{
         var message:StringBuilder = StringBuilder()
-        var sb:StringBuilder = StringBuilder()
-        for(i: Int in buttonHistory.indices step 2){
-            if(buttonHistory.size <= i+1) break
-            val duration = buttonHistory[i+1]
-            val delay = if (i != 0) buttonHistory[i] else 0
-            if(delay > servicePostavke.oneTimeUnit){ // character change
-                val index:Int = MORSE.indexOfFirst { it == sb.toString() }
+        var morse = getMorse()
+        val morse_split = morse.split(" ")
+        for(by_space in morse_split){
+            if(by_space == "") {
+                message.append(" ")
+            } else {
+                val index:Int = MORSE.indexOfFirst { it == by_space }
+                Log.d("ingo", "$by_space je ")
                 if(index != -1) {
                     message.append(ALPHANUM.get(index))
+                    Log.d("ingo", "je ${ALPHANUM.get(index)}")
                 } else {
                     message.append("?")
                 }
-                sb.clear()
-            }
-            if(delay > servicePostavke.oneTimeUnit*3) {
-                message.append(" ")
-            }
-            if(duration < servicePostavke.oneTimeUnit) {
-                sb.append(".")
-            } else {
-                sb.append("-")
             }
         }
-        if(sb.length > 0){
-            val index:Int = MORSE.indexOfFirst { it == sb.toString() }
-            if(index != -1) {
-                message.append(ALPHANUM.get(index))
-            } else {
-                message.append("?")
-            }
-            sb.clear()
-        }
-
         Log.d("ingo", "mess->" + message.toString()) // print after delay
         return message.toString()
     }
@@ -508,19 +516,30 @@ class MorseCodeService: Service(), CoroutineScope{
         editor.putLong(Constants.PWM_OFF, servicePostavke.pwm_off)
         editor.putLong(Constants.ONE_TIME_UNIT, servicePostavke.oneTimeUnit)
         editor.putString(Constants.SOCKETIO_IP, servicePostavke.socketioIp)
+        editor.putString(Constants.USER_NAME, servicePostavke.username)
+        editor.putInt(Constants.USER_ID, servicePostavke.userId)
+        editor.putString(Constants.USER_HASH, servicePostavke.userHash)
         editor.putBoolean(Constants.HANDS_FREE, servicePostavke.handsFreeOnChat)
+        editor.putLong(Constants.LAST_LEG_PROFILE, servicePostavke.lastLegProfile)
         editor.apply()
     }
 
-    fun setPostavke(novePostavke: Postavke){
-        servicePostavke.pwm_on = novePostavke.pwm_on
-        servicePostavke.pwm_off = novePostavke.pwm_off
-        servicePostavke.oneTimeUnit = novePostavke.oneTimeUnit
-        servicePostavke.socketioIp = novePostavke.socketioIp
+    fun loadPostavke(){
+        servicePostavke = Postavke()
+        servicePostavke.pwm_on = sharedPreferences.getLong(Constants.PWM_ON, 5)
+        servicePostavke.pwm_off = sharedPreferences.getLong(Constants.PWM_OFF, 1)
+        servicePostavke.oneTimeUnit = sharedPreferences.getLong(Constants.ONE_TIME_UNIT, 400)
+        servicePostavke.socketioIp = sharedPreferences.getString(Constants.SOCKETIO_IP, Constants.DEFAULT_SOCKETIO_IP).toString()
+        servicePostavke.username = sharedPreferences.getString(Constants.USER_NAME, "").toString()
+        servicePostavke.userId = sharedPreferences.getInt(Constants.USER_ID, 0)
+        servicePostavke.userHash = sharedPreferences.getString(Constants.USER_HASH, "").toString()
+        servicePostavke.handsFreeOnChat = sharedPreferences.getBoolean(Constants.HANDS_FREE, Constants.HANDS_FREE_DEFAULT)
+        servicePostavke.lastLegProfile = sharedPreferences.getLong(Constants.LAST_LEG_PROFILE, -1)
     }
 
     fun toggleTesting(testing: Boolean){
         testMode = testing
+        Log.d("ingo", "testing: $testMode")
         buttonHistory.clear()
         if(testMode){
             //textView.setBackgroundColor(Color.parseColor("#FFA500"))
@@ -552,7 +571,9 @@ class MorseCodeService: Service(), CoroutineScope{
             // bi li ovo trebalo biti u UI dretvi?
             val messageInJson: String = (args[0] as JSONObject).getString("message")
             val message: Message = Gson().fromJson(messageInJson, Message::class.java)
-            listener.onNewMessage(message)
+            for(listener in socketListeners) {
+                listener.onNewMessage(message)
+            }
             Log.d("ingo", "primljena poruka")
         }
 
@@ -565,11 +586,23 @@ class MorseCodeService: Service(), CoroutineScope{
     interface OnSocketNewMessageListener {
         fun onNewMessage(message: Message)
     }
+    private var socketListeners: MutableList<OnSocketNewMessageListener> = mutableListOf()
+    fun addListener(l: OnSocketNewMessageListener) {
+        socketListeners.add(l)
+    }
+    fun removeListener(l: OnSocketNewMessageListener) {
+        socketListeners.remove(l)
+    }
 
-    private lateinit var listener: OnSocketNewMessageListener
-
-    fun setListener(l: OnSocketNewMessageListener) {
-        listener = l
+    interface OnMorseProgressChangeListener {
+        fun onMorseProgressChangeListener(progress: Int, up: Boolean)
+    }
+    private var morseListeners: MutableList<OnMorseProgressChangeListener> = mutableListOf()
+    fun addListener(l: OnMorseProgressChangeListener) {
+        morseListeners.add(l)
+    }
+    fun removeListener(l: OnMorseProgressChangeListener) {
+        morseListeners.remove(l)
     }
 
 }

@@ -3,29 +3,22 @@ package com.example.morsecode
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.net.ConnectivityManager
-import android.net.wifi.WifiManager
+import android.os.Build
 import android.os.Bundle
-import android.text.format.Formatter.formatIpAddress
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.morsecode.models.EntitetKontakt
-import com.example.morsecode.models.LogInResponse
-import com.example.morsecode.models.RegisterResponse
-import com.example.morsecode.network.ContactsApi
+import com.example.morsecode.network.LogInResponse
+import com.example.morsecode.network.RegisterLoginRequest
+import com.example.morsecode.network.getContactsApiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.lang.RuntimeException
 import java.math.BigInteger
-import java.net.InetAddress
-import java.net.NetworkInterface
-import java.net.SocketException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.*
@@ -39,6 +32,13 @@ class LogInActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_log_in)
 
+        val intent = Intent(this, MorseCodeService::class.java) // Build the intent for the service
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            applicationContext.startForegroundService(intent)
+        } else {
+            applicationContext.startService(intent)
+        }
+
         val sharedPreferences: SharedPreferences =
             this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
 
@@ -51,7 +51,7 @@ class LogInActivity : AppCompatActivity() {
         if (sharedName != "" && sharedPassword != "" && sharedId != 0) {
             Log.d("stjepann", "id$sharedId")
             val editor = sharedPreferences.edit()
-            editor.putBoolean("autoLogIn", true)
+            editor.putBoolean(Constants.AUTO_LOGIN, true)
             editor.apply()
             val intent = Intent(this@LogInActivity, MainActivity::class.java)
             startActivity(intent)
@@ -70,18 +70,20 @@ class LogInActivity : AppCompatActivity() {
             if (userName.isEmpty() || userPassword.isEmpty()) {
                 Toast.makeText(applicationContext, "Username or password missing", Toast.LENGTH_SHORT).show()
             } else if (userName.isNotEmpty() || userPassword.isNotEmpty()) {
+                val ctx = this
                 lifecycleScope.launch(Dispatchers.Default) {
                     try {
-                        var user: LogInResponse = ContactsApi.retrofitService.logInUser(userName, userPasswordHash)
-
-                        Log.e("stjepan", "${user.hash}")
-                        Log.e("stjepan", "$userPasswordHash")
+                        var user: LogInResponse = getContactsApiService(ctx).logInUser(
+                            userName, userPasswordHash
+                        )
+                        Log.e("stjepan", "${user.hash} ${user.error}")
+                        Log.e("stjepan", "$userName $userPasswordHash")
 
                         if (user.success == true){
                             val editor = sharedPreferences.edit()
                             editor.putString(Constants.USER_NAME, userName)
                             editor.putString(Constants.USER_PASSWORD, userPasswordHash)
-                            editor.putInt(Constants.USER_ID, user.id.toInt())
+                            user.id?.let { it1 -> editor.putInt(Constants.USER_ID, it1) }
                             editor.putString(Constants.USER_HASH, user.hash)
                             editor.apply()
                             editor.commit()
@@ -89,10 +91,12 @@ class LogInActivity : AppCompatActivity() {
                             val intent = Intent(this@LogInActivity, MainActivity::class.java)
                             startActivity(intent)
                         } else {
-                            Toast.makeText(applicationContext, "The username or password is incorrect", Toast.LENGTH_SHORT).show()
+                            withContext(Dispatchers.Main){
+                                Toast.makeText(applicationContext, "The username or password is incorrect", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     } catch (e: Exception) {
-                        Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
+                        Log.e("stjepan", "greska logInUser " + e.stackTraceToString() + e.message.toString())
                     }
                 }
 

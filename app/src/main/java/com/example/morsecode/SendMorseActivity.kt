@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.Adapters.ZadaciAdapter
 import com.example.morsecode.models.Zadatak
-import com.example.morsecode.network.VibrationMessagesApi
 import kotlinx.coroutines.*
 
 class SendMorseActivity : AppCompatActivity() {
@@ -49,28 +48,6 @@ class SendMorseActivity : AppCompatActivity() {
             }
             true
         }
-        refreshMessages()
-    }
-
-    fun refreshMessages(){
-        val zadaciRecyclerView: RecyclerView = findViewById(R.id.zadaciRecyclerView)
-        zadaciRecyclerView.layoutManager = LinearLayoutManager(this)
-        val context = this
-        lifecycleScope.launch(Dispatchers.Default){
-            try {
-                val zadaci:List<Zadatak> = VibrationMessagesApi.retrofitService.getAllMessages("all")
-                withContext(Dispatchers.Main){
-                    zadaciRecyclerView.adapter = ZadaciAdapter(context, zadaci)
-                }
-            } catch (e: Exception) {
-                Log.d("ingo", "greska " + e.stackTraceToString() + e.message.toString())
-            }
-        }
-    }
-
-    override fun onResume() {
-        mAccessibilityService?.setMessageFeedback(::refreshMessages)
-        super.onResume()
     }
 
     override fun onPause() {

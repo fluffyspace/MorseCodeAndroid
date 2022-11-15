@@ -6,7 +6,7 @@ import androidx.room.Entity
 import com.squareup.moshi.Json
 
 @Entity(tableName = "contacts") //
-data class EntitetKontakt     // Konstruktor
+data class Contact     // Konstruktor
     (
     @PrimaryKey(autoGenerate = true) val id:Long?,
     @Json(name = "username") var username: String,

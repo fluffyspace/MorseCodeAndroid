@@ -122,13 +122,17 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     fun setPostavke(postavke:Postavke){
-        val editor = sharedPreferences.edit()
+        mAccessibilityService?.servicePostavke?.pwm_on = postavke.pwm_on
+        mAccessibilityService?.servicePostavke?.pwm_off = postavke.pwm_off
+        mAccessibilityService?.servicePostavke?.oneTimeUnit = postavke.oneTimeUnit
+        mAccessibilityService?.servicePostavke?.socketioIp = postavke.socketioIp
+        /*val editor = sharedPreferences.edit()
         editor.putLong(Constants.PWM_ON, postavke.pwm_on)
         editor.putLong(Constants.PWM_OFF, postavke.pwm_off)
         editor.putLong(Constants.ONE_TIME_UNIT, postavke.oneTimeUnit)
         editor.putString(Constants.SOCKETIO_IP, postavke.socketioIp)
-        editor.apply()
-        mAccessibilityService?.setPostavke(postavke)
+        editor.apply()*/
+        mAccessibilityService?.savePostavke()
     }
 
     fun databaseGetAll(): List<VibrationMessage> {

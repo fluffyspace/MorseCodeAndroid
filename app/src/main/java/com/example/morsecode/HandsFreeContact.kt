@@ -21,7 +21,7 @@ class HandsFreeContact {
 
 
     fun follow(x: Float, y: Float, z: Float, xG: Float, yG: Float, zG: Float) {
-        if (zCounter < 3) {
+        if (zCounter < 5) {
             zCounter++
             return
         }

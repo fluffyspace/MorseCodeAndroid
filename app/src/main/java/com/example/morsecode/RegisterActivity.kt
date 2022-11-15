@@ -8,8 +8,9 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import androidx.lifecycle.lifecycleScope
-import com.example.morsecode.models.RegisterResponse
-import com.example.morsecode.network.ContactsApi
+import com.example.morsecode.network.RegisterLoginRequest
+import com.example.morsecode.network.RegisterResponse
+import com.example.morsecode.network.getContactsApiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.lang.RuntimeException
@@ -69,7 +70,8 @@ class RegisterActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.Default) {
             try {
                 val passed: RegisterResponse =
-                    ContactsApi.retrofitService.registerContact(name, hash)
+                    getContactsApiService(this@RegisterActivity).registerContact(
+                        name, hash)
                 flag = passed.success == true
 
                 val sharedPreferences: SharedPreferences =
@@ -82,7 +84,7 @@ class RegisterActivity : AppCompatActivity() {
                 editor.commit()
 
             } catch (e: Exception) {
-                Log.e("stjepan", "greska " + e.stackTraceToString() + e.message.toString())
+                Log.e("stjepan", "greska registerUser " + e.stackTraceToString() + e.message.toString())
             }
         }
         return flag

@@ -27,7 +27,7 @@ public class Accelerometer {
     private float linear_acceleration[] = new float[3];
     private float alpha = 0.3f;
 
-    Accelerometer(Context context) {
+    public Accelerometer(Context context) {
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         sensorEventListener = new SensorEventListener() {
