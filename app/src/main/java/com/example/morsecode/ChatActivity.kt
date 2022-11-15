@@ -70,6 +70,7 @@ class ChatActivity : AppCompatActivity() {
 
     var sync = false
     var lastMessage: String = "e"
+    var lastPosition: Int = HandsFree.DOWN
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,6 +88,7 @@ class ChatActivity : AppCompatActivity() {
         accelerometer = Accelerometer(this)
         gyroscope = Gyroscope(this)
         handsFree = HandsFree()
+        handsFree.profile = mAccessibilityService?.profile
 
         sendButton = findViewById(R.id.sendButton)
         morseButton = findViewById(R.id.sendMorseButton)
@@ -168,22 +170,20 @@ class ChatActivity : AppCompatActivity() {
 
         handsFree.setListener(object : HandsFree.Listener {
             override fun onTranslation(tap: Int) {
+                if(lastPosition == tap) return
+                lastPosition = tap
                 if (tap == HandsFree.UP) {
                     visual_feedback_container.down()
                 } else if (tap == HandsFree.DOWN) {
                     visual_feedback_container.up()
                 } else if (tap == 3) {
                     visual_feedback_container.reset()
-
                     getNewMessages()
-
                     vibrateLastMessage(prefUserId, contactId)
-
                 } else if (tap == 4) {
                     onBackPressed()
                 } else if (tap == 5) {
                     visual_feedback_container.reset()
-
                     mAccessibilityService?.vibrateWithPWM(
                         mAccessibilityService!!.makeWaveformFromText(
                             "e"
@@ -193,7 +193,7 @@ class ChatActivity : AppCompatActivity() {
             }
 
             override fun onNewData(x: Float, y: Float, z: Float) {
-                TODO("Not yet implemented")
+                //TODO("Not yet implemented")
             }
         })
 
@@ -293,10 +293,8 @@ class ChatActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.Default) {
             try {
                 val id = getMessagesApiService(ctx).sendMessage(
-
                         to=contactId,
                         message=textEditMessage.text.toString()
-
                 )
                 Log.d("stjepan", "poslana poruka? $id")
                 withContext(Dispatchers.Main) {
@@ -354,7 +352,6 @@ class ChatActivity : AppCompatActivity() {
                     chatAdapter?.list = listOf()
                     chatAdapter?.notifyDataSetChanged()
                 }
-
                 Log.d("ingo", "$prefUserId, $userHash, $contactId")
                 val deleted: Boolean =
                     getMessagesApiService(ctx).deleteMessages(contactId.toLong())
@@ -372,13 +369,11 @@ class ChatActivity : AppCompatActivity() {
 
     private fun vibrateMessage(lastMessage: String) {
         mAccessibilityService = MorseCodeService.getSharedInstance();
-
         mAccessibilityService?.vibrateWithPWM(
             mAccessibilityService!!.makeWaveformFromText(
                 lastMessage
             )
         )
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -403,15 +398,12 @@ class ChatActivity : AppCompatActivity() {
                         vibrator.vibrate(200)
                     }
                     toggleHandsFree()
-
                 } catch (e: Exception) {
-
                 }
                 true
             }
             R.id.sync -> {
                 sync = !sync
-
                 //Toast.makeText(this, "sync $sync", Toast.LENGTH_LONG).show()
                 Snackbar.make(layoutBottom, "Synchronous vibration is " + if(sync) "enabled" else "disabled", Snackbar.LENGTH_SHORT)
                     .setAnchorView(layoutBottom)
@@ -437,6 +429,7 @@ class ChatActivity : AppCompatActivity() {
             turnHandsFreeOn()
         }
         handsFreeOnChat = !handsFreeOnChat
+        Toast.makeText(this, "Hands free " + if(handsFreeOnChat) "ON" else "OFF", Toast.LENGTH_SHORT).show()
 
         fragmentContainerView.isVisible = handsFreeOnChat
     }
@@ -450,9 +443,8 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun handsFreeOnChatSet(b: Boolean) {
-        val editor = sharedPreferences.edit()
-        editor.putBoolean("hands_free", b)
-        editor.apply()
+        mAccessibilityService?.servicePostavke?.handsFreeOnChat = b
+        mAccessibilityService?.savePostavke()
     }
 
     override fun onResume() {
@@ -470,11 +462,23 @@ class ChatActivity : AppCompatActivity() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-            // calibrate
-            Log.d("ingo", "calibration started")
-
+            Log.d("ingo", "key pressed")
+            if(lastPosition == HandsFree.UP) return true
+            lastPosition = HandsFree.UP
+            visual_feedback_container.down()
             return true
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            Log.d("ingo", "key released")
+            if(lastPosition == HandsFree.DOWN) return true
+            lastPosition = HandsFree.DOWN
+            visual_feedback_container.up()
+            return true
+        }
+        return super.onKeyUp(keyCode, event)
     }
 }

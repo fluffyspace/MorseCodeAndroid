@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -17,13 +18,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MorseCode">
         <activity
+            android:name=".AddNewContactActivity"
+            android:exported="false"
+            android:label="Add new contact"/>
+        <activity
             android:name=".ReadFilesActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait"
+            android:label="Read from files"/>
         <activity
             android:name=".sockets.TestActivity"
-            android:exported="true"></activity>
+            android:exported="true" />
         <activity
             android:name=".ChatActivity"
             android:exported="true"
@@ -31,12 +37,14 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".RegisterActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:label="Register"/>
         <activity
             android:name=".LogInActivity"
             android:exported="true"
             android:noHistory="true"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:label="Log in">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

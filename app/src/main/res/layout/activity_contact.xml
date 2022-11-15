@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ContactActivity"
-    android:id="@+id/root">
+    tools:context=".ContactActivity">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler"
@@ -27,7 +26,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/add_white"
-        android:contentDescription="add contact" />
+        android:contentDescription="add contact"
+        android:focusable="true" />
     <include layout="@layout/hands_free_indicator"/>
 
     <!--android:layoutAnimation="@anim/layout_animation"-->

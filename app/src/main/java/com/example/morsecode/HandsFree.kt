@@ -61,21 +61,51 @@ class HandsFree {
                 val zDiff = abs(profile!!.downZ - profile!!.upZ)
                 val maxDiff = Collections.max(listOf(xDiff, yDiff, zDiff))
                 if(maxDiff == xDiff){
-                    if(abs(profile!!.downX - xG) > abs(profile!!.upX - xG) + profile!!.threshold){
+                    var xUpThreshold = if(profile!!.downX < profile!!.upX){
+                        profile!!.downX + xDiff*profile!!.threshold/100
+                    } else {
+                        profile!!.downX - xDiff*profile!!.threshold/100
+                    }
+                    var xDownThreshold = if(profile!!.downX < profile!!.upX){
+                        profile!!.upX - xDiff*profile!!.threshold/100
+                    } else {
+                        profile!!.upX + xDiff*profile!!.threshold/100
+                    }
+                    if(xG > xUpThreshold){
                         listener.onTranslation(UP)
-                    } else if(abs(profile!!.downX - xG) + profile!!.threshold < abs(profile!!.upX - xG)){
+                    } else if(xG < xDownThreshold){
                         listener.onTranslation(DOWN)
                     }
                 } else if(maxDiff == yDiff){
-                    if(abs(profile!!.downY - yG) > abs(profile!!.upY - yG) + profile!!.threshold){
+                    var yUpThreshold = if(profile!!.downY < profile!!.upY){
+                        profile!!.downY + yDiff*profile!!.threshold/100
+                    } else {
+                        profile!!.downY - yDiff*profile!!.threshold/100
+                    }
+                    var yDownThreshold = if(profile!!.downY < profile!!.upY){
+                        profile!!.upY - yDiff*profile!!.threshold/100
+                    } else {
+                        profile!!.upY + yDiff*profile!!.threshold/100
+                    }
+                    if(yG > yUpThreshold){
                         listener.onTranslation(UP)
-                    } else if(abs(profile!!.downY - yG) + profile!!.threshold < abs(profile!!.upY - yG)){
+                    } else if(yG < yDownThreshold){
                         listener.onTranslation(DOWN)
                     }
                 } else if(maxDiff == zDiff){
-                    if(abs(profile!!.downZ - zG) > abs(profile!!.upZ - zG) + profile!!.threshold){
+                    var zUpThreshold = if(profile!!.downZ < profile!!.upZ){
+                        profile!!.downZ + zDiff*profile!!.threshold/100
+                    } else {
+                        profile!!.downZ - zDiff*profile!!.threshold/100
+                    }
+                    var zDownThreshold = if(profile!!.downZ < profile!!.upZ){
+                        profile!!.upZ - zDiff*profile!!.threshold/100
+                    } else {
+                        profile!!.upZ + zDiff*profile!!.threshold/100
+                    }
+                    if(zG > zUpThreshold){
                         listener.onTranslation(UP)
-                    } else if(abs(profile!!.downZ - zG) + profile!!.threshold < abs(profile!!.upZ - zG)){
+                    } else if(zG < zDownThreshold){
                         listener.onTranslation(DOWN)
                     }
                 }
@@ -88,7 +118,7 @@ class HandsFree {
 
     // gleda promjene sile sa sekundu na sekundu
     fun followGyroscope(x: Float, y: Float, z: Float) {
-
+        return
         if (counter >= 0)
             counter--
 

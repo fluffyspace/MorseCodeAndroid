@@ -14,27 +14,26 @@ import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.ChatActivity
 import com.example.morsecode.R
-import com.example.morsecode.models.Contact
+import com.example.morsecode.models.OpenedFile
 
-class KontaktiAdapter(c: Context, contacts: List<Contact>, longClickListener: OnLongClickListener) :
-    RecyclerView.Adapter<KontaktiAdapter.ViewHolder>() {
-    var contacts: List<Contact>
+class PreviouslyOpenedFilesAdapter(c: Context, longClickListener: OpenedFilesAdapterClickListener) :
+    RecyclerView.Adapter<PreviouslyOpenedFilesAdapter.ViewHolder>() {
+    var filesList: List<OpenedFile> = listOf()
     var context: Context
-    var longClickListener: OnLongClickListener
+    var longClickListener: OpenedFilesAdapterClickListener
     var selectedContact:Int = -1
 
     private val SELECTED = 1
     private val NOT_SELECTED = 2
 
     init {
-        this.contacts = contacts
         context = c
         this.longClickListener = longClickListener
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
         View.OnClickListener {
-        val imePrezimeTV: TextView
+        val fileNameTV: TextView
         //val contactImageIV: ImageView
         val background: ConstraintLayout
         //var textView: TextView
@@ -44,7 +43,7 @@ class KontaktiAdapter(c: Context, contacts: List<Contact>, longClickListener: On
         //'holds the views' for us to show on each row
         init {
             //Finds the views from our row.xml
-            imePrezimeTV = itemView.findViewById(R.id.imePrezimeTV)
+            fileNameTV = itemView.findViewById(R.id.fileNameTV)
             //contactImageIV = itemView.findViewById(R.id.contactImageIV)
             background = itemView.findViewById(R.id.background)
             //textView = itemView.findViewById<View>(R.id.text) as TextView
@@ -74,37 +73,29 @@ class KontaktiAdapter(c: Context, contacts: List<Contact>, longClickListener: On
     }
 
     override fun onBindViewHolder(viewHolder: ViewHolder, i: Int) {
-        val ime = viewHolder.imePrezimeTV
-        val imeText = "${contacts[i].username} (id ${contacts[i].id})"
+        val ime = viewHolder.fileNameTV
+        val imeText = "${filesList[i].filename} (${filesList[i].lastOpened})"
         ime.text = imeText
 
         viewHolder.itemView.setOnClickListener{
-            val activity = viewHolder.itemView.context as Activity
-            val intent = Intent(activity, ChatActivity::class.java)
-            intent.putExtra("username", contacts[i].username)
-            intent.putExtra("id", contacts[i].id)
-            startActivity(activity,intent,null)
+            longClickListener.click(filesList[i].id!!.toInt(), filesList[i].uri)
         }
 
         viewHolder.itemView.setOnLongClickListener {
-            longClickListener.longHold(contacts[i].id!!.toInt(), contacts[i].username)
-            /*val intent = Intent(viewHolder.itemView.context, ContactActivity::class.java)
-            intent.putExtra("idFriend", kontakt[i].id.toString())
-            intent.putExtra("nameFriend", kontakt[i].username)
-            viewHolder.itemView.context.startActivity(intent)*/
+            longClickListener.longHold(filesList[i].id!!.toInt(), i)
             true
         }
         if(viewHolder.itemViewType == SELECTED){
             viewHolder.background.setBackgroundColor(Color.YELLOW)
-            viewHolder.imePrezimeTV.setTextColor(Color.BLACK)
+            viewHolder.fileNameTV.setTextColor(Color.BLACK)
         }
     }
 
     override fun getItemCount(): Int {
         //This method needs to be overridden so that Androids knows how many items
         //will be making it into the list
-        Log.d("stjepan", contacts.size.toString())
-        return contacts.size
+        Log.d("stjepan", filesList.size.toString())
+        return filesList.size
     }
 
     override fun onCreateViewHolder(
@@ -114,7 +105,7 @@ class KontaktiAdapter(c: Context, contacts: List<Contact>, longClickListener: On
 
         //This is what adds the code we've written in here to our target view
         val inflater = LayoutInflater.from(parent.context)
-        val view: View = inflater.inflate(R.layout.recyclerview_contacts, parent, false)
+        val view: View = inflater.inflate(R.layout.recyclerview_files, parent, false)
         return ViewHolder(view)
     }
 

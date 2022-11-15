@@ -14,6 +14,7 @@ import com.google.android.material.slider.Slider
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import kotlinx.coroutines.*
+import java.util.*
 import java.util.Collections.max
 import kotlin.math.abs
 import kotlin.math.round
@@ -65,6 +66,12 @@ class TestActivity : AppCompatActivity() {
         }
         accelerometer.register()
         mAccessibilityService = MorseCodeService.getSharedInstance()!!
+
+        handsFree.profile = mAccessibilityService.profile
+        selectedProfile = mAccessibilityService.profile
+        Log.d("ingo", "selected -> " + Gson().toJson(selectedProfile))
+        enter_message_edittext.setText(mAccessibilityService.profile?.name)
+        showProfileValues()
 
         threshold_slider.addOnChangeListener { slider, value, fromUser ->
             threshold_value.setText(value.toString())
@@ -139,6 +146,8 @@ class TestActivity : AppCompatActivity() {
             legProfiles = legProfileDao.getAll().toMutableList()
             withContext(Dispatchers.Main){
                 spinner.adapter = getSpinnerItems()
+                Log.d("ingo", "would select " + legProfiles.indexOf(selectedProfile)+1)
+                spinner.setSelection(legProfiles.indexOf(selectedProfile)+1)
                 spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                     override fun onNothingSelected(parent: AdapterView<*>?) {}
                     override fun onItemSelected(
@@ -160,8 +169,9 @@ class TestActivity : AppCompatActivity() {
                             enter_message_edittext.setText(selected.toString())
                             showProfileValues()
                             handsFree.profile = selectedProfile
+                            mAccessibilityService.profile = selectedProfile
                         }
-                        Log.d("ingo", selected.toString())
+                        Log.d("ingo", "selected " + selected.toString())
                     }
                 }
             }

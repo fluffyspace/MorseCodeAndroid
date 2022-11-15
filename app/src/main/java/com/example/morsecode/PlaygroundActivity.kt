@@ -76,7 +76,7 @@ class PlaygroundActivity : AppCompatActivity() {
             }
 
             override fun onNewData(x: Float, y: Float, z: Float) {
-                TODO("Not yet implemented")
+                //TODO("Not yet implemented")
             }
         })
     }

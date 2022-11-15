@@ -2,6 +2,7 @@ package com.example.morsecode.baza
 
 import androidx.room.*
 import com.example.morsecode.models.Contact
+import com.example.morsecode.models.OpenedFile
 import com.example.morsecode.models.VibrationMessage
 
 @Dao
@@ -46,3 +47,26 @@ interface EntitetKontaktADao {
     fun deleteAll()
 }
 
+@Dao
+interface PreviouslyOpenedFilesDao {
+    @Query("SELECT * FROM files")
+    fun getAll(): List<OpenedFile>
+
+    @Query("SELECT * FROM files WHERE id = :id")
+    fun getById(id: Int): List<OpenedFile>
+
+    @Query("SELECT * FROM files WHERE uri = :uri")
+    fun getByUri(uri: String): List<OpenedFile>
+
+    @Insert
+    fun insertAll(vararg polja: OpenedFile): List<Long>
+
+    @Update
+    fun update(polje: OpenedFile)
+
+    @Delete
+    fun delete(polje: OpenedFile)
+
+    @Query("DELETE FROM files")
+    fun deleteAll()
+}

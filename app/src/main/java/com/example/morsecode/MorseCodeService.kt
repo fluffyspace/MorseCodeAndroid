@@ -13,6 +13,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
+import com.example.morsecode.models.LegProfile
 import com.example.morsecode.models.Message
 import com.example.morsecode.models.Postavke
 import com.example.morsecode.models.VibrationMessage
@@ -49,6 +50,8 @@ class MorseCodeService: Service(), CoroutineScope{
 
     var testMode = false
     val ONGOING_NOTIFICATION_ID = 1
+
+    var profile: LegProfile? = null
 
     private var coroutineJob: Job = Job()
     override val coroutineContext: CoroutineContext
@@ -213,7 +216,8 @@ class MorseCodeService: Service(), CoroutineScope{
             this,
             System.currentTimeMillis().toInt(),
             intentStopService,
-            PendingIntent.FLAG_CANCEL_CURRENT
+            PendingIntent.FLAG_IMMUTABLE
+
         )
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(this, CHANNEL_ID)
@@ -311,6 +315,7 @@ class MorseCodeService: Service(), CoroutineScope{
     }
 
     suspend fun maybeSendMessage(){
+        return
         //Log.d("ingo", "maybeSendMessage")
         val diff:Int = getTimeDifference()
         if(buttonHistory.size > 0 && diff > servicePostavke.oneTimeUnit*7){
