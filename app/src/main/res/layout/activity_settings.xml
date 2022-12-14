@@ -2,11 +2,11 @@
 <androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools">
     <LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
         tools:context=".SettingsActivity"
         android:id="@+id/timing_configuration"
         android:layout_width="match_parent"
@@ -41,14 +41,16 @@
                 android:layout_weight="1"
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_baseline_keyboard_arrow_up_24"
-                android:scaleType="fitCenter"/>
+                android:scaleType="fitCenter"
+                android:contentDescription="increase PWM on"/>
             <ImageButton
                 android:id="@+id/aaa_down"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_baseline_keyboard_arrow_down_24"
-                android:scaleType="fitCenter" />
+                android:scaleType="fitCenter"
+                android:contentDescription="decrease PWM on" />
         </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
@@ -71,14 +73,16 @@
                 android:layout_weight="1"
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_baseline_keyboard_arrow_up_24"
-                android:scaleType="fitCenter"/>
+                android:scaleType="fitCenter"
+                android:contentDescription="increase PWM off"/>
             <ImageButton
                 android:id="@+id/sss_down"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_baseline_keyboard_arrow_down_24"
-                android:scaleType="fitCenter" />
+                android:scaleType="fitCenter"
+                android:contentDescription="decrease PWM off" />
         </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
@@ -118,6 +122,14 @@
             android:gravity="left"
             android:textSize="15sp"
             android:padding="10dp"/>
+        <Button
+            android:id="@+id/foot_calibration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Foot calibration"
+            android:padding="20dp"
+            android:visibility="gone"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -216,6 +228,51 @@
             </LinearLayout>
 
         </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/obrub"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Physical buttons"
+            android:layout_gravity="center"
+            android:textSize="25sp"
+            android:paddingTop="10dp"/>
+        <TextView
+            android:id="@+id/registered_physical_keys"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:layout_marginTop="10dp"
+            android:text="Registered physical keys for typing morse code:"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:orientation="horizontal"
+            android:layout_marginVertical="10dp">
+            <Button
+                android:id="@+id/add_physical_key"
+                android:layout_gravity="center"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="Add key"/>
+            <Button
+                android:id="@+id/remove_physical_key"
+                android:layout_gravity="center"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="Remove key"
+                android:layout_marginLeft="10dp"/>
+        </LinearLayout>
+        <TextView
+            android:id="@+id/physical_keys_instructions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:text="Accesibility service has to be enabled to use this feature.\nTo add a physical key, press 'ADD KEY' and press physical button on device or connected to the device.\nTo remove a physical key, press 'REMOVE KEY' and press physical button you wish to remove."/>
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>

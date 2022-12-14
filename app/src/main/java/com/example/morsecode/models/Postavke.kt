@@ -10,4 +10,5 @@ data class Postavke(
     var userHash: String = "",
     var handsFreeOnChat: Boolean = false,
     var lastLegProfile: Long = -1,
+    var physicalButtons: MutableList<Int> = mutableListOf(),
 )

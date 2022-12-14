@@ -18,33 +18,37 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MorseCode">
         <activity
+            android:name=".MorseServiceVisualised"
+            android:exported="false" />
+        <activity
             android:name=".AddNewContactActivity"
             android:exported="false"
-            android:label="Add new contact"/>
+            android:label="Add new contact"
+            android:parentActivityName=".ContactsActivity"/>
         <activity
             android:name=".ReadFilesActivity"
             android:exported="false"
+            android:label="Read from files"
             android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait"
-            android:label="Read from files"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".sockets.TestActivity"
             android:exported="true" />
         <activity
             android:name=".ChatActivity"
             android:exported="true"
-            android:parentActivityName=".ContactActivity"
+            android:parentActivityName=".ContactsActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name=".RegisterActivity"
             android:exported="true"
-            android:label="Register"/>
+            android:label="Register" />
         <activity
             android:name=".LogInActivity"
             android:exported="true"
+            android:label="Morse Talk"
             android:noHistory="true"
-            android:screenOrientation="portrait"
-            android:label="Log in">
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -52,7 +56,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ContactActivity"
+            android:name=".ContactsActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait" />
@@ -92,7 +96,6 @@
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
-
             <meta-data
                 android:name="android.accessibilityservice"
                 android:resource="@xml/global_action_bar_service" />

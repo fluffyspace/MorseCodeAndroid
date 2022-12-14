@@ -119,7 +119,7 @@ class ChatActivity : AppCompatActivity() {
             .commitNow()
 
 
-        getNewMessages()
+        //getNewMessages()
         populateData(context, recyclerView, prefUserId, contactId)
 
         //message listeners
@@ -178,7 +178,7 @@ class ChatActivity : AppCompatActivity() {
                     visual_feedback_container.up()
                 } else if (tap == 3) {
                     visual_feedback_container.reset()
-                    getNewMessages()
+                    //getNewMessages()
                     vibrateLastMessage(prefUserId, contactId)
                 } else if (tap == 4) {
                     onBackPressed()
@@ -215,8 +215,8 @@ class ChatActivity : AppCompatActivity() {
     private fun vibrateLastMessage(prefUserId: Int, contactId: Int) {
         val db = AppDatabase.getInstance(this)
         val messageDao: MessageDao = db.messageDao()
-        val messages = messageDao.getLastReceived(prefUserId,contactId)
-        if(!messages.isEmpty()) vibrateMessage(messages[0].message.toString())
+        val message = messageDao.getLastReceived(prefUserId,contactId)
+        if(message != null) vibrateMessage(message.message.toString())
     }
 
     fun onNewMessageReceived(message: Message) {
@@ -265,13 +265,7 @@ class ChatActivity : AppCompatActivity() {
     ) {
         val db = AppDatabase.getInstance(this)
         val messageDao: MessageDao = db.messageDao()
-        val poruke: List<Message>
-
-        if (contactId == userId) {
-            poruke = messageDao.getAllSender(userId);
-        } else {
-            poruke = messageDao.getAllReceived(contactId, userId)
-        }
+        val poruke: List<Message> = messageDao.getAllReceived(contactId, userId)
         Log.d("ingo", "broj poruka -> " + poruke.size)
         this@ChatActivity.runOnUiThread(java.lang.Runnable {
             chatAdapter = ChatAdapter(
@@ -384,7 +378,7 @@ class ChatActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.hands_free -> {
+            /*R.id.hands_free -> {
                 try {
                     val vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
                     if (Build.VERSION.SDK_INT >= 26) {
@@ -410,7 +404,7 @@ class ChatActivity : AppCompatActivity() {
                     .show()
                 Log.e("Stjepan ", "sync $sync")
                 true
-            }
+            }*/
             R.id.clear_messages -> {
                 deleteMessages()
                 true

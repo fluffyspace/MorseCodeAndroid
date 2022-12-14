@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.*
 import android.widget.Button
@@ -12,12 +13,12 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
 import androidx.lifecycle.lifecycleScope
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.MessageDao
 import com.example.morsecode.models.Contact
 import com.example.morsecode.models.Message
-import com.example.morsecode.network.ContactIdRequest
 import com.example.morsecode.network.getContactsApiService
 import com.example.morsecode.network.getMessagesApiService
 import com.example.morsecode.sockets.TestActivity
@@ -40,25 +41,26 @@ class MainActivity : AppCompatActivity() {
 
         mAccessibilityService = MorseCodeService.getSharedInstance();
 
-        findViewById<LinearLayout>(R.id.contacts).setOnClickListener() {
-            val intent = Intent(this, ContactActivity::class.java)
+        findViewById<CardView>(R.id.contacts).setOnClickListener() {
+            val intent = Intent(this, ContactsActivity::class.java)
             startActivity(intent)
         }
 
-        findViewById<Button>(R.id.test_activity).setOnClickListener() {
-            val intent = Intent(this, TestActivity::class.java)
+
+        findViewById<Button>(R.id.visualise_accesibility).setOnClickListener() {
+            val intent = Intent(this, MorseServiceVisualised::class.java)
             startActivity(intent)
         }
 
-        findViewById<LinearLayout>(R.id.tutorial).setOnClickListener() {
+        findViewById<CardView>(R.id.tutorial).setOnClickListener() {
             val intent = Intent(this, TutorialActivity::class.java)
             startActivity(intent)
         }
-        findViewById<LinearLayout>(R.id.playground).setOnClickListener() {
+        findViewById<CardView>(R.id.playground).setOnClickListener() {
             val intent = Intent(this, PlaygroundActivity::class.java)
             startActivity(intent)
         }
-        findViewById<LinearLayout>(R.id.files).setOnClickListener(){
+        findViewById<CardView>(R.id.files).setOnClickListener(){
             val intent = Intent(this, ReadFilesActivity::class.java)
             startActivity(intent)
         }
@@ -79,7 +81,7 @@ class MainActivity : AppCompatActivity() {
         if (!autoLogIn)
             getFriends(prefUserId, userHash)
 
-        getNewMessages(prefUserId, userHash)
+        //getNewMessages()
 
     }
 
@@ -120,7 +122,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun getNewMessages(id: Int, userHash: String?) {
+    private fun getNewMessages() {
         lifecycleScope.launch(Dispatchers.Default) {
             try {
                 val response: List<Message> = getMessagesApiService(this@MainActivity).getNewMessages()
@@ -163,13 +165,13 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
                 true
             }
-            /*R.id.open_accessibility_settings -> {
+            R.id.open_accessibility_settings -> {
                 val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 startActivity(intent)
                 true
             }
-            R.id.accelerometer_controls -> {
+            /*R.id.accelerometer_controls -> {
                 sharedPreferences =
                     this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
                 val hands_free = sharedPreferences.getBoolean("hands_free", false)

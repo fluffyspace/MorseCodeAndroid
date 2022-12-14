@@ -187,7 +187,7 @@ class ReadFilesActivity : AppCompatActivity(), OpenedFilesAdapterClickListener {
         gyroscope.setListener { rx, ry, rz ->
             handsFree.followGyroscope(rx, ry, rz)
         }
-        
+
         handsFree.setListener(object : HandsFreeFile.Listener {
             override fun onTranslation(tap: Int) {
                 if (tap == 1) {
@@ -506,7 +506,7 @@ class ReadFilesActivity : AppCompatActivity(), OpenedFilesAdapterClickListener {
     }
 
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+    /*override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater: MenuInflater = menuInflater
         inflater.inflate(R.menu.chat_menu, menu)
         return true
@@ -555,7 +555,7 @@ class ReadFilesActivity : AppCompatActivity(), OpenedFilesAdapterClickListener {
 
             else -> super.onOptionsItemSelected(item)
         }
-    }
+    }*/
 
     private fun handsFreeOnChatSet(b: Boolean) {
         val editor = sharedPreferences.edit()

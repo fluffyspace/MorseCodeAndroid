@@ -6,22 +6,25 @@
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/drawable-v24/circular_progress_bar.xml" value="0.335" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/drawable/bg_receive_message.xml" value="0.2495" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/drawable/border.xml" value="0.1425" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/drawable/ic_baseline_contacts_24.xml" value="0.183" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/drawable/ic_baseline_delete_24.xml" value="0.1405" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/drawable/ic_baseline_save_24.xml" value="0.335" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/drawable/ic_baseline_waving_hand_24.xml" value="0.1405" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/drawable/obrub.xml" value="0.196" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/drawable/round_obrub.xml" value="0.1405" />
-        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/action_bar.xml" value="0.11302083333333333" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/action_bar.xml" value="0.20481927710843373" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_add_new_contact.xml" value="0.27575887131252674" />
-        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_chat.xml" value="0.33" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_chat.xml" value="0.1" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_contact.xml" value="0.3009833262077811" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_log_in.xml" value="0.3009833262077811" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_main.xml" value="0.1" />
-        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_playground.xml" value="0.1" />
-        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_read_files.xml" value="0.1" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_main_before.xml" value="0.28730226592560926" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_morse_service_visualised.xml" value="0.1" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_playground.xml" value="0.28174235403151066" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_read_files.xml" value="0.28174235403151066" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_send_morse.xml" value="0.3009833262077811" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_send_morse_message.xml" value="0.3009833262077811" />
-        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_settings.xml" value="0.1" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_settings.xml" value="0.28730226592560926" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_test.xml" value="0.25" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_tutorial.xml" value="0.36666666666666664" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/add_contact_dialog.xml" value="0.1453612654980761" />
@@ -33,8 +36,9 @@
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/item_message_send.xml" value="0.3009833262077811" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/message_row.xml" value="0.36666666666666664" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/previously_opened_file_dialog.xml" value="0.28730226592560926" />
-        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/recyclerview_contacts.xml" value="0.1" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/recyclerview_contacts.xml" value="0.28730226592560926" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/recyclerview_files.xml" value="0.33" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/recyclerview_item_vertical.xml" value="0.1834117144078666" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/menu/chat_menu.xml" value="0.1375" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/menu/contacts_menu.xml" value="0.1586147926464301" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/menu/menu.xml" value="0.36666666666666664" />

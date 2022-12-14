@@ -2,7 +2,7 @@
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item
+    <!--<item
         android:id="@+id/hands_free"
         android:title="Toggle Hands-free"
         android:icon="@drawable/ic_baseline_waving_hand_24"
@@ -10,6 +10,6 @@
     <item
         android:id="@+id/sync"
         android:title="Sync"
-        app:showAsAction="never" />
+        app:showAsAction="never" />-->
 
 </menu>

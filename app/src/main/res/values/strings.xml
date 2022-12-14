@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">MorseCode</string>
-    <string name="power">MorseCode ON</string>
+    <string name="app_name">Morse Talk</string>
+    <string name="power">Morse Talk ON</string>
     <string name="volume">Vol +</string>
     <string name="scroll">Scroll</string>
     <string name="swipe">Swipe</string>
@@ -12,4 +12,34 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="stopService">Stop service</string>
+    <string name="accessibility_service_description">Morse input with volume buttons</string>
+    <string name="main_menu">Main menu</string>
+    <string name="contacts">Contacts</string>
+    <string name="next_contact">Next contact</string>
+    <string name="previous_contact">Previous contact</string>
+    <string name="open_contact">Open contact</string>
+    <string name="listen_to_last_received_message">Listen to last received message (EXTRA)</string>
+    <string name="listen_to_message_after">Listen to message after (NEXT)</string>
+    <string name="listen_to_message_before">Listen to message before (PREVIOUS)</string>
+    <string name="send_a_new_message">Send a new message (CONFIRM + message content)</string>
+    <string name="read_from_files">Read from files</string>
+    <string name="choose_file">Choose file</string>
+    <string name="next_file">Next file</string>
+    <string name="previous_file">Previous file</string>
+    <string name="open_file">Open file</string>
+    <string name="search_in_file">Search in file</string>
+    <string name="next_occurence">Next occurence</string>
+    <string name="previous_occurence">Previous occurence</string>
+    <string name="new_file">New file</string>
+    <string name="save_file">Save file</string>
+    <string name="write_to_file">Write to file</string>
+    <string name="search_internet">Search internet</string>
+    <string name="switch_search_engine">Switch search engine</string>
+    <string name="feeling_lucky_on_off">Feeling lucky on/off</string>
+    <string name="search">Search</string>
+    <string name="next_result">Next result</string>
+    <string name="previous_result">Previous result</string>
+    <string name="skip_sentence">Skip sentence</string>
+    <string name="go_back">GO BACK</string>
+    <string name="repeat">REPEAT</string>
 </resources>

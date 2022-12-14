@@ -16,8 +16,9 @@
 -->
 
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
-    android:accessibilityFeedbackType="feedbackAllMask"
+    android:accessibilityFeedbackType="feedbackHaptic"
     android:accessibilityFlags="flagDefault|flagRequestFilterKeyEvents"
     android:canPerformGestures="true"
     android:canRetrieveWindowContent="true"
-    android:canRequestFilterKeyEvents="true"/>
+    android:canRequestFilterKeyEvents="true"
+    android:settingsActivity="com.example.android.accessibility.ServiceSettingsActivity"/>

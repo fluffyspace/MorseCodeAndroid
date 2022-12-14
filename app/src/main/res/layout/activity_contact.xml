@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ContactActivity">
+    tools:context=".ContactsActivity"
+    android:background="@color/colorAccent">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler"
@@ -14,7 +15,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="15dp"/>
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floatingActionButton"
         android:layout_width="wrap_content"
@@ -26,7 +28,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/add_white"
-        android:contentDescription="add contact"
+        android:contentDescription="Add contact"
         android:focusable="true" />
     <include layout="@layout/hands_free_indicator"/>
 

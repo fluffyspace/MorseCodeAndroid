@@ -13,7 +13,7 @@ interface MessageDao {
     fun getAllReceived(receiverId: Int, senderId: Int): List<Message>
 
     @Query("SELECT * FROM message WHERE (receiverId = :receiverId AND senderId = :senderId) ORDER BY id DESC LIMIT 1")
-    fun getLastReceived(receiverId: Int, senderId: Int): List<Message>
+    fun getLastReceived(receiverId: Int, senderId: Int): Message?
 
     @Query("SELECT * FROM message WHERE receiverId = :senderId AND senderId = :senderId")
     fun getAllSender(senderId: Int): List<Message>
