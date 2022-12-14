@@ -22,15 +22,19 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.Adapters.KontaktiAdapter
 import com.example.morsecode.Adapters.OnLongClickListener
+import com.example.morsecode.baza.AppDatabase
+import com.example.morsecode.baza.MessageDao
 import com.example.morsecode.models.Contact
+import com.example.morsecode.models.Message
 import com.example.morsecode.network.getContactsApiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ContactActivity : AppCompatActivity(), OnLongClickListener {
+class ContactsActivity : AppCompatActivity(), OnLongClickListener {
 
     private lateinit var kontakti: List<Contact>
+    private lateinit var last_messages: MutableList<Message?>
     private lateinit var accelerometer: Accelerometer
     private lateinit var handsFreeContact1: HandsFreeContact
     private var contactCounter = 0
@@ -64,7 +68,7 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
 
         handsFreeIndicator = findViewById(R.id.hands_free_indicator)
         kontaktiRecyclerView = findViewById(R.id.recycler)
-        kontaktiRecyclerViewAdapter = KontaktiAdapter(this, listOf(), this)
+        kontaktiRecyclerViewAdapter = KontaktiAdapter(this, listOf(), listOf(), userId, this)
         refreshContacts(userId)
 
         accelerometer = Accelerometer(this)
@@ -102,15 +106,29 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
         val ctx = this
         lifecycleScope.launch(Dispatchers.Default) {
             try {
-                val kontakti: List<Contact> =
+                kontakti =
                     getContactsApiService(ctx).getMyFriends().filter { it.id != userId.toLong() }
 
-                this@ContactActivity.kontakti = kontakti
+                val db = AppDatabase.getInstance(this@ContactsActivity)
+                val messageDao: MessageDao = db.messageDao()
+                last_messages = mutableListOf()
+                for(kontakt in kontakti){
+                    if(kontakt.id != null) {
+                        val poruka: Message? =
+                            messageDao.getLastReceived(kontakt.id.toInt(), userId)
+                        if(poruka != null) {
+                            last_messages.add(poruka)
+                        } else {
+                            last_messages.add(null)
+                        }
+                    }
+                }
                 maxContactCounter = kontakti.size - 1
 
                 //Log.e("max ", " $maxContactCounter")
                 withContext(Dispatchers.Main) {
-                    kontaktiRecyclerViewAdapter.contacts = this@ContactActivity.kontakti
+                    kontaktiRecyclerViewAdapter.contacts = this@ContactsActivity.kontakti
+                    kontaktiRecyclerViewAdapter.messages = this@ContactsActivity.last_messages
                     if(handsFreeOnChat) {
                         kontaktiRecyclerViewAdapter.selectContact(contactCounter)
                     }
@@ -166,13 +184,13 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
         ).show()*/
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+    /*override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater: MenuInflater = menuInflater
         inflater.inflate(R.menu.contacts_menu, menu)
         return true
-    }
+    }*/
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    /*override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.hands_free -> {
                 try {
@@ -202,7 +220,7 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
             }
             else -> super.onOptionsItemSelected(item)
         }
-    }
+    }*/
 
     fun turnHandsFreeOff(){
         handsFreeOnChat = false
@@ -244,7 +262,7 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
     }
 
     fun refreshAdapter(){
-        kontaktiRecyclerViewAdapter.contacts = this@ContactActivity.kontakti
+        kontaktiRecyclerViewAdapter.contacts = this@ContactsActivity.kontakti
         if (handsFreeOnChat) {
             kontaktiRecyclerViewAdapter.selectContact(contactCounter)
         }
@@ -255,10 +273,10 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
         Log.d("ingo", "long hold ${id} ${username}")
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Unfriend $username?")
-        builder.setNegativeButton("Close") { dialogInterface, i ->
+        builder.setNegativeButton("No") { dialogInterface, i ->
             dialogInterface.dismiss()
         }
-        builder.setPositiveButton("OK") { dialogInterface, i ->
+        builder.setPositiveButton("Yes") { dialogInterface, i ->
             val ctx = this
             lifecycleScope.launch(Dispatchers.Default) {
                 try {
@@ -267,7 +285,7 @@ class ContactActivity : AppCompatActivity(), OnLongClickListener {
                     }
                     withContext(Dispatchers.Main) {
                         maxContactCounter--
-                        this@ContactActivity.kontakti = this@ContactActivity.kontakti.filter{ it.id != id.toLong()}
+                        this@ContactsActivity.kontakti = this@ContactsActivity.kontakti.filter{ it.id != id.toLong()}
                         if (contactCounter >= maxContactCounter) {
                             contactCounter = 0
                             vibrateName(contactCounter)

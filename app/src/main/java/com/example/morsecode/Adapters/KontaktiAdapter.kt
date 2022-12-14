@@ -15,19 +15,24 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.morsecode.ChatActivity
 import com.example.morsecode.R
 import com.example.morsecode.models.Contact
+import com.example.morsecode.models.Message
 
-class KontaktiAdapter(c: Context, contacts: List<Contact>, longClickListener: OnLongClickListener) :
+class KontaktiAdapter(c: Context, contacts: List<Contact>, messages: List<Message?>, myId: Int, longClickListener: OnLongClickListener) :
     RecyclerView.Adapter<KontaktiAdapter.ViewHolder>() {
     var contacts: List<Contact>
+    var messages: List<Message?>
     var context: Context
     var longClickListener: OnLongClickListener
     var selectedContact:Int = -1
+    var myId: Int
 
     private val SELECTED = 1
     private val NOT_SELECTED = 2
 
     init {
         this.contacts = contacts
+        this.messages = messages
+        this.myId = myId
         context = c
         this.longClickListener = longClickListener
     }
@@ -35,6 +40,7 @@ class KontaktiAdapter(c: Context, contacts: List<Contact>, longClickListener: On
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
         View.OnClickListener {
         val imePrezimeTV: TextView
+        val lastMessageTV: TextView
         //val contactImageIV: ImageView
         val background: ConstraintLayout
         //var textView: TextView
@@ -45,6 +51,7 @@ class KontaktiAdapter(c: Context, contacts: List<Contact>, longClickListener: On
         init {
             //Finds the views from our row.xml
             imePrezimeTV = itemView.findViewById(R.id.imePrezimeTV)
+            lastMessageTV = itemView.findViewById(R.id.lastMessageTV)
             //contactImageIV = itemView.findViewById(R.id.contactImageIV)
             background = itemView.findViewById(R.id.background)
             //textView = itemView.findViewById<View>(R.id.text) as TextView
@@ -75,8 +82,20 @@ class KontaktiAdapter(c: Context, contacts: List<Contact>, longClickListener: On
 
     override fun onBindViewHolder(viewHolder: ViewHolder, i: Int) {
         val ime = viewHolder.imePrezimeTV
-        val imeText = "${contacts[i].username} (id ${contacts[i].id})"
+        val imeText = "${contacts[i].username}"// (id ${contacts[i].id})"
         ime.text = imeText
+        if(messages[i] != null) {
+            val stringBuilder = StringBuilder()
+            if(messages[i]!!.senderId == myId){
+                stringBuilder.append("Me: ")
+            } else {
+                stringBuilder.append("Them: ")
+            }
+            stringBuilder.append(messages[i]!!.message)
+            viewHolder.lastMessageTV.text = stringBuilder.toString()
+        } else {
+            viewHolder.lastMessageTV.text = "No messages."
+        }
 
         viewHolder.itemView.setOnClickListener{
             val activity = viewHolder.itemView.context as Activity

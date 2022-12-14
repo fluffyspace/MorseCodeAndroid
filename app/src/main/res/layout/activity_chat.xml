@@ -5,15 +5,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#57D9EA"
+    android:background="@color/colorAccent"
     android:orientation="vertical"
     android:weightSum="1"
     tools:context=".ChatActivity">
+    <!--android:background="#57D9EA"-->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:background="@color/colorPrimary"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/item_message_send"
         app:layout_constraintBottom_toTopOf="@id/layoutBottom"

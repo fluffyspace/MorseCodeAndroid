@@ -58,7 +58,7 @@ class PlaygroundActivity : AppCompatActivity() {
         }
 
         gyroscope.setListener { rx, ry, rz ->
-            supportActionBar?.title = rx.toString()
+            //supportActionBar?.title = rx.toString()
             handsFree.followGyroscope(rx, ry, rz)
         }
 
@@ -81,13 +81,13 @@ class PlaygroundActivity : AppCompatActivity() {
         })
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+    /*override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater: MenuInflater = menuInflater
         inflater.inflate(R.menu.chat_menu, menu)
         return true
-    }
+    }*/
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    /*override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.hands_free -> {
                 try {
@@ -123,7 +123,7 @@ class PlaygroundActivity : AppCompatActivity() {
             }
             else -> super.onOptionsItemSelected(item)
         }
-    }
+    }*/
 
     override fun onResume() {
         toggleTesting(true)

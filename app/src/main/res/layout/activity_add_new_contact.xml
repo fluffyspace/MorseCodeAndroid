@@ -5,22 +5,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".AddNewContactActivity"
-    android:padding="20dp">
-    <TextView
-        android:id="@+id/add_new_contact_label"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        android:textSize="35sp"
-        android:text="Add new contact"/>
+    android:padding="20dp"
+    android:background="@color/colorAccent">
     <EditText
         android:id="@+id/add_new_contact_edittext"
-        app:layout_constraintTop_toBottomOf="@id/add_new_contact_label"
+        app:layout_constraintTop_toTopOf="parent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Enter contact's username"
         android:padding="20dp"
-        android:layout_marginTop="10dp"/>
+        android:layout_marginTop="10dp"
+        android:background="@color/white"/>
     <Button
         android:id="@+id/add_new_contact_button"
         android:layout_width="match_parent"

@@ -4,20 +4,47 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/background"
     android:layout_width="match_parent"
-    android:layout_height="70dp"
-    android:layout_margin="16dp"
-    android:background="@drawable/round_obrub">
+    android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/imePrezimeTV"
-            android:layout_width="wrap_content"
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardView"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
-            android:text="TextView"
-            android:textColor="@color/black"
-            android:textSize="17sp"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginEnd="30dp"
+            android:layout_marginBottom="15dp"
+            app:cardCornerRadius="10dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            android:focusable="true"
+            android:background="@color/antiobrub">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:background="@color/antiobrub">
+
+                <TextView
+                    android:id="@+id/imePrezimeTV"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="TextView"
+                    android:textColor="@color/obrub"
+                    android:textSize="17sp" />
+                <TextView
+                    android:id="@+id/lastMessageTV"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="LastMessage"
+                    android:textSize="13dp"
+                    android:textColor="@color/halfobrub"
+                    />
+                </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -16,5 +16,6 @@ class Constants{
         var PWM_OFF = "pwm_off"
         var ONE_TIME_UNIT = "oneTimeUnit"
         var LAST_LEG_PROFILE = "lastLegProfile"
+        var PHYSICAL_BUTTONS = "physicalButtons"
     }
 }

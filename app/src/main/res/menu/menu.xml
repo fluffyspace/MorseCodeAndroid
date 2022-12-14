@@ -7,10 +7,10 @@
         android:title="Settings"
         android:icon="@drawable/ic_baseline_settings_24"
         app:showAsAction="always" />
-    <!--<item
+    <item
         android:id="@+id/open_accessibility_settings"
         android:title="Open accessibility settings" />
-    <item
+    <!--<item
         android:id="@+id/accelerometer_controls"
         android:title="Hands-free controls"/>-->
     <item

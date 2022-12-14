@@ -31,10 +31,9 @@ class AddNewContactActivity : AppCompatActivity() {
                         val friendId = friend.id
                         var add = getContactsApiService(ctx).addFriend(friendId!!)
                         withContext(Dispatchers.Main) {
-
                             Toast.makeText(
                                 this@AddNewContactActivity,
-                                friendName + " dodan kao prijatelj!",
+                                friendName + " added as friend!",
                                 Toast.LENGTH_SHORT
                             ).show()
 
@@ -48,14 +47,14 @@ class AddNewContactActivity : AppCompatActivity() {
                             Log.e("ingo", e.toString())
                             Toast.makeText(
                                 this@AddNewContactActivity,
-                                "There is no contact under that username $friendName",
+                                "There is no contact under username $friendName",
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
                     }
                 }
             } else {
-                Toast.makeText(applicationContext, "No name entered", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "No username entered.", Toast.LENGTH_SHORT).show()
             }
         }
 

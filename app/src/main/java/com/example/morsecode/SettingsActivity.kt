@@ -1,23 +1,31 @@
 package com.example.morsecode
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.util.Log
+import android.view.KeyEvent
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.AppCompatImageButton
+import androidx.lifecycle.lifecycleScope
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.PorukaDao
 import com.example.morsecode.models.VibrationMessage
 import com.example.morsecode.models.Postavke
+import com.example.morsecode.sockets.TestActivity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
+import java.util.List.copyOf
 import kotlin.random.Random
 
-class SettingsActivity : AppCompatActivity() {
+class SettingsActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListener {
 
     var aaa:Long = 0
     var sss:Long = 0
@@ -27,8 +35,11 @@ class SettingsActivity : AppCompatActivity() {
     lateinit var pwmOffStatus:TextView
     lateinit var oneTimeUnitStatus:TextView
     lateinit var timing_status:TextView
+    lateinit var physicalKeys:TextView
     var mAccessibilityService:MorseCodeService? = null
+    var physicalButtonsService:PhysicalButtonsService? = null
     lateinit var sharedPreferences: SharedPreferences
+
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,13 +56,34 @@ class SettingsActivity : AppCompatActivity() {
         if(device_uuid == "") setDeviceUuid()
 
         mAccessibilityService = MorseCodeService.getSharedInstance();
+        physicalButtonsService = PhysicalButtonsService.getSharedInstance();
         Log.d("ingo", mAccessibilityService.toString())
         pwmOnStatus = findViewById<TextView>(R.id.pwm_on_status)
         pwmOffStatus = findViewById<TextView>(R.id.pwm_off_status)
         oneTimeUnitStatus = findViewById<TextView>(R.id.otu_status)
         timing_status = findViewById(R.id.morse_timing)
-
+        physicalKeys = findViewById<TextView>(R.id.registered_physical_keys)
+        findViewById<Button>(R.id.add_physical_key).setOnClickListener {
+            physicalButtonsService = PhysicalButtonsService.getSharedInstance()
+            PhysicalButtonsService.addListener(this)
+            physicalButtonsService?.detectingNewPhysicalKey = true
+            physicalButtonsService?.physicalKeyAdding = true
+            Log.d("ingo", "adding new key")
+            Log.d("ingo", physicalButtonsService?.physicalButtons.toString())
+        }
+        findViewById<Button>(R.id.remove_physical_key).setOnClickListener {
+            physicalButtonsService = PhysicalButtonsService.getSharedInstance()
+            PhysicalButtonsService.addListener(this)
+            physicalButtonsService?.detectingNewPhysicalKey = true
+            physicalButtonsService?.physicalKeyAdding = false
+        }
+        keyAddedOrRemoved()
         refreshStatus()
+
+        findViewById<Button>(R.id.foot_calibration)?.setOnClickListener() {
+            val intent = Intent(this, TestActivity::class.java)
+            startActivity(intent)
+        }
 
         val socketioip = findViewById<EditText>(R.id.socketioip)
         socketioip.setText(socketioipPref)
@@ -119,6 +151,25 @@ class SettingsActivity : AppCompatActivity() {
         val editor = sharedPreferences.edit()
         editor.putString("device_uuid", UUID.randomUUID().toString())
         editor.apply()
+    }
+
+    override fun onKey() {
+    }
+
+    override fun keyAddedOrRemoved() {
+        Log.d("ingo", "keyAddedOrRemoved")
+        lifecycleScope.launch {
+            withContext(Dispatchers.Main) {
+                var tipkice = mAccessibilityService?.servicePostavke?.physicalButtons!!.map{ keycodeInt -> KeyEvent.keyCodeToString(keycodeInt)}
+                physicalKeys.setText("Registered physical keys for typing morse code:" + tipkice)
+
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        PhysicalButtonsService.removeListener(this)
     }
 
     fun setPostavke(postavke:Postavke){

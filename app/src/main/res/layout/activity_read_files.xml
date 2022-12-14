@@ -28,7 +28,6 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <TextView
-                android:drawableTop="@drawable/ic_baseline_insert_drive_file_24"
                 android:id="@+id/new_file_icon_label"
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
@@ -40,9 +39,8 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintRight_toLeftOf="@id/open_file_icon_label"
                 android:textAlignment="center"
-                />
+                app:drawableTopCompat="@drawable/ic_baseline_insert_drive_file_24" />
             <TextView
-                android:drawableTop="@drawable/ic_baseline_file_open_24"
                 android:id="@+id/open_file_icon_label"
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
@@ -53,9 +51,9 @@
                 android:textColor="@color/white"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintRight_toLeftOf="@id/save_icon_label"
-                android:textAlignment="center"/>
+                android:textAlignment="center"
+                app:drawableTopCompat="@drawable/ic_baseline_file_open_24" />
             <TextView
-                android:drawableTop="@drawable/ic_baseline_save_24"
                 android:id="@+id/save_icon_label"
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
@@ -66,9 +64,9 @@
                 android:textColor="@color/white"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintRight_toLeftOf="@id/save_file_as_icon_label"
-                android:textAlignment="center"/>
+                android:textAlignment="center"
+                app:drawableTopCompat="@drawable/ic_baseline_save_24" />
             <TextView
-                android:drawableTop="@drawable/ic_baseline_save_as_24"
                 android:id="@+id/save_file_as_icon_label"
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
@@ -79,9 +77,9 @@
                 android:textColor="@color/white"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                android:textAlignment="center"/>
+                android:textAlignment="center"
+                app:drawableTopCompat="@drawable/ic_baseline_save_as_24" />
             <TextView
-                android:drawableTop="@drawable/ic_baseline_history_24"
                 android:id="@+id/history_icon_label"
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
@@ -92,9 +90,9 @@
                 android:textColor="@color/white"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                android:textAlignment="center"/>
+                android:textAlignment="center"
+                app:drawableTopCompat="@drawable/ic_baseline_history_24" />
             <TextView
-                android:drawableTop="@drawable/ic_baseline_undo_24"
                 android:id="@+id/undo_label"
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
@@ -105,9 +103,9 @@
                 android:textColor="@color/white"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintRight_toLeftOf="@id/open_file_icon_label"
-                android:textAlignment="center"/>
+                android:textAlignment="center"
+                app:drawableTopCompat="@drawable/ic_baseline_undo_24" />
             <TextView
-                android:drawableTop="@drawable/ic_baseline_redo_24"
                 android:id="@+id/redo_label"
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
@@ -118,7 +116,8 @@
                 android:textColor="@color/white"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintRight_toLeftOf="@id/open_file_icon_label"
-                android:textAlignment="center"/>
+                android:textAlignment="center"
+                app:drawableTopCompat="@drawable/ic_baseline_redo_24" />
         </LinearLayout>
     </HorizontalScrollView>
     <View
@@ -134,7 +133,7 @@
         android:background="@color/purple_200">
         <TextView
             android:id="@+id/currentlyOpenedLabel"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Currently opened file: "
             android:padding="10dp"
@@ -151,7 +150,9 @@
         android:text="vcvsd \n fdasdfsd"
         android:gravity="top"
         android:padding="10dp"
-        android:textColor="@color/white"/>
+        android:textColor="@color/white"
+        android:hint="File text"
+        android:inputType="text"/>
     <!--<ProgressBar
         android:layout_width="100dp"
         android:layout_height="100dp"
