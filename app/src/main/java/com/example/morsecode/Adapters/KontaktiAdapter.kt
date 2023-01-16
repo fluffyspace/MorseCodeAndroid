@@ -94,7 +94,7 @@ class KontaktiAdapter(c: Context, contacts: List<Contact>, messages: List<Messag
             stringBuilder.append(messages[i]!!.message)
             viewHolder.lastMessageTV.text = stringBuilder.toString()
         } else {
-            viewHolder.lastMessageTV.text = "No messages."
+            viewHolder.lastMessageTV.text = "Nema poruka."
         }
 
         viewHolder.itemView.setOnClickListener{

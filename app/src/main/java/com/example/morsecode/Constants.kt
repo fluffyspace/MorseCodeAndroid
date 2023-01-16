@@ -3,6 +3,7 @@ package com.example.morsecode
 class Constants{
     companion object {
         val USER_NAME = "username"
+        val USER_WINS = "user_wins"
         val USER_ID = "id"
         val USER_PASSWORD = "password"
         val USER_HASH = "logInHash"

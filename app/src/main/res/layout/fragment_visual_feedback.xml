@@ -14,7 +14,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Dot or dash?"
+        android:text="@string/dot_or_dash"
         android:gravity="center"/>
     <LinearLayout
         android:layout_width="match_parent"
@@ -31,14 +31,14 @@
             app:second_threshold="200"
             app:bar_color="down"
             app:progress="0"
-            app:first_text="dot"
-            app:second_text="dash"/>
+            app:first_text="točka"
+            app:second_text="crta"/>
     </LinearLayout>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="New character, space or send message?"
+        android:text="@string/new_character_space_or_send_message"
         android:gravity="center"/>
     <LinearLayout
         android:layout_width="match_parent"
@@ -54,9 +54,9 @@
             app:second_threshold="800"
             app:third_threshold="2000"
             app:bar_color="up"
-            app:first_text="new character"
-            app:second_text="space"
-            app:third_text="message sent"/>
+            app:first_text="novo slovo"
+            app:second_text="razmak"
+            app:third_text="poruka završena"/>
     </LinearLayout>
 
     <TextView
@@ -72,13 +72,13 @@
         android:layout_height="wrap_content"
         android:textSize="25sp"
         tools:text="Text extracted from morse"
-        android:text="Text: "/>
+        android:text="@string/text"/>
     <TextView
         android:id="@+id/all_timers_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="25sp"
         tools:text="Detected morse code"
-        android:text="Morse: "/>
+        android:text="Morse:"/>
     </LinearLayout>
 </FrameLayout>

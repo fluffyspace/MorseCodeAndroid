@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView
+    android:id="@+id/scrollView"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -7,67 +8,99 @@
     android:layout_height="match_parent">
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".PlaygroundActivity"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+            android:orientation="vertical">
+        <TextView
+            android:id="@+id/wins_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sveukupno_pogodeno_rijeci"
+            android:textSize="20sp"
+            android:visibility="gone"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="4sp"
+            android:paddingBottom="10dp"
+            android:text="@string/ispod_mo_ete_isprobati_kako_morsov_kod_funkcionira"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="4sp"
+            android:paddingBottom="10dp"
+            android:text="@string/dr_u_i_tipku_se_puni_gornja_traka_pu_taju_i_tipku_se_puni_donja_traka"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="4sp"
+            android:paddingBottom="10dp"
+            android:text="@string/vremenska_ograni_enja_su_ista_kao_kod_pravog_slanja_morseovog_koda_zato_je_bitno_izvje_bati_se_ovdje_prije_upotrebe_aplikacije"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="4sp"
+            android:paddingBottom="15dp"
+            android:text="@string/vremenska_ograni_enja_mogu_e_je_podesiti_u_postavkama_aplikacije"
+            android:textAllCaps="false" />
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:src="@drawable/international_morse_code"
-            android:background="@color/white"/>
+            android:adjustViewBounds="true"
+            android:src="@drawable/international_morse_code"/>
+        <TextView
+            android:id="@+id/tutorial_number_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="30sp"
+            android:text="@string/tutorial_1_20"/>
+        <TextView
+            android:id="@+id/tutorial_text_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="25sp"
+            android:text="Pokušajte upisati: ingo kodba"
+            android:paddingBottom="10dp"/>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="20dp"
-                android:orientation="vertical">
+            android:orientation="horizontal"
+            android:background="@drawable/obrub"
+            android:padding="10dp">
+            <ImageView
+                android:id="@+id/tutorial_status_image"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@drawable/ic_baseline_check_circle_24"/>
             <TextView
-                android:id="@+id/tutorial_number_view"
+                android:id="@+id/tutorial_status_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="30sp"
-                android:text="Tutorial: 1/20"/>
-            <TextView
-                android:id="@+id/tutorial_text_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="25sp"
-                android:text="Pokušajte upisati: ingo kodba"
-                android:paddingBottom="10dp"/>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:background="@drawable/obrub"
-                android:padding="10dp">
-                <ImageView
-                    android:id="@+id/tutorial_status_image"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:src="@drawable/ic_baseline_check_circle_24"/>
-                <TextView
-                    android:id="@+id/tutorial_status_text"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="So far so good"
-                    android:textSize="20sp"
-                    android:layout_gravity="center"
-                    android:paddingLeft="10dp"/>
-            </LinearLayout>
-            <androidx.fragment.app.FragmentContainerView
-                android:id="@+id/visual_feedback_container"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                tools:layout="@layout/fragment_visual_feedback"/>
-            <Button
-                android:id="@+id/tap"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="TAP/HOLD"
-                android:textSize="30sp"
-                android:gravity="center"
+                android:text="@string/so_far_so_good"
+                android:textSize="20sp"
                 android:layout_gravity="center"
-                android:padding="30dp"
-                android:layout_marginTop="10dp"/>
+                android:paddingLeft="10dp"/>
         </LinearLayout>
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/visual_feedback_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:layout="@layout/fragment_visual_feedback"/>
+        <Button
+            android:id="@+id/tap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tap_hold"
+            android:textSize="30sp"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:padding="30dp"
+            android:layout_marginTop="10dp"/>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

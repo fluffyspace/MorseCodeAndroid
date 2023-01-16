@@ -6,14 +6,19 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.*
+import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.net.toUri
+import androidx.lifecycle.lifecycleScope
 import com.example.morsecode.Adapters.CommandListener
 import com.example.morsecode.baza.AppDatabase
 import com.example.morsecode.baza.MessageDao
 import com.example.morsecode.baza.PorukaDao
+import com.example.morsecode.baza.PreviouslyOpenedFilesDao
 import com.example.morsecode.models.*
 import com.example.morsecode.models.Message
 import com.example.morsecode.network.getContactsApiService
@@ -34,8 +39,6 @@ import kotlin.reflect.KFunction0
 import kotlin.reflect.typeOf
 
 
-private val MORSE = arrayOf(".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..", ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----.", "-----")
-private val ALPHANUM:String = "abcdefghijklmnopqrstuvwxyz1234567890"
 // ABCDEFGHIJKLMNOPQRSTUVWXYZ
 
 class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyListener{
@@ -59,8 +62,12 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
     var current_menu: MorseCodeServiceMenus = MorseCodeServiceMenus.MENU_MAIN
     var entering_text: Boolean = false
     var current_contact_index: Int = -1
+    var current_file_index: Int = -1
+    var current_file_line_index: Int = -1
     var last_contact_index_played: Int = -1
     var contacts: MutableList<Contact> = mutableListOf()
+    var files: MutableList<OpenedFile> = mutableListOf()
+    var file_content: MutableList<String> = mutableListOf()
     var messages: MutableList<Message> = mutableListOf()
     var current_message_index: Int = -1
     var last_command_issued: MorseCodeServiceCommands = MorseCodeServiceCommands.MAIN
@@ -68,12 +75,13 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
 
     var testMode = false
     val ONGOING_NOTIFICATION_ID = 1
-    val POLLING_WAIT_TIME = 5000
+    val POLLING_WAIT_TIME = 10000
 
     var profile: LegProfile? = null
     var lastCommand: MorseCodeServiceCommands? = null
     var vibrate_new_messages: Boolean = true
     var vibrating_queue: MutableList<String> = mutableListOf()
+    var search_query: String = ""
 
     var last_checked_for_new_messages: Long = -1
 
@@ -133,7 +141,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
 
     fun cancelVibration(){
         vibrator.cancel()
-        vibrating_queue_korutina.cancel()
+        if(::vibrating_queue_korutina.isInitialized) vibrating_queue_korutina.cancel()
         will_stop_vibrating = -1
     }
 
@@ -223,7 +231,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
     }
 
     fun startVibratingQueueCoroutineIfNotStarted(vibrationEndsIn: Long){
-        if(!vibrating_queue_korutina.isActive) {
+        if(::vibrating_queue_korutina.isInitialized && !vibrating_queue_korutina.isActive) {
             vibrating_queue_korutina = scope.launch {
                 delay(vibrationEndsIn + 1000)
                 withContext(Dispatchers.Main) {
@@ -296,6 +304,14 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
             PendingIntent.FLAG_IMMUTABLE
         )
 
+        val intentAccesibilitySettings = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+        val accesibilitySettingsPendingIntent = PendingIntent.getActivity(
+            this,
+            System.currentTimeMillis().toInt(),
+            intentAccesibilitySettings,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(this, NOTIFICATION_CHANNEL_ID)
                 .setContentTitle(title)
@@ -305,6 +321,8 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
                 .setContentIntent(pendingIntent)
                 .addAction(R.drawable.ic_baseline_cancel_24, getString(R.string.stopService),
                     stopServicePendingIntent)
+                .addAction(R.drawable.ic_baseline_play_arrow_24, getString(R.string.accesibilitySettings),
+                    accesibilitySettingsPendingIntent)
                 .setOnlyAlertOnce(true)
                 .build()
         } else {
@@ -316,6 +334,8 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
                 .setContentIntent(pendingIntent)
                 .addAction(R.drawable.ic_baseline_cancel_24, getString(R.string.stopService),
                     stopServicePendingIntent)
+                .addAction(R.drawable.ic_baseline_play_arrow_24, getString(R.string.accesibilitySettings),
+                    accesibilitySettingsPendingIntent)
                 .setOnlyAlertOnce(true)
                 .build()
         }
@@ -347,7 +367,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
 
     override fun onDestroy() {
         korutina.cancel()
-        vibrating_queue_korutina.cancel()
+        if(::vibrating_queue_korutina.isInitialized) vibrating_queue_korutina.cancel()
         scope.cancel()
         mSocket.disconnect();
         mSocket.off("new message", onNewMessage);
@@ -395,6 +415,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
         mSocket.disconnect().connect()
 
         getContacts()
+        getFiles()
         getNewMessages()
 
         PhysicalButtonsService.addListener(this)
@@ -425,11 +446,30 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
 
     fun getContacts(){
         scope.launch {
-            val kontakti: List<Contact> =
-                getContactsApiService(this@MorseCodeService).getMyFriends()
-            withContext(Dispatchers.Main){
-                contacts = kontakti.toMutableList()
-                if(contacts.isNotEmpty()) current_contact_index = 0
+            try {
+                val kontakti: List<Contact> =
+                    getContactsApiService(this@MorseCodeService).getMyFriends()
+                withContext(Dispatchers.Main){
+                    contacts = kontakti.toMutableList()
+                    if(contacts.isNotEmpty()) current_contact_index = 0
+                }
+            } catch (e: Exception) {
+                Log.e("stjepan", "greska getMyFriends " + e.stackTraceToString() + e.message.toString())
+            }
+        }
+    }
+
+    fun getFiles(){
+        ReadFilesActivity
+        scope.launch(Dispatchers.Default) {
+            val previouslyOpenedFiles = ReadFilesActivity.getPreviouslyOpenedFiles(this@MorseCodeService)
+            withContext(Dispatchers.Main) {
+                files = previouslyOpenedFiles
+                if(files.isNotEmpty()) {
+                    current_file_index = 0
+                } else {
+                    current_file_index = -1
+                }
             }
         }
     }
@@ -443,6 +483,9 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
                         withContext(Dispatchers.Main) {
                             if(vibrate_if_new) vibrate(message.message.toString())
                             saveMessage(message)
+                            for(listener in socketListeners) {
+                                listener.onNewMessage(message)
+                            }
                         }
                     }
                 }
@@ -490,7 +533,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
                     if (id != -1L) {
                         Log.d("ingo", "poruka $id uspješno poslana")
                         val poruka =
-                            Message(id, text, contacts[current_contact_index].id!!.toInt(), servicePostavke.userId)
+                            Message(id, text, contacts[current_contact_index].id!!.toInt(), servicePostavke.userId, System.currentTimeMillis().toString(), false, false)
                         saveMessage(poruka)
                         messages.add(poruka)
                         emitMessage(poruka)
@@ -517,11 +560,18 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
                 } else {
                     current_menu = MorseCodeServiceMenus.MENU_CHOOSE_CONTACTS
                     vibrate(contacts[current_contact_index].username)
+                    current_message_index = -1
                 }
             }
             FILES_KEY -> {
                 current_menu = MorseCodeServiceMenus.MENU_READ_FROM_FILES
                 commandIssued(MorseCodeServiceCommands.FILES)
+                if(files.isEmpty()){
+                    Log.d("ingo", "Files empty")
+                } else {
+                    current_file_index = 0
+                    vibrate(files[current_file_index].filename)
+                }
             }
             INTERNET_KEY -> {
                 current_menu = MorseCodeServiceMenus.MENU_SEARCH_INTERNET
@@ -568,6 +618,84 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
         }
     }
 
+    fun MENU_CHOOSE_FILE(poruka: String){
+        when(poruka[0]){
+            SHORTCUT_NEXT -> {
+                current_file_index++
+                if(current_file_index > files.size-1){
+                    current_file_index = 0
+                }
+                vibrate(files[current_file_index].filename)
+                Log.d("ingo", "sljedeća datoteka - " + files[current_file_index].filename)
+                commandIssued(MorseCodeServiceCommands.FILES_CHOOSE_NEXT)
+            }
+            SHORTCUT_PREVIOUS -> {
+                current_file_index--
+                if(current_file_index < 0){
+                    current_file_index = files.size-1
+                }
+                vibrate(files[current_file_index].filename)
+                Log.d("ingo", "prijašnja datoteka - " + files[current_file_index].filename)
+                commandIssued(MorseCodeServiceCommands.FILES_CHOOSE_PREVIOUS)
+            }
+            SHORTCUT_EXTRA -> {
+                vibrate(files[current_file_index].filename)
+                Log.d("ingo", "vibriram trenutnu datoteka - " + files[current_file_index].filename)
+            }
+            SHORTCUT_CONFIRM -> {
+                Log.d("ingo", "učitavam datoteku " + files[current_file_index].filename)
+                current_menu = MorseCodeServiceMenus.MENU_READ_FROM_FILES
+                vibrate(VIBRATION_OK)
+                file_content = ReadFilesActivity.readFromFile(files[current_file_index].uri.toUri(), contentResolver).split("\n").toMutableList()
+                Log.d("ingo", file_content.toString())
+                commandIssued(MorseCodeServiceCommands.FILES_OPEN, " - " + files[current_file_index].filename)
+            }
+        }
+    }
+
+    fun READ_FROM_FILES_MENU(poruka: String){
+        when(poruka[0]){
+            SHORTCUT_NEXT -> {
+                current_file_line_index++
+                if(current_file_line_index > file_content.size-1){
+                    current_file_line_index = 0
+                }
+                vibrate(file_content[current_file_line_index])
+                Log.d("ingo", "sljedeća linija ${current_file_line_index} - ${file_content[current_file_line_index]}")
+                commandIssued(MorseCodeServiceCommands.FILES_NEXT_LINE)
+            }
+            SHORTCUT_PREVIOUS -> {
+                current_file_line_index--
+                if(current_file_line_index < 0){
+                    current_file_line_index = file_content.size-1
+                }
+                vibrate(file_content[current_file_line_index])
+                Log.d("ingo", "sljedeća linija ${current_file_line_index} - ${file_content[current_file_line_index]}")
+                commandIssued(MorseCodeServiceCommands.FILES_PREVIOUS_LINE)
+            }
+            'f' -> {
+                // search in file
+                current_menu = MorseCodeServiceMenus.MENU_SEARCH_IN_FILE
+                search_query = poruka.drop(1).trim().lowercase()
+                Log.d("ingo", "search in file - " + search_query)
+            }
+            SHORTCUT_EXTRA -> {
+                // search in file
+                current_menu = MorseCodeServiceMenus.MENU_CHOOSE_FILE
+                commandIssued(MorseCodeServiceCommands.FILES_PICKER)
+                Log.d("ingo", "to menu MENU_CHOOSE_FILE")
+            }
+            SHORTCUT_CONFIRM -> {
+                // write to file
+                Log.d("ingo", "učitavam datoteku " + files[current_file_index].filename)
+                //current_menu = MorseCodeServiceMenus.MENU_OPEN_FILE
+                vibrate(VIBRATION_OK)
+                loadChat()
+
+            }
+        }
+    }
+
     fun CONTACT_CHAT_MENU(poruka: String){
         when(poruka[0]){
             SHORTCUT_NEXT -> {
@@ -592,7 +720,9 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
             }
             SHORTCUT_EXTRA -> {
                 current_message_index = messages.size-1
-                messages[current_message_index].message?.let { vibrate(it) }
+                if(messages.size > 0) {
+                    messages[current_message_index].message?.let { vibrate(it) }
+                }
                 Log.d("ingo", "vibriram zadnju poruku")
                 commandIssued(MorseCodeServiceCommands.CHAT_LAST_MESSAGE)
             }
@@ -604,6 +734,48 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
                 } else {
                     Log.d("ingo", "poruka prekratka da bi se poslala")
                 }
+            }
+        }
+    }
+
+    fun MENU_SEARCH_IN_FILE(poruka: String){
+        when(poruka[0]){
+            SHORTCUT_NEXT -> {
+                if(current_file_line_index < file_content.size-1){
+                    // traži
+                    val foundLine = file_content.takeLast(file_content.size-1-current_file_line_index).find{ it -> it.lowercase().contains(search_query) }
+                    if(foundLine != null) {
+                        current_file_line_index = file_content.indexOf(foundLine)
+                        vibrate(file_content[current_file_line_index])
+                        Log.d("ingo", "skačem na query naprijed - " + file_content[current_file_line_index])
+                    } else {
+                        vibrate(VIBRATION_NOT_OK)
+                    }
+                } else {
+                    vibrate(VIBRATION_NOT_OK)
+                }
+                commandIssued(MorseCodeServiceCommands.FILES_SEARCH_NEXT)
+            }
+            SHORTCUT_PREVIOUS -> {
+                if(current_file_line_index > 0){
+                    // traži
+                    val foundLine = file_content.take(current_file_line_index).findLast{ it -> it.lowercase().contains(search_query) }
+                    if(foundLine != null) {
+                        current_file_line_index = file_content.indexOf(foundLine)
+                        vibrate(file_content[current_file_line_index])
+                        Log.d("ingo", "skačem na query prije - " + file_content[current_file_line_index])
+                    } else {
+                        vibrate(VIBRATION_NOT_OK)
+                    }
+                } else {
+                    vibrate(VIBRATION_NOT_OK)
+                }
+                commandIssued(MorseCodeServiceCommands.FILES_SEARCH_PREVIOUS)
+            }
+            SHORTCUT_CONFIRM -> {
+                current_menu = MorseCodeServiceMenus.MENU_READ_FROM_FILES
+                commandIssued(MorseCodeServiceCommands.FILES)
+                vibrate(VIBRATION_OK)
             }
         }
     }
@@ -688,6 +860,9 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
                     MorseCodeServiceMenus.MENU_MAIN -> MAIN_MENU(porukaIzMorsea)
                     MorseCodeServiceMenus.MENU_CHOOSE_CONTACTS -> CONTACTS_MENU(porukaIzMorsea)
                     MorseCodeServiceMenus.MENU_CONTACT_CHAT -> CONTACT_CHAT_MENU(porukaIzMorsea)
+                    MorseCodeServiceMenus.MENU_READ_FROM_FILES -> READ_FROM_FILES_MENU(porukaIzMorsea)
+                    MorseCodeServiceMenus.MENU_CHOOSE_FILE -> MENU_CHOOSE_FILE(porukaIzMorsea)
+                    MorseCodeServiceMenus.MENU_SEARCH_IN_FILE -> MENU_SEARCH_IN_FILE(porukaIzMorsea)
                     else -> {}
                 }
                 Log.d("ingo", "looked into menu $current_menu...")
@@ -781,7 +956,6 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
     suspend fun maybeSendMessageCoroutineLoop() { // this: CoroutineScope
         while(true) {
             delay(servicePostavke.oneTimeUnit) // non-blocking delay for one dot duration (default time unit is ms)
-            Log.d("ingo", "maybeSendMessageCoroutineLoop " + buttonHistory.toString())
             regularInputsCheck()
             if(!mSocket.connected()){
                 val current_time = System.currentTimeMillis()
@@ -828,18 +1002,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
         return sb.toString()
     }
 
-    fun prettifyMorse(morse: String){
-        var sb:StringBuilder = StringBuilder()
-        for(i in 0..morse.length){
-            if(morse[i] == '.'){
-                sb.append('•')
-            } else if(morse[i] == '-'){
-                sb.append('–')
-            } else {
-                sb.append(' ')
-            }
-        }
-    }
+
 
     fun setMessageFeedback(callback: KFunction0<Unit>?){
         messageReceiveCallback = callback
@@ -849,10 +1012,8 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
     fun isCharacterFinished():Boolean {
         val diff:Int = getTimeDifference()
         if(buttonHistory.size % 2 == 0 && buttonHistory.size > 0 && diff > servicePostavke.oneTimeUnit){
-            Log.d("ingo", "not finished")
                 return true
         }
-        Log.d("ingo", "finished")
         return false
     }
 
@@ -860,6 +1021,8 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
         val currentTimeMillis:Long = System.currentTimeMillis()
         return (currentTimeMillis-lastTimeMillis).toInt()
     }
+
+
 
     fun getMessage():String{
         var message:StringBuilder = StringBuilder()
@@ -894,9 +1057,43 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
         // U ovom slučaju koristimo funkciju getSharedInstance da bismo iz neke druge klase statičkom funkcijom uzeli instancu servisa (MorseCodeService). Ako servis nije pokrenut, dobit ćemo null.
         // serviceSharedInstance se inicijalizira (postavlja vrijednost) kod pokretanja accessibility servisa, a uništava kod zaustavljanja accessibility servisa
 
+        val MORSE = arrayOf(".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..", ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----.", "-----")
+        val ALPHANUM:String = "abcdefghijklmnopqrstuvwxyz1234567890"
+
         var serviceSharedInstance:MorseCodeService? = null
         fun getSharedInstance():MorseCodeService?{
             return serviceSharedInstance;
+        }
+
+        fun prettifyMorse(morse: String):String{
+            var sb:StringBuilder = StringBuilder()
+            morse.forEach{
+                if(it == '.'){
+                    sb.append('•')
+                } else if(it == '-'){
+                    sb.append('–')
+                } else {
+                    sb.append(' ')
+                }
+            }
+            return sb.toString()
+        }
+
+        fun stringToMorse(text: String): String{
+            var vrati = java.lang.StringBuilder()
+            text.forEach{ slovo ->
+                val index:Int = ALPHANUM.indexOfFirst { it == slovo }
+                if(slovo == ' '){
+                    vrati.append(" ")
+                } else if(index == -1) {
+                    vrati.append("?")
+                } else{
+                    val morse:String = MorseCodeService.MORSE.get(index)
+                    vrati.append(morse)
+                }
+                vrati.append(" ")
+            }
+            return vrati.toString()
         }
 
         var SHORTCUT_NEXT = 'e'

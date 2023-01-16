@@ -1,68 +1,155 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView
+    android:id="@+id/scrollView"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".PlaygroundActivity"
-    android:orientation="vertical">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
-        android:orientation="vertical">
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:lineSpacingExtra="4sp"
-        android:paddingBottom="10dp"
-        android:text="Ispod možete isprobati kako morsov kod funkcionira."
-        android:textAllCaps="false" />
+            android:orientation="vertical">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="4sp"
+            android:paddingBottom="10dp"
+            android:text="Slušajte slova i pokušajte ih odgonetnuti. Morseov kod se najbolje uči tako da se sluša i ponavlja! Vrlo je teško slušno koristiti morseov kod ako se prvo vizualno nauči."
+            android:textAllCaps="false" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="4sp"
+            android:paddingBottom="10dp"
+            android:text="Ispod možeš ubrzati morseov kod koji ti dolazi kroz zvučnik, no ako želiš ubzrati brzinu upisa svog koda, to možeš učiniti pod postavkama."
+            android:textAllCaps="false" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:orientation="horizontal"
+            android:background="@drawable/obrub">
+            <TextView
+                android:id="@+id/number_of_letters_label"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="wrap_content"
+                android:text="@string/broj_slova"
+                android:textSize="20sp"
+                android:padding="10dp"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+            <ImageButton
+                android:id="@+id/letters_up"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_keyboard_arrow_up_24"
+                android:scaleType="fitCenter"/>
+            <ImageButton
+                android:id="@+id/letters_down"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_keyboard_arrow_down_24"
+                android:scaleType="fitCenter" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:orientation="horizontal"
+            android:background="@drawable/obrub">
+            <TextView
+                android:id="@+id/speed_label"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="wrap_content"
+                android:text="@string/brzina_koda"
+                android:textSize="20sp"
+                android:padding="10dp"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+            <ImageButton
+                android:id="@+id/speed_up"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_keyboard_arrow_up_24"
+                android:scaleType="fitCenter"/>
+            <ImageButton
+                android:id="@+id/speed_down"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_keyboard_arrow_down_24"
+                android:scaleType="fitCenter" />
+        </LinearLayout>
+        <TextView
+            android:id="@+id/tutorial_number_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="30sp"
+            android:text="@string/tutorial_1_20"/>
+        <ImageView
+            android:id="@+id/speaker"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center"
+            android:src="@drawable/volume_up_svg"
+            app:tint="@color/obrub" />
+        <Button
+            android:id="@+id/rjesenje_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:layout_marginVertical="10dp"
+            android:text="prikazi rješenje"
+            android:textSize="15sp"
+            />
+        <TextView
+            android:id="@+id/rjesenje_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Rjesenje: "
+            android:textSize="30sp"
+            android:layout_marginVertical="10dp"
+            android:visibility="gone"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@drawable/obrub"
+            android:padding="10dp">
+            <ImageView
+                android:id="@+id/tutorial_status_image"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@drawable/ic_baseline_check_circle_24"/>
+            <TextView
+                android:id="@+id/tutorial_status_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/so_far_so_good"
+                android:textSize="20sp"
+                android:layout_gravity="center"
+                android:paddingLeft="10dp"/>
+        </LinearLayout>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:lineSpacingExtra="4sp"
-        android:paddingBottom="10dp"
-        android:text="Držući tipku se puni gornja traka, puštajući tipku se puni donja traka."
-        android:textAllCaps="false" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:lineSpacingExtra="4sp"
-        android:paddingBottom="10dp"
-        android:text="Vremenska ograničenja su ista kao kod pravog slanja morseovog koda, zato je bitno izvježbati se ovdje prije upotrebe aplikacije."
-        android:textAllCaps="false" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:lineSpacingExtra="4sp"
-        android:paddingBottom="15dp"
-        android:text="Vremenska ograničenja moguće je podesiti u postavkama aplikacije."
-        android:textAllCaps="false" />
-
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/visual_feedback_container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:layout="@layout/fragment_visual_feedback"/>
-
-    <Button
-        android:id="@+id/tap"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TAP/HOLD"
-        android:textSize="30sp"
-        android:gravity="center"
-        android:layout_gravity="center"
-        android:padding="30dp"
-        android:layout_marginTop="10dp"/>
-</LinearLayout>
-</LinearLayout>
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/visual_feedback_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:layout="@layout/fragment_visual_feedback"/>
+        <Button
+            android:id="@+id/tap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tap_hold"
+            android:textSize="30sp"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:padding="30dp"
+            android:layout_marginTop="10dp"/>
+    </LinearLayout>
 </androidx.core.widget.NestedScrollView>

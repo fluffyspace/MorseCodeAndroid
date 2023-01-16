@@ -15,16 +15,45 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/textViewMessage"
+            android:id="@+id/date"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:maxWidth="250dp"
+            tools:text="2022-12-21"
+            android:textAlignment="center"
             android:padding="16dp"
-            android:background="@drawable/bg_send_message"
-            tools:text="Salut les amis j'espere que vous aller bien, mois ca je cerhcuer comprendre"
-            android:textColor="@android:color/white"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:visibility="gone"/>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            app:layout_constraintTop_toBottomOf="@id/date"
+            app:layout_constraintRight_toRightOf="parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:background="@drawable/bg_send_message">
+            <TextView
+                android:id="@+id/textViewMessage"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:maxWidth="250dp"
+                android:textSize="16sp"
+                tools:text="Salut les amis j'espere que vous aller bien, mois ca je cerhcuer comprendre"
+                android:textColor="@android:color/white"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+            <TextView
+                android:id="@+id/time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="12:15"
+                android:textSize="14sp"
+                android:textColor="@color/darkgray"
+                app:layout_constraintTop_toBottomOf="@id/textViewMessage"
+                app:layout_constraintStart_toStartOf="parent"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

@@ -12,16 +12,17 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter contact's username"
+        android:hint="@string/enter_contact_s_username"
         android:padding="20dp"
         android:layout_marginTop="10dp"
-        android:background="@color/white"/>
+        android:background="@color/white"
+        android:textColor="@color/black"/>
     <Button
         android:id="@+id/add_new_contact_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@id/add_new_contact_edittext"
-        android:text="add contact"
+        android:text="@string/add_contact"
         android:padding="20dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

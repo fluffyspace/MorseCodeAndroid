@@ -19,7 +19,7 @@
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_log_in.xml" value="0.3009833262077811" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_main.xml" value="0.1" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_main_before.xml" value="0.28730226592560926" />
-        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_morse_service_visualised.xml" value="0.1" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_morse_service_visualised.xml" value="0.28730226592560926" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_playground.xml" value="0.28174235403151066" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_read_files.xml" value="0.28174235403151066" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/activity_send_morse.xml" value="0.3009833262077811" />
@@ -36,6 +36,7 @@
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/item_message_send.xml" value="0.3009833262077811" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/message_row.xml" value="0.36666666666666664" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/previously_opened_file_dialog.xml" value="0.28730226592560926" />
+        <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/read_external_storage_layout.xml" value="0.17229585292860197" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/recyclerview_contacts.xml" value="0.28730226592560926" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/recyclerview_files.xml" value="0.33" />
         <entry key="..\:/Users/Krepana Krava/AndroidStudioProjects/MorseCode/app/src/main/res/layout/recyclerview_item_vertical.xml" value="0.1834117144078666" />

@@ -29,7 +29,7 @@
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
             android:layout_marginBottom="30dp"
-            android:contentDescription="Contacts"
+            android:contentDescription="@string/contacts"
             app:cardCornerRadius="10dp">
             <LinearLayout
                 android:layout_width="match_parent"
@@ -51,7 +51,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:layout_gravity="center|start"
-                android:text="Contacts"
+                android:text="@string/contacts"
                 android:textSize="24sp"
                 android:padding="10dp"
                 android:textColor="@color/obrub"
@@ -67,8 +67,9 @@
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
             android:layout_marginBottom="30dp"
-            android:contentDescription="Read from files"
-            app:cardCornerRadius="10dp">
+            android:contentDescription="@string/read_from_files"
+            app:cardCornerRadius="10dp"
+            android:visibility="gone">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -89,14 +90,14 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:layout_gravity="center|start"
-                    android:text="Read from files"
+                    android:text="@string/read_from_files"
                     android:textColor="@color/obrub"
                     android:textSize="24sp"
                     android:padding="10dp"
                     android:layout_marginStart="0dp"
                     android:labelFor="@id/files"/>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </androidx.cardview.widget.CardView>-
         <androidx.cardview.widget.CardView
             android:id="@+id/tutorial"
             android:layout_width="match_parent"
@@ -105,7 +106,7 @@
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
             android:layout_marginBottom="30dp"
-            android:contentDescription="Tutorial"
+            android:contentDescription="@string/tutorials"
             app:cardCornerRadius="10dp">
             <LinearLayout
                 android:layout_width="match_parent"
@@ -127,7 +128,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:layout_gravity="center|start"
-                    android:text="Tutorial"
+                    android:text="@string/tutorials"
                     android:textColor="@color/obrub"
                     android:textSize="24sp"
                     android:padding="10dp"
@@ -143,7 +144,7 @@
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
             android:layout_marginBottom="30dp"
-            android:contentDescription="Playground"
+            android:contentDescription="@string/playground"
             app:cardCornerRadius="10dp">
             <LinearLayout
                 android:layout_width="match_parent"
@@ -153,7 +154,7 @@
                 <ImageView
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:src="@drawable/ic_baseline_games_24"
+                    android:src="@drawable/volume_up_svg"
                     android:scaleType="fitXY"
                     android:adjustViewBounds="true"
                     android:layout_marginStart="20dp"
@@ -165,7 +166,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:layout_gravity="center|start"
-                    android:text="Playground"
+                    android:text="@string/playground"
                     android:textColor="@color/obrub"
                     android:textSize="24sp"
                     android:padding="10dp"
@@ -179,7 +180,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:text="Visualise accesibility"
+            android:text="@string/visualise_accesibility"
+            android:visibility="gone"
             android:padding="20dp"/>
     </LinearLayout >
 </androidx.core.widget.NestedScrollView>

@@ -24,8 +24,11 @@ class AuthInterceptor(context: Context) : Interceptor {
         // If token has been saved, add it to the request
         sessionManager.fetchAuthToken()?.let {
             requestBuilder.addHeader("Autho", "$it")
+            Log.d("ingo", "Autho token - $it")
         }
         //requestBuilder.addHeader("Content-Type", "application/x-www-form-urlencoded")
+        Log.d("ingo", chain.request().toString())
+
 
         return chain.proceed(requestBuilder.build())
     }

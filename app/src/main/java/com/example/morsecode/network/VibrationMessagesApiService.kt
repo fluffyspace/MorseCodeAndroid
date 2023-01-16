@@ -38,34 +38,26 @@ private fun okhttpClient(context: Context): OkHttpClient {
 }
 
 fun getMessagesApiService(context: Context): MessagesApiService {
-
-    // Initialize ApiService if not initialized yet
     if (!::apiMessagesService.isInitialized) {
         val retrofit = Retrofit.Builder()
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .baseUrl(BASE_URL)
             .client(okhttpClient(context)) // Add our Okhttp client
             .build()
-
         apiMessagesService = retrofit.create(MessagesApiService::class.java)
     }
-
     return apiMessagesService
 }
 
 fun getContactsApiService(context: Context): ContactsApiService {
-
-    // Initialize ApiService if not initialized yet
     if (!::apiContactsService.isInitialized) {
         val retrofit = Retrofit.Builder()
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .baseUrl(BASE_URL)
             .client(okhttpClient(context)) // Add our Okhttp client
             .build()
-
         apiContactsService = retrofit.create(ContactsApiService::class.java)
     }
-
     return apiContactsService
 }
 
@@ -111,7 +103,7 @@ interface ContactsApiService {
 
     @FormUrlEncoded
     @POST("login.php")
-    suspend fun logInUser(@Field("username") username: String, @Field("password") password: String): LogInResponse
+    suspend fun logInUser(@Field("username") username: String, @Field("password") password: String, @Field("hash") hash: String): LogInResponse
 
     @FormUrlEncoded
     @POST("getUserByUsername.php")

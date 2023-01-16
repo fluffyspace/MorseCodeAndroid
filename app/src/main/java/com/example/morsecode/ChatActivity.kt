@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.text.format.DateFormat
 import android.util.Log
 import android.view.*
 import android.widget.Button
@@ -34,6 +35,8 @@ import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class ChatActivity : AppCompatActivity() {
@@ -140,6 +143,7 @@ class ChatActivity : AppCompatActivity() {
         })
 
         sendButton.setOnClickListener {
+            it.isEnabled = false
             performSendMessage(prefUserId, userHash, contactId)
         }
 
@@ -229,7 +233,7 @@ class ChatActivity : AppCompatActivity() {
         Log.d("Stjepan ", "${Gson().toJson(message)} $prefUserId $contactId")
         if (message.receiverId == prefUserId) {
             Log.d("ingo", "message is for me :)")
-            saveMessage(message)
+            //saveMessage(message)
             if (message.senderId == contactId) {
                 Log.d("ingo", "and message is for this currently opened chat")
                 // add the message to view
@@ -283,10 +287,10 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun performSendMessage(userId: Int, sharedPassword: String?, contactId: Int) {
-        val ctx = this
+        if(textEditMessage.text.toString() == "") return
         lifecycleScope.launch(Dispatchers.Default) {
             try {
-                val id = getMessagesApiService(ctx).sendMessage(
+                val id = getMessagesApiService(this@ChatActivity).sendMessage(
                         to=contactId,
                         message=textEditMessage.text.toString()
                 )
@@ -295,7 +299,7 @@ class ChatActivity : AppCompatActivity() {
                     if (id != -1L) {
                         Log.d("ingo", "poruka $id uspješno poslana")
                         val poruka =
-                            Message(id, textEditMessage.text.toString(), contactId, prefUserId)
+                            Message(id, textEditMessage.text.toString(), contactId, prefUserId, DateFormat.format("yyyy-MM-dd HH:mm:ss", Date().time).toString(), false, false)
                         saveMessage(poruka)
                         addMessageToView(poruka)
 
@@ -306,6 +310,7 @@ class ChatActivity : AppCompatActivity() {
                     } else {
                         Log.d("ingo", "poruka nije poslana")
                     }
+                    sendButton.isEnabled = true
                 }
 
             } catch (e: Exception) {

@@ -89,8 +89,4 @@ class RegisterActivity : AppCompatActivity() {
         }
         return flag
     }
-
-    override fun onBackPressed() {
-
-    }
 }

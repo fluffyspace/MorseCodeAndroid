@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ReadFilesActivity"
-    android:background="@color/teal_700">
+    android:background="@color/colorAccent">
 
     <!--<TextView
         android:id="@+id/header"
@@ -130,7 +130,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@id/scrollView"
-        android:background="@color/purple_200">
+        android:background="#A51348">
         <TextView
             android:id="@+id/currentlyOpenedLabel"
             android:layout_width="wrap_content"
