@@ -24,6 +24,7 @@ class AddNewContactActivity : AppCompatActivity() {
         findViewById<Button>(R.id.add_new_contact_button).setOnClickListener {
             val friendName = editText.text.toString()
             if (friendName != "") {
+                it.isEnabled = false
                 val ctx = this
                 lifecycleScope.launch(Dispatchers.Default) {
                     try {
@@ -56,6 +57,7 @@ class AddNewContactActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(applicationContext, "No username entered.", Toast.LENGTH_SHORT).show()
             }
+            it.isEnabled = true
         }
 
     }

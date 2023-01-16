@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.morsecode">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -23,13 +22,19 @@
         <activity
             android:name=".AddNewContactActivity"
             android:exported="false"
-            android:label="Add new contact"
+            android:label="Dodaj prijatelja"
             android:parentActivityName=".ContactsActivity"/>
         <activity
             android:name=".ReadFilesActivity"
             android:exported="false"
             android:label="Read from files"
             android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".AwardForWins"
+            android:exported="false"
+            android:label="Čestitke"
+            android:parentActivityName=".TutorialActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name=".sockets.TestActivity"
@@ -46,7 +51,7 @@
         <activity
             android:name=".LogInActivity"
             android:exported="true"
-            android:label="Morse Talk"
+            android:label="MorseTalk"
             android:noHistory="true"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -63,17 +68,17 @@
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
-            android:label="Settings"
+            android:label="Postavke"
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".PlaygroundActivity"
             android:exported="true"
-            android:label="Playground"
+            android:label="Igraonica"
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".TutorialActivity"
             android:exported="true"
-            android:label="Tutorial"
+            android:label="Učionica"
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".SendMorseActivity"

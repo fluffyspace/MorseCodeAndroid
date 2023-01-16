@@ -14,7 +14,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Dot or dash?"
+            android:text="@string/dot_or_dash"
             android:gravity="center"
             android:id="@+id/textBaner"
             android:clickable="true"/>
@@ -40,7 +40,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="New character, space or send message?"
+            android:text="@string/new_character_space_or_send_message"
             android:gravity="center"/>
         <LinearLayout
             android:layout_width="match_parent"
@@ -74,7 +74,7 @@
             android:layout_height="wrap_content"
             android:textSize="15sp"
             tools:text="Text extracted from morse"
-            android:text="Text: "/>
+            android:text="@string/text"/>
 
         <TextView
             android:id="@+id/all_timers_text"

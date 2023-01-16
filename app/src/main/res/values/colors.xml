@@ -17,4 +17,5 @@
     <color name="green">#34ce34</color>
     <color name="morse_color">#1495A6</color>
     <color name="morse_color_darker">#0d6773</color>
+    <color name="darkgray">#FF444444</color>
 </resources>

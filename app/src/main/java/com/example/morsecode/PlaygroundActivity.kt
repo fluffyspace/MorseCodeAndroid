@@ -2,141 +2,353 @@ package com.example.morsecode
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
+import android.media.AudioAttributes
+import android.media.AudioManager
+import android.media.SoundPool
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.view.*
+import android.view.MotionEvent
+import android.view.View
 import android.widget.Button
+import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintSet.Motion
+import androidx.core.widget.NestedScrollView
+import androidx.lifecycle.lifecycleScope
+import com.example.morsecode.Constants.Companion.sharedPreferencesFile
+import com.example.morsecode.MorseCodeService.Companion.ALPHANUM
+import com.example.morsecode.MorseCodeService.Companion.prettifyMorse
+import com.example.morsecode.MorseCodeService.Companion.stringToMorse
+import com.example.morsecode.TutorialActivity.Companion.text_samples
+import kotlinx.coroutines.*
+import kotlin.random.Random
+
 
 class PlaygroundActivity : AppCompatActivity() {
     lateinit var tap_button: Button
+    lateinit var tutorial_status_text:TextView
+    lateinit var number_of_letters_label:TextView
+    lateinit var letters_up:ImageButton
+    lateinit var letters_down:ImageButton
+    lateinit var speed_label:TextView
+    lateinit var speed_up:ImageButton
+    lateinit var speed_down:ImageButton
+    lateinit var rjesenje_button:Button
+    lateinit var rjesenje_label:TextView
+    lateinit var tutorial_status_image:ImageView
+    lateinit var speaker:ImageView
+    lateinit var tutorial_number_view:TextView
     lateinit var visual_feedback_container:VisualFeedbackFragment
     var mAccessibilityService:MorseCodeService? = null
+    var tutorial_number:Int = 0
+    var tutorial_text:String = ""
+    //var text_samples:MutableList<String> = mutableListOf("the","of","and","a","to","in","is","you","that","it","he","was","for","on","are","as","with","his","they","I","at","be","this","have","from","or","one","had","by","word","but","not","what","all","were","we","when","your","can","said","there","use","an","each","which","she","do","how","their","if","will","up","other","about","out","many","then","them","these","so","some","her","would","make","like","him","into","time","has","look","two","more","write","go","see","number","no","way","could","people","my","than","first","water","been","call","who","oil","its","now","find","long","down","day","did","get","come","made","may","part")
+    lateinit var korutina_next_tutorial: Job
+    lateinit var korutina_refresh_text: Job
+    lateinit var korutina_play: Job
+    var number_of_letters = 1
 
-    private lateinit var accelerometer: Accelerometer
-    private lateinit var gyroscope: Gyroscope
-
-    private lateinit var handsFree: HandsFree
-    private var handsFreeOnChat = false
-
-    private var start = true
+    var soundPool: SoundPool? = null
+    var sound_correct = 0
+    var sound_wrong = 0
+    var sound_buzz = 0
+    var sound_clapping = 0
+    var wrong: Boolean = false
+    var playing_buzz: Boolean = false
+    var buzz_id: Int = -1
+    var buzz_id2: Int = -1
+    lateinit var scroll_view: NestedScrollView
+    lateinit var sharedPreferences: SharedPreferences
+    var user_wins = 0
+    var load_next_test = false
+    var speed: Long = 0
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_playground)
-
-        accelerometer = Accelerometer(this)
-        gyroscope = Gyroscope(this)
-        handsFree = HandsFree()
-
         tap_button = findViewById(R.id.tap)
+        tutorial_status_text = findViewById(R.id.tutorial_status_text)
+        tutorial_status_image = findViewById(R.id.tutorial_status_image)
+        speaker = findViewById(R.id.speaker)
+        tutorial_number_view = findViewById(R.id.tutorial_number_view)
+        scroll_view = findViewById<NestedScrollView>(R.id.scrollView)
+        number_of_letters_label = findViewById(R.id.number_of_letters_label)
+        rjesenje_button = findViewById(R.id.rjesenje_button)
+        rjesenje_label = findViewById(R.id.rjesenje_label)
+        letters_up = findViewById(R.id.letters_up)
+        letters_down = findViewById(R.id.letters_down)
+        speed_up = findViewById(R.id.speed_up)
+        speed_down = findViewById(R.id.speed_down)
+        speed_label = findViewById(R.id.speed_label)
+
+        mAccessibilityService = MorseCodeService.getSharedInstance();
+
+        number_of_letters_label.text = getString(R.string.broj_slova) + number_of_letters
+
+        letters_up.setOnClickListener {
+            number_of_letters++
+            number_of_letters_label.text = getString(R.string.broj_slova) + number_of_letters
+            nextTutorial()
+        }
+        letters_down.setOnClickListener {
+            if(number_of_letters > 1) number_of_letters--
+            number_of_letters_label.text = getString(R.string.broj_slova) + number_of_letters
+            nextTutorial()
+        }
+        speed = mAccessibilityService!!.servicePostavke.oneTimeUnit
+        speed_label.text = getString(R.string.brzina_koda) + speed
+
+        speed_up.setOnClickListener {
+            speed += 50
+            speed_label.text = getString(R.string.brzina_koda) + speed
+        }
+        speed_down.setOnClickListener {
+            if(speed > 50) speed -= 50
+            speed_label.text = getString(R.string.brzina_koda) + speed
+        }
+
         visual_feedback_container = VisualFeedbackFragment()
         supportFragmentManager
             .beginTransaction()
             .add(R.id.visual_feedback_container, visual_feedback_container, "main")
             .commitNow()
 
-        mAccessibilityService = MorseCodeService.getSharedInstance();
+        /*findViewById<Button>(R.id.tablica).setOnClickListener {
+            val intent = Intent(this, MorseTable::class.java)
+            startActivity(intent)
+        }*/
+        sharedPreferences =
+            this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
+        user_wins = sharedPreferences.getInt(Constants.USER_WINS, 0)
+
+        speaker.setOnClickListener {
+            if(::korutina_play.isInitialized && korutina_play.isActive) {
+                korutina_play.cancel()
+                soundPool!!.stop(buzz_id2)
+            }
+            korutina_play = lifecycleScope.launch(Dispatchers.Default){
+                tutorial_text.forEach{ slovo ->
+                    val index:Int = ALPHANUM.indexOfFirst { it == slovo }
+                    val morse:String = MorseCodeService.MORSE.get(index)
+                    for(i: Int in morse.indices) {
+                        withContext(Dispatchers.Main){
+                            buzz_id2 = soundPool!!.play(sound_buzz, 1F, 1F, 0, -1, 1F)
+                        }
+                        if(morse[i] == '.'){
+                            delay(speed)
+                        } else if(morse[i] == '-'){
+                            delay(speed*3)
+                        }
+                        withContext(Dispatchers.Main){
+                            soundPool!!.stop(buzz_id2)
+                        }
+                        delay(speed)
+                    }
+                    delay(speed*2)
+                }
+            }
+        }
+
+        rjesenje_button.setOnClickListener {
+            it.visibility = View.GONE
+            rjesenje_label.visibility = View.VISIBLE
+        }
+
+
         tap_button.setOnTouchListener { v, event ->
             when (event?.action) {
-                MotionEvent.ACTION_DOWN -> visual_feedback_container.down()//Do Something
-                MotionEvent.ACTION_UP -> {
-                    visual_feedback_container.up()
-                    v.performClick()
-                }
-            }
-            true
-        }
-
-        accelerometer.setListener { x, y, z, xG, yG, zG ->
-            handsFree.followAccelerometer(x, y, z, xG, yG, zG)
-        }
-
-        gyroscope.setListener { rx, ry, rz ->
-            //supportActionBar?.title = rx.toString()
-            handsFree.followGyroscope(rx, ry, rz)
-        }
-
-        handsFree.setListener(object : HandsFree.Listener {
-            override fun onTranslation(tap: Int) {
-                if (tap == 1) {
+                MotionEvent.ACTION_DOWN -> {
+                    if(!playing_buzz) {
+                        buzz_id = soundPool!!.play(sound_buzz, 1F, 1F, 0, -1, 1F);
+                        playing_buzz = true
+                    }
                     visual_feedback_container.down()
-                } else if (tap == 2) {
+                    refreshText()
+                    scroll_view.requestDisallowInterceptTouchEvent(true);
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_OUTSIDE, MotionEvent.ACTION_CANCEL -> {
+                    playing_buzz = false
+                    soundPool!!.stop(buzz_id)
                     visual_feedback_container.up()
-                } else if(tap == 3){
-                    visual_feedback_container.reset()
-                } else if(tap == 4){
-                    //onBackPressed()
+                    refreshText()
+                    v.performClick()
+                    scroll_view.requestDisallowInterceptTouchEvent(false);
                 }
             }
+            return@setOnTouchListener true
+        }
+        generateNewTest()
 
-            override fun onNewData(x: Float, y: Float, z: Float) {
-                //TODO("Not yet implemented")
-            }
-        })
+        soundPool = if (Build.VERSION.SDK_INT
+            >= Build.VERSION_CODES.LOLLIPOP
+        ) {
+            val audioAttributes = AudioAttributes.Builder()
+                .setUsage(
+                    AudioAttributes.USAGE_ASSISTANCE_SONIFICATION
+                )
+                .setContentType(
+                    AudioAttributes.CONTENT_TYPE_SONIFICATION
+                )
+                .build()
+            SoundPool.Builder()
+                .setMaxStreams(3)
+                .setAudioAttributes(
+                    audioAttributes
+                )
+                .build()
+        } else {
+            SoundPool(
+                4,
+                AudioManager.STREAM_MUSIC,
+                0
+            )
+        }
+        sound_correct = soundPool!!.load(
+                this,
+                R.raw.sound_correct,
+                1
+            )
+        sound_wrong = soundPool!!.load(
+            this,
+            R.raw.sound_wrong,
+            1
+        )
+
+        sound_buzz = soundPool!!.load(
+            this,
+            R.raw.sound_morse,
+            1
+        )
+        sound_clapping = soundPool!!.load(
+            this,
+            R.raw.sound_clapping,
+            1
+        )
     }
 
-    /*override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val inflater: MenuInflater = menuInflater
-        inflater.inflate(R.menu.chat_menu, menu)
-        return true
-    }*/
+    fun nextTutorial() { // this: CoroutineScope
+            load_next_test = false
+            generateNewTest()
+            tutorial_status_image.setImageResource(R.drawable.ic_baseline_check_circle_24)
+            tutorial_status_text.text = getString(R.string.so_far_so_good)
+    }
 
-    /*override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.hands_free -> {
-                try {
-                    val vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                    if (Build.VERSION.SDK_INT >= 26) {
-                        vibrator.vibrate(
-                            VibrationEffect.createOneShot(
-                                200,
-                                VibrationEffect.DEFAULT_AMPLITUDE
-                            )
-                        )
-                    } else {
-                        vibrator.vibrate(200)
-                    }
-
-                    if (handsFreeOnChat) {
-
-                        handsFreeOnChat = false
-                        accelerometer.unregister()
-                    } else if(!handsFreeOnChat) {
-                        handsFreeOnChat = true
-                        accelerometer.register()
-                    }
-                    Toast.makeText(
-                        this,
-                        "vibration" + Toast.LENGTH_SHORT.toString(),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } catch (e: Exception) {
-                }
-
-                true
+    suspend fun refreshTextJob() { // this: CoroutineScope
+        while(true) {
+            delay(100)
+            withContext(Dispatchers.Main) {
+                refreshText()
             }
-            else -> super.onOptionsItemSelected(item)
         }
-    }*/
+    }
+
+    fun refreshText(){
+        if(mAccessibilityService?.buttonHistory?.size!! >= 2) {
+            var tekst = mAccessibilityService?.getMessage()
+            tekst = tekst?.replace("\\s".toRegex(), "")
+            if(tekst != null){
+                if(tutorial_text == tekst){
+                    tutorial_status_image.setImageResource(R.drawable.ic_baseline_check_circle_24)
+                    tutorial_status_text.text = tekst + " - bravo! Učitavam novi test..."
+                    load_next_test = true
+                    soundPool!!.play(sound_correct, 1F, 1F, 0, 0, 1F);
+                    if(::korutina_next_tutorial.isInitialized && korutina_next_tutorial.isActive) {
+                        korutina_next_tutorial.cancel()
+                    }
+                    korutina_next_tutorial = lifecycleScope.launch(Dispatchers.Default){
+                        delay(3000)
+                        withContext(Dispatchers.Main) {
+                            nextTutorial()
+                        }
+                    }
+                    visual_feedback_container.reset()
+                    wrong = false
+                    user_wins += 1
+                    val editor = sharedPreferences.edit()
+                    editor.putInt(Constants.USER_WINS, user_wins)
+                    editor.apply()
+                    editor.commit()
+                    mozdaNagradi(user_wins)
+                } else if(tutorial_text.startsWith(tekst)){
+                    tutorial_status_image.setImageResource(R.drawable.ic_baseline_check_circle_24)
+                    tutorial_status_text.text = tekst + " - ${getString(R.string.so_far_so_good)}"
+                    wrong = false
+                } else if(tekst.length > 1 && tutorial_text.startsWith(tekst.slice(IntRange(0, tekst.length-2))) && mAccessibilityService?.isCharacterFinished() == false){
+                    tutorial_status_image.setImageResource(R.drawable.ic_baseline_check_circle_24)
+                    tutorial_status_text.text = tekst.slice(IntRange(0, tekst.length-2)) + " - ${getString(R.string.so_far_so_good)}"
+                    wrong = false
+                } else if(tekst.length > 0 && mAccessibilityService?.isCharacterFinished() == true){
+                    tutorial_status_image.setImageResource(R.drawable.ic_baseline_cancel_24)
+                    tutorial_status_text.text = tekst + " - ${getString(R.string.wrong)}"
+                    visual_feedback_container.reset()
+                    if(!wrong) {
+                        soundPool!!.play(sound_wrong, 1F, 1F, 0, 0, 1F);
+                    }
+                    wrong = true
+                }
+            }
+        }
+    }
+
+    fun mozdaNagradi(broj_pobjede: Int){
+        if(broj_pobjede % 1 == 0){
+            soundPool!!.play(sound_clapping, 1F, 1F, 0, 0, 1F)
+            val intent = Intent(this, AwardForWins::class.java)
+            intent.putExtra("bigText", "Bravo!");
+            intent.putExtra("smallText", "Do sad si riješio ${broj_pobjede} zadataka!");
+            intent.putExtra("award_image_id", R.drawable.ic_baseline_help_24);
+            startActivity(intent)
+        }
+    }
+
+    fun generateNewTest(){
+        rjesenje_button.visibility = View.VISIBLE
+        rjesenje_label.visibility = View.GONE
+        tutorial_number++
+        val random_sample_text_index = Random.nextInt(0, text_samples.size)
+        tutorial_text = text_samples[random_sample_text_index].lowercase().take(number_of_letters)
+        text_samples.removeAt(random_sample_text_index)
+
+        tutorial_number_view.text = "${getString(R.string.tutorial)}: " + (user_wins+1)
+        rjesenje_label.text = "Rjesenje: ${stringToMorse(tutorial_text)} (${tutorial_text})"
+    }
+
+    fun cancelKorutina(){
+        if(::korutina_next_tutorial.isInitialized && korutina_next_tutorial.isActive) {
+            korutina_next_tutorial.cancel()
+        }
+        if(::korutina_refresh_text.isInitialized && korutina_refresh_text.isActive) {
+            korutina_refresh_text.cancel()
+        }
+        if(::korutina_play.isInitialized && korutina_play.isActive) {
+            korutina_play.cancel()
+            soundPool!!.stop(buzz_id2)
+        }
+    }
 
     override fun onResume() {
         toggleTesting(true)
-            accelerometer.register()
-            gyroscope.register()
+        korutina_refresh_text = lifecycleScope.launch(Dispatchers.Default){
+            refreshTextJob()
+        }
+        if(load_next_test){
+            generateNewTest()
+            tutorial_status_image.setImageResource(R.drawable.ic_baseline_check_circle_24)
+            tutorial_status_text.text = getString(R.string.so_far_so_good)
+            load_next_test = false
+        }
         super.onResume()
     }
 
     override fun onPause() {
-        toggleTesting(false)
-        gyroscope.unregister()
-        accelerometer.unregister()
         super.onPause()
+        toggleTesting(false)
+        cancelKorutina()
     }
 
     fun toggleTesting(testing:Boolean){

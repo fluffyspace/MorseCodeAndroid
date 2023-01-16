@@ -3,13 +3,10 @@ package com.example.morsecode
 import android.graphics.Typeface
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
 import com.example.morsecode.Adapters.CommandListener
 import com.example.morsecode.MorseCodeServiceCommands.*
-import com.example.morsecode.models.Contact
-import com.example.morsecode.network.getContactsApiService
 import kotlinx.coroutines.*
 
 class MorseServiceVisualised : AppCompatActivity(), CommandListener {
@@ -42,7 +39,7 @@ class MorseServiceVisualised : AppCompatActivity(), CommandListener {
         textViewMap[CHAT_NEXT] = findViewById<TextView>(R.id.chat_message_after)
         textViewMap[CHAT_SEND_NEW_MESSAGE] = findViewById<TextView>(R.id.chat_send_message)
         textViewMap[FILES] = findViewById<TextView>(R.id.files_read)
-        textViewMap[FILES_CHOOSE_FILE] = findViewById<TextView>(R.id.files_choose_file)
+        textViewMap[FILES_PICKER] = findViewById<TextView>(R.id.files_picker)
         textViewMap[FILES_CHOOSE_NEXT] = findViewById<TextView>(R.id.files_open_next)
         textViewMap[FILES_CHOOSE_PREVIOUS] = findViewById<TextView>(R.id.files_open_previous)
         textViewMap[FILES_OPEN] = findViewById<TextView>(R.id.files_open_current)
@@ -52,6 +49,8 @@ class MorseServiceVisualised : AppCompatActivity(), CommandListener {
         textViewMap[FILES_NEW] = findViewById<TextView>(R.id.files_new)
         textViewMap[FILES_SAVE] = findViewById<TextView>(R.id.files_save)
         textViewMap[FILES_WRITE] = findViewById<TextView>(R.id.files_insert)
+        textViewMap[FILES_NEXT_LINE] = findViewById<TextView>(R.id.files_next_line)
+        textViewMap[FILES_PREVIOUS_LINE] = findViewById<TextView>(R.id.files_previous_line)
         textViewMap[INTERNET] = findViewById<TextView>(R.id.internet_main)
         textViewMap[INTERNET_SWITCH_ENGINE] = findViewById<TextView>(R.id.internet_engine_switch)
         textViewMap[INTERNET_FEELING_LUCKY] = findViewById<TextView>(R.id.internet_feeling_lucky)
@@ -80,7 +79,7 @@ class MorseServiceVisualised : AppCompatActivity(), CommandListener {
             put(MorseCodeServiceCommands.CHAT_NEXT, getString(R.string.listen_to_message_after))
             put(MorseCodeServiceCommands.CHAT_SEND_NEW_MESSAGE, getString(R.string.send_a_new_message))
             put(MorseCodeServiceCommands.FILES, getString(R.string.read_from_files))
-            put(MorseCodeServiceCommands.FILES_CHOOSE_FILE, getString(R.string.choose_file))
+            put(MorseCodeServiceCommands.FILES_PICKER, getString(R.string.choose_file))
             put(MorseCodeServiceCommands.FILES_CHOOSE_NEXT, getString(R.string.next_file))
             put(MorseCodeServiceCommands.FILES_CHOOSE_PREVIOUS, getString(R.string.previous_file))
             put(MorseCodeServiceCommands.FILES_OPEN, getString(R.string.open_file))
@@ -90,6 +89,8 @@ class MorseServiceVisualised : AppCompatActivity(), CommandListener {
             put(MorseCodeServiceCommands.FILES_NEW, getString(R.string.new_file))
             put(MorseCodeServiceCommands.FILES_SAVE, getString(R.string.save_file))
             put(MorseCodeServiceCommands.FILES_WRITE, getString(R.string.write_to_file))
+            put(MorseCodeServiceCommands.FILES_NEXT_LINE, getString(R.string.files_next_line))
+            put(MorseCodeServiceCommands.FILES_PREVIOUS_LINE, getString(R.string.files_previous_line))
             put(MorseCodeServiceCommands.INTERNET, getString(R.string.search_internet))
             put(MorseCodeServiceCommands.INTERNET_SWITCH_ENGINE, getString(R.string.switch_search_engine))
             put(MorseCodeServiceCommands.INTERNET_FEELING_LUCKY, getString(R.string.feeling_lucky_on_off))
@@ -103,7 +104,7 @@ class MorseServiceVisualised : AppCompatActivity(), CommandListener {
 
         textViewMap[CONTACTS]?.text = getString(R.string.contacts) + " (${MorseCodeService.Companion.CONTACTS_KEY})"
         textViewMap[INTERNET]?.text = getString(R.string.search_internet) + " (${MorseCodeService.Companion.INTERNET_KEY})"
-        textViewMap[FILES]?.text = getString(R.string.choose_file) + " (${MorseCodeService.Companion.FILES_KEY})"
+        textViewMap[FILES]?.text = getString(R.string.read_from_files) + " (${MorseCodeService.Companion.FILES_KEY})"
 
         howtousephysicalbuttons = findViewById(R.id.howtousephysicalbuttons)
         howtousephysicalbuttons.text = StringBuilder("Navigation:\nNEXT = ${MorseCodeService.SHORTCUT_NEXT}\n" +

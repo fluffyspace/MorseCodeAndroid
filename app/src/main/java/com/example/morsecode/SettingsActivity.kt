@@ -197,10 +197,15 @@ class SettingsActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
         pwmOnStatus.text = getString(R.string.pwm_on) + aaa.toString()
         pwmOffStatus.text = getString(R.string.pwm_off) + sss.toString()
         oneTimeUnitStatus.text = getString(R.string.otu) + oneTimeUnit.toString()
-        timing_status.text = "Dot: up to 1 unit (<" + (oneTimeUnit).toString() + " ms)\n" +
+        /*timing_status.text = "Dot: up to 1 unit (<" + (oneTimeUnit).toString() + " ms)\n" +
                 "Dash: from 1 unit up (>" + (oneTimeUnit).toString() + " ms)\n" +
                 "Intra-character space (the gap between dots and dashs within a character): up to 1 unit (" + (oneTimeUnit).toString() + " ms)\n" +
                 "Inter-character space (the gap between the characters of a word): from 1 unit up to 3 units (" + (oneTimeUnit).toString() + " - " + (oneTimeUnit * 3).toString() + " ms)\n" +
-                "Word space (the gap between two words): from 3 units up (>" + (oneTimeUnit * 3).toString() + " ms)"
+                "Word space (the gap between two words): from 3 units up (>" + (oneTimeUnit * 3).toString() + " ms)"*/
+        timing_status.text = "Točka: < " + (oneTimeUnit).toString() + " ms\n" +
+                "Crta: > " + (oneTimeUnit).toString() + " ms\n" +
+                "Razmak između znakova u slovu: < " + (oneTimeUnit).toString() + " ms\n" +
+                "Razmak između slova u riječi: " + (oneTimeUnit).toString() + " - " + (oneTimeUnit * 3).toString() + " ms\n" +
+                "Razmak između riječi: >" + (oneTimeUnit * 3).toString() + " ms"
     }
 }

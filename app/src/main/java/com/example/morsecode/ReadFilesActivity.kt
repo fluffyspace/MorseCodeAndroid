@@ -2,6 +2,7 @@ package com.example.morsecode
 
 import android.app.Activity
 import android.app.Dialog
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -38,7 +39,6 @@ import kotlinx.coroutines.withContext
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
-
 
 class ReadFilesActivity : AppCompatActivity(), OpenedFilesAdapterClickListener {
 
@@ -88,7 +88,6 @@ class ReadFilesActivity : AppCompatActivity(), OpenedFilesAdapterClickListener {
         findViewById<TextView>(R.id.new_file_icon_label).setOnClickListener {
             editTextToReadFrom.setText("")
             clearCurrentUri()
-            setCurrentlyOpenedText(null)
         }
         findViewById<TextView>(R.id.save_file_as_icon_label).setOnClickListener {
             createFile(null)
@@ -96,8 +95,8 @@ class ReadFilesActivity : AppCompatActivity(), OpenedFilesAdapterClickListener {
         findViewById<TextView>(R.id.save_icon_label).setOnClickListener {
             if(currentUri != null){
                 Log.d("ingo", currentUri.toString())
-                Log.d("ingo", getUriMimeType(currentUri!!).toString())
-                if(getUriMimeType(currentUri!!) == "text/plain")
+                Log.d("ingo", getUriMimeType(currentUri!!, contentResolver).toString())
+                if(getUriMimeType(currentUri!!, contentResolver) == "text/plain")
                 {
                     alterDocument(currentUri!!, editTextToReadFrom.text.toString())
                     return@setOnClickListener
@@ -120,9 +119,11 @@ class ReadFilesActivity : AppCompatActivity(), OpenedFilesAdapterClickListener {
             this.getSharedPreferences(Constants.sharedPreferencesFile, Context.MODE_PRIVATE)
         val lastFileUri = sharedPreferences.getString("file", "")
         if(lastFileUri !== ""){
-            readDocumentByUri(Uri.parse(Uri.decode(lastFileUri.toString())))
+            Log.d("ingo", lastFileUri.toString())
+            Log.d("ingo", Uri.parse(lastFileUri.toString()).toString())
+            readDocumentByUri(Uri.parse(lastFileUri.toString()))
         } else {
-            setCurrentlyOpenedText(null)
+            clearCurrentUri()
         }
         handsFreeOnChat = sharedPreferences.getBoolean("hands_free", false)
 
@@ -205,18 +206,14 @@ class ReadFilesActivity : AppCompatActivity(), OpenedFilesAdapterClickListener {
                 }
             }
         })
-    }
 
-    fun getUriMimeType(uri: Uri): String? {
-        return contentResolver.getType(uri)
+        Log.d("ingo", contentResolver.getPersistedUriPermissions().toString())
     }
 
     fun addDataToAdapter(){
         // load previous files
         lifecycleScope.launch(Dispatchers.Default) {
-            val db = AppDatabase.getInstance(this@ReadFilesActivity)
-            val previouslyOpenedFilesDao: PreviouslyOpenedFilesDao = db.previouslyOpenedFilesDao()
-            var previouslyOpenedFiles = previouslyOpenedFilesDao.getAll().toMutableList()
+            val previouslyOpenedFiles = getPreviouslyOpenedFiles(this@ReadFilesActivity)
             withContext(Dispatchers.Main) {
                 animalAdapter.filesList = previouslyOpenedFiles
                 animalAdapter.notifyDataSetChanged()
@@ -233,13 +230,16 @@ class ReadFilesActivity : AppCompatActivity(), OpenedFilesAdapterClickListener {
         editor.putString("file", "")
         editor.apply()
         currentUri = null
+        setCurrentlyOpenedText(null)
     }
 
     fun setCurrentUri2(uri: Uri){
+        Log.d("ingo", uri.toString())
         val editor = sharedPreferences.edit()
         editor.putString("file", uri.toString())
         editor.apply()
         currentUri = uri
+        setCurrentlyOpenedText(uri)
     }
 
     private fun vibrateLine() {
@@ -269,8 +269,9 @@ class ReadFilesActivity : AppCompatActivity(), OpenedFilesAdapterClickListener {
 
     private fun readDocumentByUri(uri: Uri) {
         try {
-            readFromFile(uri)
-            setCurrentlyOpenedText(uri)
+            Log.d("ingo", uri.toString())
+            extractedText = readFromFile(uri, contentResolver)
+            setCurrentUri2(uri)
             editTextToReadFrom.setText(extractedText)
         } catch (e: FileNotFoundException) {
             e.printStackTrace()
@@ -281,50 +282,15 @@ class ReadFilesActivity : AppCompatActivity(), OpenedFilesAdapterClickListener {
         }
     }
 
-    fun readFromFile(uri: Uri){
-        val inputStream: InputStream? = contentResolver.openInputStream(uri)
-        val mime = getUriMimeType(uri)
-        if(mime == "text/plain"){
-            val r = BufferedReader(InputStreamReader(inputStream))
-            val total = StringBuilder()
-            var line: String?
-            while (r.readLine().also { line = it } != null) {
-                total.append(line).append('\n')
-            }
-            extractedText = total.toString()
-            Log.d("ingo", extractedText)
-        } else {
-            // if it's pdf
-            val reader = PdfReader(inputStream)
-            // below line is for getting number
-            // of pages of PDF file.
-            val n = reader.numberOfPages
-            // running a for loop to get the data from PDF
-            // we are storing that data inside our string.
-            val total = StringBuilder()
-            for (i in 0 until n) {
-                total.append(PdfTextExtractor.getTextFromPage(
-                    reader,
-                    i + 1
-                ).trim { it <= ' ' }).append("\n")
-                // to extract the PDF content from the different pages
-            }
-            extractedText = total.toString()
-            // below line is used for closing reader.
-            reader.close()
-            inputStream?.close()
-        }
-    }
-
     private fun alterDocument(uri: Uri, text: String) {
         try {
-            contentResolver.openFileDescriptor(uri, "w")?.use { pfd ->
+            contentResolver.openFileDescriptor(uri, "wt")?.use { pfd ->
                 FileOutputStream(pfd.fileDescriptor).use { fos ->
+                    fos.channel.truncate(0)
                     fos.write(text.toByteArray())
                     Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
                 }
             }
-            setCurrentlyOpenedText(uri)
         } catch (e: FileNotFoundException) {
             e.printStackTrace()
         } catch (e: IOException) {
@@ -366,15 +332,19 @@ class ReadFilesActivity : AppCompatActivity(), OpenedFilesAdapterClickListener {
     override fun onActivityResult(
         requestCode: Int, resultCode: Int, resultData: Intent?) {
         super.onActivityResult(requestCode, resultCode, resultData)
+        if(resultData == null || resultData.data == null){
+            Log.d("ingo", "nema urija")
+            return
+        }
+        Log.d("ingo", "uri is " + resultData.data.toString())
         if(requestCode == CREATE_FILE && resultCode == RESULT_OK){
             val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
                     Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             // Check for the freshest data.
-            contentResolver.takePersistableUriPermission(resultData!!.data!!, takeFlags)
+            contentResolver.takePersistableUriPermission(resultData.data!!, takeFlags)
 
-            resultData?.data?.also { uri ->
+            resultData.data?.also { uri ->
                 setCurrentUri2(uri)
-                setCurrentlyOpenedText(uri)
                 alterDocument(uri, editTextToReadFrom.text.toString())
             }
         }
@@ -384,15 +354,14 @@ class ReadFilesActivity : AppCompatActivity(), OpenedFilesAdapterClickListener {
             val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
                     Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             // Check for the freshest data.
-            contentResolver.takePersistableUriPermission(resultData!!.data!!, takeFlags)
+            contentResolver.takePersistableUriPermission(resultData.data!!, takeFlags)
             // The result data contains a URI for the document or directory that
             // the user selected.
             resultData?.data?.also { uri ->
                 setCurrentUri2(uri)
                 // Perform operations on the document using its URI.
                 try {
-                    setCurrentlyOpenedText(uri)
-                    readFromFile(uri)
+                    extractedText = readFromFile(uri, contentResolver)
                     // after extracting all the data we are
                     // setting that string value to our text view.
                     editTextToReadFrom.setText(extractedText)
@@ -467,7 +436,6 @@ class ReadFilesActivity : AppCompatActivity(), OpenedFilesAdapterClickListener {
 
 
     private fun searchFile(string: String) {
-
         val st = string.toRegex()
         val match = st.find(this.string)
         if (match != null) {
@@ -504,7 +472,6 @@ class ReadFilesActivity : AppCompatActivity(), OpenedFilesAdapterClickListener {
             )
         )
     }
-
 
     /*override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater: MenuInflater = menuInflater
@@ -581,6 +548,53 @@ class ReadFilesActivity : AppCompatActivity(), OpenedFilesAdapterClickListener {
         const val CREATE_FILE = 1
         const val PICK_PDF_FILE = 2
         const val SAVE_FILE_AS = 3
+
+        fun getUriMimeType(uri: Uri, contentResolver: ContentResolver): String? {
+            return contentResolver.getType(uri)
+        }
+
+        fun readFromFile(uri: Uri, contentResolver: ContentResolver): String{
+            var extractedText = ""
+            val inputStream: InputStream? = contentResolver.openInputStream(uri)
+            val mime = getUriMimeType(uri, contentResolver)
+            if(mime == "text/plain"){
+                val r = BufferedReader(InputStreamReader(inputStream))
+                val total = StringBuilder()
+                var line: String?
+                while (r.readLine().also { line = it } != null) {
+                    total.append(line).append('\n')
+                }
+                extractedText = total.toString()
+                Log.d("ingo", extractedText)
+            } else {
+                // if it's pdf
+                val reader = PdfReader(inputStream)
+                // below line is for getting number
+                // of pages of PDF file.
+                val n = reader.numberOfPages
+                // running a for loop to get the data from PDF
+                // we are storing that data inside our string.
+                val total = StringBuilder()
+                for (i in 0 until n) {
+                    total.append(PdfTextExtractor.getTextFromPage(
+                        reader,
+                        i + 1
+                    ).trim { it <= ' ' }).append("\n")
+                    // to extract the PDF content from the different pages
+                }
+                extractedText = total.toString()
+                // below line is used for closing reader.
+                reader.close()
+            }
+            inputStream?.close()
+            return extractedText
+        }
+
+        fun getPreviouslyOpenedFiles(context: Context): MutableList<OpenedFile>{
+            val db = AppDatabase.getInstance(context)
+            val previouslyOpenedFilesDao: PreviouslyOpenedFilesDao = db.previouslyOpenedFilesDao()
+            return previouslyOpenedFilesDao.getAll().toMutableList()
+        }
     }
 
     override fun longHold(id: Int, position: Int) {

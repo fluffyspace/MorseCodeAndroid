@@ -16,7 +16,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Vibration configuration: "
+            android:text="@string/vibration_configuration"
             android:layout_gravity="center"
             android:textSize="25sp"
             android:padding="10dp"/>
@@ -24,7 +24,8 @@
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:orientation="horizontal"
-            android:background="@drawable/obrub">
+            android:background="@drawable/obrub"
+            android:visibility="gone">
             <TextView
                 android:id="@+id/pwm_on_status"
                 android:layout_width="0dp"
@@ -42,7 +43,7 @@
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_baseline_keyboard_arrow_up_24"
                 android:scaleType="fitCenter"
-                android:contentDescription="increase PWM on"/>
+                android:contentDescription="@string/increase_pwm_on"/>
             <ImageButton
                 android:id="@+id/aaa_down"
                 android:layout_width="0dp"
@@ -50,13 +51,14 @@
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_baseline_keyboard_arrow_down_24"
                 android:scaleType="fitCenter"
-                android:contentDescription="decrease PWM on" />
+                android:contentDescription="@string/decrease_pwm_on" />
         </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:orientation="horizontal"
-            android:background="@drawable/obrub">
+            android:background="@drawable/obrub"
+            android:visibility="gone">
             <TextView
                 android:id="@+id/pwm_off_status"
                 android:layout_width="0dp"
@@ -74,7 +76,7 @@
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_baseline_keyboard_arrow_up_24"
                 android:scaleType="fitCenter"
-                android:contentDescription="increase PWM off"/>
+                android:contentDescription="@string/increase_pwm_off"/>
             <ImageButton
                 android:id="@+id/sss_down"
                 android:layout_width="0dp"
@@ -82,7 +84,7 @@
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_baseline_keyboard_arrow_down_24"
                 android:scaleType="fitCenter"
-                android:contentDescription="decrease PWM off" />
+                android:contentDescription="@string/decrease_pwm_off" />
         </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
@@ -127,20 +129,22 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:text="Foot calibration"
+            android:text="@string/foot_calibration"
             android:padding="20dp"
             android:visibility="gone"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="SocketIO IP"
+            android:text="@string/socketio_ip"
             android:layout_gravity="center"
             android:textSize="25sp"
-            android:paddingTop="10dp"/>
+            android:paddingTop="10dp"
+            android:visibility="gone"/>
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="http://">
+            android:hint="http://"
+            android:visibility="gone">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/socketioip"
                 android:layout_width="match_parent"
@@ -158,14 +162,14 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                android:text="Save settings"/>
+                android:text="@string/save_settings"/>
             <Button
                 android:id="@+id/reset_settings"
                 android:layout_gravity="center"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                android:text="Reset settings"
+                android:text="@string/reset_settings"
                 android:layout_marginLeft="10dp"/>
         </LinearLayout>
         <View
@@ -179,14 +183,14 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Sample text to test:"
+                android:text="@string/sample_text_to_test"
                 android:gravity="center"
                 android:textSize="20sp"
                 android:padding="10dp"/>
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter some text">
+                android:hint="@string/enter_some_text">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/vibrate_letters"
@@ -214,7 +218,7 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="test vibration"
+                android:text="@string/test_vibration"
                 android:paddingVertical="20dp"/>
             <Button
                 android:id="@+id/vibrate_stop_button"
@@ -222,7 +226,7 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="stop vibration"
+                android:text="@string/stop_vibration"
                 android:paddingVertical="20dp"
                 android:layout_marginLeft="10dp"/>
             </LinearLayout>
@@ -235,7 +239,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Physical buttons"
+            android:text="@string/physical_buttons"
             android:layout_gravity="center"
             android:textSize="25sp"
             android:paddingTop="10dp"/>
@@ -245,7 +249,7 @@
             android:layout_height="wrap_content"
             android:textSize="18sp"
             android:layout_marginTop="10dp"
-            android:text="Registered physical keys for typing morse code:"/>
+            android:text="@string/registered_physical_keys_for_typing_morse_code"/>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="70dp"
@@ -257,22 +261,22 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                android:text="Add key"/>
+                android:text="@string/add_key"/>
             <Button
                 android:id="@+id/remove_physical_key"
                 android:layout_gravity="center"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                android:text="Remove key"
-                android:layout_marginLeft="10dp"/>
+                android:text="@string/remove_key"
+                android:layout_marginStart="10dp"/>
         </LinearLayout>
         <TextView
             android:id="@+id/physical_keys_instructions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="18sp"
-            android:text="Accesibility service has to be enabled to use this feature.\nTo add a physical key, press 'ADD KEY' and press physical button on device or connected to the device.\nTo remove a physical key, press 'REMOVE KEY' and press physical button you wish to remove."/>
+            android:text="@string/accesibility_service_has_to_be_enabled_to_use_this_feature_nto_add_a_physical_key_press_add_key_and_press_physical_button_on_device_or_connected_to_the_device_nto_remove_a_physical_key_press_remove_key_and_press_physical_button_you_wish_to_remove"/>
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>

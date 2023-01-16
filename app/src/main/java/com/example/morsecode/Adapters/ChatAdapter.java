@@ -33,13 +33,16 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private class MessageViewHolder extends RecyclerView.ViewHolder {
 
         TextView messageTV;
+        TextView timeTV;
         MessageViewHolder(final View itemView) {
             super(itemView);
             messageTV = itemView.findViewById(R.id.textViewMessage);
+            timeTV = itemView.findViewById(R.id.time);
         }
         void bind(int position) {
             Message messageModel = list.get(position);
             messageTV.setText(messageModel.getMessage());
+            timeTV.setText(messageModel.getSentAt());
         }
     }
 

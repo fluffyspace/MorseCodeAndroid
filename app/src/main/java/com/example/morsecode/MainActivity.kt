@@ -36,6 +36,13 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val intent = Intent(this, MorseCodeService::class.java) // Build the intent for the service
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            applicationContext.startForegroundService(intent)
+        } else {
+            applicationContext.startService(intent)
+        }
+
         mAccessibilityService = MorseCodeService.getSharedInstance();
         Log.d("ingo", mAccessibilityService.toString())
 
@@ -72,7 +79,7 @@ class MainActivity : AppCompatActivity() {
         val userHash = sharedPreferences.getString(Constants.USER_HASH, "")
         val prefUserId = sharedPreferences.getInt(Constants.USER_ID, 0)
         val autoLogIn = sharedPreferences.getBoolean(Constants.AUTO_LOGIN, false)
-        findViewById<TextView>(R.id.welcome_message).text = "Welcome, ${sharedName}!"
+        findViewById<TextView>(R.id.welcome_message).text = StringBuilder("${getString(R.string.welcome)}, ${sharedName}!").toString()
         /*findViewById<LinearLayout>(R.id.morse_in_action).setOnClickListener(){
             val intent = Intent(this, SendMorseActivity::class.java)
             startActivity(intent)
@@ -86,7 +93,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getFriends(prefUserId: Int, userHash: String?) {
-        lifecycleScope.launch(Dispatchers.Default) {
+        /*lifecycleScope.launch(Dispatchers.Default) {
             try {
                 val kontakti: List<Contact> =
                     getContactsApiService(this@MainActivity).getMyFriends()
@@ -97,7 +104,7 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 Log.d("stjepan", "greska getFriends $e")
             }
-        }
+        }*/
     }
 
     private fun getMessages(prefUserId: Int, userHash: String?, idContact: Int?) {
@@ -181,6 +188,7 @@ class MainActivity : AppCompatActivity() {
                 true
             }*/
             R.id.log_out -> {
+                mAccessibilityService?.stopSelf()
                 sharedPreferences =
                     this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
                 val editor = sharedPreferences.edit()

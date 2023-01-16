@@ -85,118 +85,155 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="60dp"
             android:text="@string/send_a_new_message"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/black"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:text="FUNCTIONS BELOW NOT YET IMPLEMENTED"/>
         <TextView
             android:id="@+id/files_read"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
-            android:text="@string/read_from_files"/>
+            android:text="@string/read_from_files"
+            android:textColor="#f00"/>
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="FUNCTIONS BELOW NOT YET IMPLEMENTED"/>
-        <TextView
-            android:id="@+id/files_choose_file"
+            android:id="@+id/files_picker"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="40dp"
-            android:text="@string/choose_file"/>
+            android:text="@string/choose_file"
+            android:textColor="#f00"/>
+        <TextView
+            android:id="@+id/files_new"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="60dp"
+            android:text="@string/new_file"
+            android:textColor="#f00"/>
         <TextView
             android:id="@+id/files_open_next"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="60dp"
-            android:text="@string/next_file"/>
+            android:text="@string/next_file"
+            android:textColor="#f00"/>
         <TextView
             android:id="@+id/files_open_previous"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="60dp"
-            android:text="@string/previous_file"/>
+            android:text="@string/previous_file"
+            android:textColor="#f00"/>
         <TextView
             android:id="@+id/files_open_current"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="60dp"
-            android:text="@string/open_file"/>
+            android:text="@string/open_file"
+            android:textColor="#f00"/>
         <TextView
             android:id="@+id/files_search"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="40dp"
-            android:text="@string/search_in_file"/>
+            android:text="@string/search_in_file"
+            android:textColor="#f00"/>
         <TextView
             android:id="@+id/files_search_next"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="60dp"
-            android:text="@string/next_occurence"/>
+            android:text="@string/next_occurence"
+            android:textColor="#f00"/>
         <TextView
             android:id="@+id/files_search_previous"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="60dp"
-            android:text="@string/previous_occurence"/>
-        <TextView
-            android:id="@+id/files_new"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="40dp"
-            android:text="@string/new_file"/>
+            android:text="@string/previous_occurence"
+            android:textColor="#f00"/>
         <TextView
             android:id="@+id/files_save"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="40dp"
-            android:text="@string/save_file"/>
+            android:text="@string/save_file"
+            android:textColor="#f00"/>
         <TextView
             android:id="@+id/files_insert"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="40dp"
-            android:text="@string/write_to_file"/>
+            android:text="@string/write_to_file"
+            android:textColor="#f00"/>
+        <TextView
+            android:id="@+id/files_next_line"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="40dp"
+            android:text="@string/files_next_line"
+            android:textColor="#f00"/>
+        <TextView
+            android:id="@+id/files_previous_line"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="40dp"
+            android:text="@string/files_previous_line"
+            android:textColor="#f00"/>
         <TextView
             android:id="@+id/internet_main"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
-            android:text="@string/search_internet"/>
+            android:text="@string/search_internet"
+            android:textColor="#f00"/>
         <TextView
             android:id="@+id/internet_engine_switch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="40dp"
-            android:text="@string/switch_search_engine"/>
+            android:text="@string/switch_search_engine"
+            android:textColor="#f00"/>
         <TextView
             android:id="@+id/internet_feeling_lucky"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="40dp"
-            android:text="@string/feeling_lucky_on_off"/>
+            android:text="@string/feeling_lucky_on_off"
+            android:textColor="#f00"/>
         <TextView
             android:id="@+id/internet_search"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="40dp"
-            android:text="@string/search"/>
+            android:text="@string/search"
+            android:textColor="#f00"/>
         <TextView
             android:id="@+id/internet_search_next"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="60dp"
-            android:text="@string/next_result"/>
+            android:text="@string/next_result"
+            android:textColor="#f00"/>
         <TextView
             android:id="@+id/internet_search_previous"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="60dp"
-            android:text="@string/previous_result"/>
+            android:text="@string/previous_result"
+            android:textColor="#f00"/>
         <TextView
             android:id="@+id/internet_search_skip_sentence"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="60dp"
-            android:text="@string/skip_sentence"/>
+            android:text="@string/skip_sentence"
+            android:textColor="#f00"/>
 
         <TextView
             android:id="@+id/go_back"
