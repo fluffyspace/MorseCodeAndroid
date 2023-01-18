@@ -22,7 +22,7 @@
         <activity
             android:name=".AddNewContactActivity"
             android:exported="false"
-            android:label="Dodaj prijatelja"
+            android:label="Dodaj kontakta"
             android:parentActivityName=".ContactsActivity"/>
         <activity
             android:name=".ReadFilesActivity"
@@ -63,6 +63,7 @@
         <activity
             android:name=".ContactsActivity"
             android:exported="false"
+            android:label="Kontakti"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait" />
         <activity
@@ -73,12 +74,12 @@
         <activity
             android:name=".PlaygroundActivity"
             android:exported="true"
-            android:label="Igraonica"
+            android:label="Slušaonica"
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".TutorialActivity"
             android:exported="true"
-            android:label="Učionica"
+            android:label="Informacije"
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".SendMorseActivity"

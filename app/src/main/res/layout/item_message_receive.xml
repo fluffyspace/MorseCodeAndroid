@@ -6,7 +6,7 @@
     <data>
         <variable
             name="message"
-            type="com.example.morsecode.models.Message" />
+            type="com.ingokodba.morsecode.models.Message" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
