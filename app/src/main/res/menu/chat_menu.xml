@@ -13,7 +13,7 @@
         app:showAsAction="never" />-->
     <item
         android:id="@+id/clear_messages"
-        android:title="Clear messages"
+        android:title="@string/delete_messages"
         android:icon="@drawable/ic_baseline_delete_24"
         app:showAsAction="never" />
 

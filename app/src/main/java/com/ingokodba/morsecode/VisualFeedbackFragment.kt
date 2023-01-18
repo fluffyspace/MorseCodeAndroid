@@ -22,7 +22,7 @@ private const val ARG_PARAM2 = "param2"
  * Use the [VisualFeedbackFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class VisualFeedbackFragment : Fragment() {
+class VisualFeedbackFragment : Fragment(), PhysicalButtonsService.OnKeyListener{
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
@@ -73,6 +73,8 @@ class VisualFeedbackFragment : Fragment() {
         timer_text = view.findViewById(R.id.timer)
         all_timers_text = view.findViewById(R.id.all_timers_text)
         checkService()
+
+        PhysicalButtonsService.getSharedInstance()?.addListener(this)
         // Inflate the layout for this fragment
         return view
     }
@@ -229,5 +231,18 @@ class VisualFeedbackFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         cancelKorutina()
+        PhysicalButtonsService.getSharedInstance()?.removeListener(this)
+    }
+
+    override fun onKey(pressed: Boolean) {
+        if(pressed){
+            down()
+        } else {
+            up()
+        }
+    }
+
+    override fun keyAddedOrRemoved() {
+
     }
 }

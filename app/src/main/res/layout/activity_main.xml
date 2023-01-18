@@ -35,7 +35,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:background="@color/antiobrub">
+                android:background="@drawable/nav_button">
             <ImageView
                 android:layout_width="48dp"
                 android:layout_height="48dp"
@@ -112,7 +112,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:background="@color/antiobrub">
+                android:background="@drawable/nav_button">
                 <ImageView
                     android:layout_width="48dp"
                     android:layout_height="48dp"
@@ -150,7 +150,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:background="@color/antiobrub">
+                android:background="@drawable/nav_button">
                 <ImageView
                     android:layout_width="48dp"
                     android:layout_height="48dp"

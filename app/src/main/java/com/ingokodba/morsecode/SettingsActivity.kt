@@ -70,7 +70,7 @@ class SettingsActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
         physicalKeys = findViewById<TextView>(R.id.registered_physical_keys)
         findViewById<Button>(R.id.add_physical_key).setOnClickListener {
             physicalButtonsService = PhysicalButtonsService.getSharedInstance()
-            PhysicalButtonsService.addListener(this)
+            PhysicalButtonsService.getSharedInstance()?.addListener(this)
             physicalButtonsService?.detectingNewPhysicalKey = true
             physicalButtonsService?.physicalKeyAdding = true
             Log.d("ingo", "adding new key")
@@ -78,7 +78,7 @@ class SettingsActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
         }
         findViewById<Button>(R.id.remove_physical_key).setOnClickListener {
             physicalButtonsService = PhysicalButtonsService.getSharedInstance()
-            PhysicalButtonsService.addListener(this)
+            PhysicalButtonsService.getSharedInstance()?.addListener(this)
             physicalButtonsService?.detectingNewPhysicalKey = true
             physicalButtonsService?.physicalKeyAdding = false
         }
@@ -170,7 +170,7 @@ class SettingsActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
         editor.apply()
     }
 
-    override fun onKey() {
+    override fun onKey(pressed: Boolean) {
     }
 
     override fun keyAddedOrRemoved() {
@@ -178,7 +178,7 @@ class SettingsActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
         lifecycleScope.launch {
             withContext(Dispatchers.Main) {
                 var tipkice = mAccessibilityService?.servicePostavke?.physicalButtons!!.map{ keycodeInt -> KeyEvent.keyCodeToString(keycodeInt)}
-                physicalKeys.setText("Registered physical keys for typing morse code:" + tipkice)
+                physicalKeys.setText(getString(R.string.registered_physical_keys_for_typing_morse_code) + tipkice)
 
             }
         }
@@ -191,7 +191,7 @@ class SettingsActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
 
     override fun onDestroy() {
         super.onDestroy()
-        PhysicalButtonsService.removeListener(this)
+        PhysicalButtonsService.getSharedInstance()?.removeListener(this)
     }
 
     fun setPostavke(postavke:Postavke){

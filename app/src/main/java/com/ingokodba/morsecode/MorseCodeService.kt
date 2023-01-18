@@ -9,16 +9,13 @@ import android.os.*
 import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
-import androidx.lifecycle.lifecycleScope
 import com.ingokodba.morsecode.Adapters.CommandListener
 import com.ingokodba.morsecode.baza.AppDatabase
 import com.ingokodba.morsecode.baza.MessageDao
 import com.ingokodba.morsecode.baza.PorukaDao
-import com.ingokodba.morsecode.baza.PreviouslyOpenedFilesDao
 import com.ingokodba.morsecode.models.*
 import com.ingokodba.morsecode.models.Message
 import com.ingokodba.morsecode.network.getContactsApiService
@@ -32,11 +29,9 @@ import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
 import java.net.URISyntaxException
-import java.time.LocalDateTime
 import java.util.List.copyOf
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KFunction0
-import kotlin.reflect.typeOf
 
 
 // ABCDEFGHIJKLMNOPQRSTUVWXYZ
@@ -58,7 +53,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
     lateinit var mSocket: Socket
     var will_stop_vibrating: Long = -1
     var showOverlay: Boolean = true
-    var in_chat: Boolean = false
+    var dont_check_input: Boolean = false
 
     var current_menu: MorseCodeServiceMenus = MorseCodeServiceMenus.MENU_MAIN
     var entering_text: Boolean = false
@@ -289,7 +284,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
         }
     }
 
-    fun createNotification(title: String, text: String, color: Int): Notification {
+    fun createNotification(title: String, text: String, color: Int, bigText: String): Notification {
         val pendingIntent: PendingIntent =
             Intent(this, MainActivity::class.java).let { notificationIntent ->
                 PendingIntent.getActivity(
@@ -317,6 +312,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
             Notification.Builder(this, NOTIFICATION_CHANNEL_ID)
                 .setContentTitle(title)
                 .setContentText(text)
+                .setStyle(Notification.BigTextStyle().bigText(bigText))
                 .setSmallIcon(R.drawable.ic_baseline_check_circle_24)
                 .setColor(color)
                 .setContentIntent(pendingIntent)
@@ -330,6 +326,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
             NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
                 .setContentTitle(title)
                 .setContentText(text)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(bigText))
                 .setSmallIcon(R.drawable.ic_baseline_check_circle_24)
                 .setColor(color)
                 .setContentIntent(pendingIntent)
@@ -358,10 +355,10 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
-
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("ingo", "service started")
         setup()
         return super.onStartCommand(intent, flags, startId)
     }
@@ -387,13 +384,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
         createNotificationChannel()
 
         vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
-        //vibrate(500)
 
-        //maybeSendMessageCoroutineLoop()
-        korutina = scope.launch {
-            // New coroutine that can call suspend functions
-            maybeSendMessageCoroutineLoop()
-        }
         serviceSharedInstance = this
 
         if(PhysicalButtonsService.getSharedInstance() != null)
@@ -418,30 +409,36 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
         getContacts()
         getFiles()
         getNewMessages()
+        last_checked_for_new_messages = System.currentTimeMillis()
 
-        PhysicalButtonsService.addListener(this)
+        korutina = scope.launch {
+            // New coroutine that can call suspend functions
+            maybeSendMessageCoroutineLoop()
+        }
+
+        PhysicalButtonsService.getSharedInstance()?.addListener(this)
     }
 
     fun notifyAccesibilityActive(){
         if(servicePostavke.physicalButtons.isNotEmpty()) {
             PhysicalButtonsService.getSharedInstance()?.physicalButtons = copyOf(servicePostavke.physicalButtons).toMutableList()
         }
-        val notification = createNotification("Morse talk", "Accesibility service active", Color.GREEN)
+        val notification = createNotification("MorseTalk", getString(R.string.accesibility_service_active), Color.GREEN, getString(R.string.accesibility_service_active))
         startForeground(ONGOING_NOTIFICATION_ID, notification)
     }
 
     fun notifyAccesibilitInactive(){
-        val notification = createNotification("Morse talk", "Accesibility service inactive - you won't be able to use physical buttons to trigger morse code", Color.parseColor("#FF8000"))
+        val notification = createNotification("MorseTalk", getString(R.string.accesibility_service_inactive), Color.parseColor("#FF8000"), getString(R.string.accesibility_service_inactive_bigtext))
         startForeground(ONGOING_NOTIFICATION_ID, notification)
     }
 
     fun accesibilityServiceOn(){
-        PhysicalButtonsService.addListener(this)
+        PhysicalButtonsService.getSharedInstance()?.addListener(this)
         notifyAccesibilityActive()
     }
 
     fun accesibilityServiceOff(){
-        PhysicalButtonsService.addListener(this)
+        PhysicalButtonsService.getSharedInstance()?.addListener(this)
         notifyAccesibilitInactive()
     }
 
@@ -824,7 +821,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
     }
 
     fun regularInputsCheck(){
-        if(in_chat) return
+        if(dont_check_input) return
         val diff:Int = getTimeDifference()
         val porukaIzMorsea:String = getMessage()
         val timeDifferenceNeeded = if(current_menu == MorseCodeServiceMenus.MENU_CONTACT_CHAT && porukaIzMorsea[0] == SHORTCUT_CONFIRM) servicePostavke.oneTimeUnit*7 else servicePostavke.oneTimeUnit*3
@@ -962,8 +959,8 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
             if(!mSocket.connected()){
                 val current_time = System.currentTimeMillis()
                 if(last_checked_for_new_messages+POLLING_WAIT_TIME < current_time){
-                    getNewMessages(true)
                     last_checked_for_new_messages = current_time
+                    getNewMessages(true)
                 }
             }
         }
@@ -1050,7 +1047,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
 
     override fun onRebind(intent: Intent?) {
         super.onRebind(intent)
-        PhysicalButtonsService.addListener(this)
+        PhysicalButtonsService.getSharedInstance()?.addListener(this)
         Log.d("ingo", "service rebinded")
     }
 
@@ -1177,7 +1174,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
         Log.d("ingo", "onUnbind")
         serviceSharedInstance = null;
         NotificationManagerCompat.from(this).cancelAll()
-        PhysicalButtonsService.removeListener(this)
+        PhysicalButtonsService.getSharedInstance()?.removeListener(this)
         super.onUnbind(intent)
         return true
     }
@@ -1245,7 +1242,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
         commandListener = null
     }
 
-    override fun onKey() {
+    override fun onKey(pressed: Boolean) {
         onKeyPressed()
         Log.d("ingo", "key pressed")
     }

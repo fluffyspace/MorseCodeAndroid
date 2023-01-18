@@ -8,14 +8,18 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="obrub">#FF444444</color>
+    <color name="obrub_touched">#333</color>
+    <color name="darkerlighter">#33000000</color>
     <color name="antiobrub">#FFFFFFFF</color>
+    <color name="antiobrub_touched">#ccc</color>
     <color name="halfobrub">#555</color>
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
-    <color name="colorAccent">#D81B60</color>
+    <color name="colorAccent">#0074EF</color>
     <color name="blue_ribbon">#0066ff</color>
     <color name="green">#34ce34</color>
-    <color name="morse_color">#1495A6</color>
-    <color name="morse_color_darker">#0d6773</color>
+    <color name="morse_color">#147DA6</color>
+    <color name="morse_color_darker">#076287</color>
     <color name="darkgray">#FF444444</color>
+    <color name="orange">#ff8800</color>
 </resources>

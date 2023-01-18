@@ -122,8 +122,6 @@ class MorseServiceVisualised : AppCompatActivity(), CommandListener {
         repeat = findViewById(R.id.repeat)
         last_characters_vibrated = findViewById(R.id.last_characters_vibrated)
 
-
-
         physicalButtonsService = PhysicalButtonsService.getSharedInstance()
 
         korutina = lifecycleScope.launch(Dispatchers.Default) {

@@ -49,6 +49,7 @@ class ContactsActivity : AppCompatActivity(), OnLongClickListener {
 
     lateinit var sharedPreferences: SharedPreferences
     lateinit var kontaktiRecyclerView: RecyclerView
+    lateinit var no_contact_message: TextView
     lateinit var kontaktiRecyclerViewAdapter: KontaktiAdapter
 
     lateinit var handsFreeIndicator: TextView
@@ -68,13 +69,12 @@ class ContactsActivity : AppCompatActivity(), OnLongClickListener {
 
         handsFreeIndicator = findViewById(R.id.hands_free_indicator)
         kontaktiRecyclerView = findViewById(R.id.recycler)
+        no_contact_message = findViewById(R.id.no_contact_message)
         kontaktiRecyclerViewAdapter = KontaktiAdapter(this, listOf(), listOf(), userId, this)
         refreshContacts(userId)
 
         accelerometer = Accelerometer(this)
         handsFreeContact1 = HandsFreeContact()
-
-        supportActionBar?.title = "Contacts"
 
         accelerometer.setListener { x, y, z, xG, yG, zG ->
             handsFreeContact1.follow(x, y, z, xG, yG, zG)
@@ -127,6 +127,11 @@ class ContactsActivity : AppCompatActivity(), OnLongClickListener {
 
                 //Log.e("max ", " $maxContactCounter")
                 withContext(Dispatchers.Main) {
+                    if(this@ContactsActivity.kontakti.isEmpty()) {
+                        no_contact_message.visibility = View.VISIBLE
+                    } else {
+                        no_contact_message.visibility = View.GONE
+                    }
                     kontaktiRecyclerViewAdapter.contacts = this@ContactsActivity.kontakti
                     kontaktiRecyclerViewAdapter.messages = this@ContactsActivity.last_messages
                     if(handsFreeOnChat) {

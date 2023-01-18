@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.SoundPool
@@ -17,6 +19,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintSet.Motion
+import androidx.core.graphics.toColor
 import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.lifecycleScope
 import com.ingokodba.morsecode.Constants.Companion.sharedPreferencesFile
@@ -28,7 +31,7 @@ import kotlinx.coroutines.*
 import kotlin.random.Random
 
 
-class PlaygroundActivity : AppCompatActivity() {
+class PlaygroundActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListener {
     lateinit var tap_button: Button
     lateinit var tutorial_status_text:TextView
     lateinit var number_of_letters_label:TextView
@@ -129,8 +132,10 @@ class PlaygroundActivity : AppCompatActivity() {
         user_wins = sharedPreferences.getInt(Constants.USER_WINS, 0)
         award_interval = sharedPreferences.getInt(Constants.AWARD_INTERVAL, 20)
 
+        speaker.imageTintList = getColorStateList(R.color.obrub)
         speaker.setOnClickListener {
-            speaker.setImageDrawable(getDrawable(R.drawable.volume_up_svg_yellow))
+            //speaker.setImageDrawable(getDrawable(R.drawable.volume_up_svg_yellow))
+            speaker.imageTintList = getColorStateList(R.color.orange)
             if(::korutina_play.isInitialized && korutina_play.isActive) {
                 korutina_play.cancel()
                 soundPool!!.stop(buzz_id2)
@@ -156,7 +161,8 @@ class PlaygroundActivity : AppCompatActivity() {
                     delay(speed*2)
                 }
                 withContext(Dispatchers.Main){
-                    speaker.setImageDrawable(getDrawable(R.drawable.volume_up_svg))
+                    //speaker.setImageDrawable(getDrawable(R.drawable.volume_up_svg))
+                    speaker.imageTintList = getColorStateList(R.color.obrub)
                 }
             }
         }
@@ -170,19 +176,13 @@ class PlaygroundActivity : AppCompatActivity() {
         tap_button.setOnTouchListener { v, event ->
             when (event?.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    if(!playing_buzz) {
-                        buzz_id = soundPool!!.play(sound_buzz, 1F, 1F, 0, -1, 1F);
-                        playing_buzz = true
-                    }
+                    downButton()
                     visual_feedback_container.down()
-                    refreshText()
                     scroll_view.requestDisallowInterceptTouchEvent(true);
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_OUTSIDE, MotionEvent.ACTION_CANCEL -> {
-                    playing_buzz = false
-                    soundPool!!.stop(buzz_id)
+                    upButton()
                     visual_feedback_container.up()
-                    refreshText()
                     v.performClick()
                     scroll_view.requestDisallowInterceptTouchEvent(false);
                 }
@@ -238,11 +238,37 @@ class PlaygroundActivity : AppCompatActivity() {
         )
     }
 
+    fun downButton(){
+        if(!playing_buzz) {
+            buzz_id = soundPool!!.play(sound_buzz, 1F, 1F, 0, -1, 1F);
+            playing_buzz = true
+        }
+        refreshText()
+    }
+
+    fun upButton(){
+        playing_buzz = false
+        soundPool!!.stop(buzz_id)
+        refreshText()
+    }
+
+    override fun onKey(pressed: Boolean) {
+        if(pressed){
+            downButton()
+        } else {
+            upButton()
+        }
+    }
+
+    override fun keyAddedOrRemoved() {
+
+    }
+
     fun nextTutorial() { // this: CoroutineScope
             load_next_test = false
             generateNewTest()
             tutorial_status_image.setImageResource(R.drawable.ic_baseline_check_circle_24)
-            tutorial_status_text.text = getString(R.string.so_far_so_good)
+            tutorial_status_text.text = getString(R.string.start_tapping)
     }
 
     suspend fun refreshTextJob() { // this: CoroutineScope
@@ -347,15 +373,19 @@ class PlaygroundActivity : AppCompatActivity() {
         if(load_next_test){
             generateNewTest()
             tutorial_status_image.setImageResource(R.drawable.ic_baseline_check_circle_24)
-            tutorial_status_text.text = getString(R.string.so_far_so_good)
+            tutorial_status_text.text = getString(R.string.start_tapping)
             load_next_test = false
         }
+        PhysicalButtonsService.getSharedInstance()?.addListener(this)
+        MorseCodeService.getSharedInstance()?.dont_check_input = true
         super.onResume()
     }
 
     override fun onPause() {
         super.onPause()
         toggleTesting(false)
+        PhysicalButtonsService.getSharedInstance()?.removeListener(this)
+        MorseCodeService.getSharedInstance()?.dont_check_input = false
         cancelKorutina()
     }
 

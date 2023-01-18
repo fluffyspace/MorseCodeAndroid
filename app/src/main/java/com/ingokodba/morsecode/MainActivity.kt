@@ -9,7 +9,6 @@ import android.provider.Settings
 import android.util.Log
 import android.view.*
 import android.widget.Button
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -17,11 +16,8 @@ import androidx.cardview.widget.CardView
 import androidx.lifecycle.lifecycleScope
 import com.ingokodba.morsecode.baza.AppDatabase
 import com.ingokodba.morsecode.baza.MessageDao
-import com.ingokodba.morsecode.models.Contact
 import com.ingokodba.morsecode.models.Message
-import com.ingokodba.morsecode.network.getContactsApiService
 import com.ingokodba.morsecode.network.getMessagesApiService
-import com.ingokodba.morsecode.sockets.TestActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -36,6 +32,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        if(intent.extras != null && intent.extras!!.getBoolean("logged_in")){
+            getMessages()
+        }
+
         val intent = Intent(this, MorseCodeService::class.java) // Build the intent for the service
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             applicationContext.startForegroundService(intent)
@@ -48,26 +48,26 @@ class MainActivity : AppCompatActivity() {
 
         mAccessibilityService = MorseCodeService.getSharedInstance();
 
-        findViewById<CardView>(R.id.contacts).setOnClickListener() {
+        findViewById<CardView>(R.id.contacts).setOnClickListener {
             val intent = Intent(this, ContactsActivity::class.java)
             startActivity(intent)
         }
 
 
-        findViewById<Button>(R.id.visualise_accesibility).setOnClickListener() {
+        findViewById<Button>(R.id.visualise_accesibility).setOnClickListener {
             val intent = Intent(this, MorseServiceVisualised::class.java)
             startActivity(intent)
         }
 
-        findViewById<CardView>(R.id.tutorial).setOnClickListener() {
+        findViewById<CardView>(R.id.tutorial).setOnClickListener {
             val intent = Intent(this, TutorialActivity::class.java)
             startActivity(intent)
         }
-        findViewById<CardView>(R.id.playground).setOnClickListener() {
+        findViewById<CardView>(R.id.playground).setOnClickListener {
             val intent = Intent(this, PlaygroundActivity::class.java)
             startActivity(intent)
         }
-        findViewById<CardView>(R.id.files).setOnClickListener(){
+        findViewById<CardView>(R.id.files).setOnClickListener {
             val intent = Intent(this, ReadFilesActivity::class.java)
             startActivity(intent)
         }
@@ -87,9 +87,6 @@ class MainActivity : AppCompatActivity() {
 
         if (!autoLogIn)
             getFriends(prefUserId, userHash)
-
-        //getNewMessages()
-
     }
 
     private fun getFriends(prefUserId: Int, userHash: String?) {
@@ -107,41 +104,20 @@ class MainActivity : AppCompatActivity() {
         }*/
     }
 
-    private fun getMessages(prefUserId: Int, userHash: String?, idContact: Int?) {
+    private fun getMessages() {
         val db = AppDatabase.getInstance(this)
         val messageDao: MessageDao = db.messageDao()
         lifecycleScope.launch(Dispatchers.Default) {
             try {
-                val response: List<Message> =
-                    idContact?.let {
-                        getMessagesApiService(this@MainActivity).getMessages(
-                            it.toLong()
-                        )
-                    }!!
+                val messages: List<Message> =
+                    getMessagesApiService(this@MainActivity).getMessages()
 
-                messageDao.insertAll(*response.toTypedArray())
-                for (poruka in response) {
-                    // TODO: CHECK if it works
+                messageDao.insertAll(*messages.toTypedArray())
+                for (poruka in messages) {
+                    Log.d("ingo", poruka.toString())
                 }
             } catch (e: Exception) {
                 Log.e("stjepan", "greska getMessages" + e.stackTraceToString() + e.message.toString())
-            }
-        }
-    }
-
-    private fun getNewMessages() {
-        lifecycleScope.launch(Dispatchers.Default) {
-            try {
-                val response: List<Message> = getMessagesApiService(this@MainActivity).getNewMessages()
-                Log.d("stjepan", "dohvacene poruke $response")
-
-                if (response.isNotEmpty()) {
-                    for (message in response) {
-                        saveMessage(message)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("stjepan", "greska getNewMessages " + e.stackTraceToString() + e.message.toString())
             }
         }
     }
@@ -197,6 +173,7 @@ class MainActivity : AppCompatActivity() {
                 val intent = Intent(this, LogInActivity::class.java)
                 intent.putExtra("logout", true)
                 startActivity(intent)
+                finish()
                 true
             }
 

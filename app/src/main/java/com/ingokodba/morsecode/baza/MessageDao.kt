@@ -27,6 +27,9 @@ interface MessageDao {
     @Delete
     fun delete(polje: Message)
 
+    @Query("DELETE FROM message WHERE (receiverId = :receiverId AND senderId = :senderId) OR (senderId = :receiverId AND receiverId = :senderId)")
+    fun deleteMessagesWith(receiverId: Int, senderId: Int)
+
     @Query("DELETE FROM message")
     fun deleteAll()
 }

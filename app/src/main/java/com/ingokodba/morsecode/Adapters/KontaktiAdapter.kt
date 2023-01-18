@@ -87,9 +87,9 @@ class KontaktiAdapter(c: Context, contacts: List<Contact>, messages: List<Messag
         if(messages[i] != null) {
             val stringBuilder = StringBuilder()
             if(messages[i]!!.senderId == myId){
-                stringBuilder.append("Me: ")
+                stringBuilder.append(context.getString(R.string.me))
             } else {
-                stringBuilder.append("Them: ")
+                stringBuilder.append(context.getString(R.string.them))
             }
             stringBuilder.append(messages[i]!!.message)
             viewHolder.lastMessageTV.text = stringBuilder.toString()

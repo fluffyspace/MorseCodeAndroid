@@ -22,7 +22,7 @@ import kotlinx.coroutines.*
 import kotlin.random.Random
 
 
-class TutorialActivity : AppCompatActivity() {
+class TutorialActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListener {
     lateinit var tap_button: Button
     lateinit var tutorial_status_text:TextView
     lateinit var wins_label:TextView
@@ -54,7 +54,7 @@ class TutorialActivity : AppCompatActivity() {
     var award_sound: Int = 0
 
     companion object{
-        var text_samples:MutableList<String> = mutableListOf("bok","sunce","trava","livada","ljubav","snijeg","more","brod","auto","voda","sat","papir","ptica","drvo","pjesma","krov","pas","konj","glazba","stol","planina","brijeg","kamion","motor","mobitel","kompjuter","novine","prozor","terasa","balkon","truba","vatra","led","mir","smijeh","nebo","zvijezda","svemir","planet","struja","poruka","poziv","internet","broj","jezik","cipela","tepih","jakna","cesta","piknik","mraz","brat","sestra","otac","majka","deda","baka","gitara","violina","svjetlo","ples","sport","nogomet","karate","judo","gimnastika","gluma","pjevanje","avion","jedrilica","sok","krema","pita","prijatelj","vjetar","put","hvala","molim","oprosti","stablo","ogledalo","kupaona","kuhinja","hodnik","vrata","radijator","okno","zid","kabel","spavanje","krevet","kupka","stup","beba","dijete","tanjur","vilica","kruh","mlijeko","jabuka")
+        var text_samples:MutableList<String> = mutableListOf("bok","sunce","trava","livada","ljubav","snijeg","more","brod","auto","voda","sat","papir","ptica","drvo","pjesma","krov","pas","konj","glazba","stol","planina","brijeg","kamion","motor","mobitel","kompjuter","novine","prozor", "baterija","terasa","balkon","truba","vatra","led","mir","smijeh","nebo","zvijezda","svemir","planet","struja","poruka","poziv","internet","broj","jezik","cipela","tepih","jakna","cesta","piknik","mraz","brat","sestra","otac","majka","deda","baka","gitara","violina","svjetlo","ples","sport","nogomet","karate","judo","gimnastika","gluma","pjevanje","avion","jedrilica","sok","krema","pita","prijatelj","vjetar","put","hvala","molim","oprosti","stablo","ogledalo","kupaona","kuhinja","hodnik","vrata","radijator","okno","zid","kabel","spavanje","krevet","kupka","stup","beba","dijete","tanjur","vilica","kruh","mlijeko","jabuka", "laptop", "program", "zaslon", "kvaka", "sol", "papar", "maslac", "pizza")
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -89,19 +89,13 @@ class TutorialActivity : AppCompatActivity() {
         tap_button.setOnTouchListener { v, event ->
             when (event?.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    if(!playing_buzz) {
-                        buzz_id = soundPool!!.play(sound_buzz, 1F, 1F, 0, -1, 1F);
-                        playing_buzz = true
-                    }
+                    downButton()
                     visual_feedback_container.down()
-                    refreshText()
                     scroll_view.requestDisallowInterceptTouchEvent(true);
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_OUTSIDE, MotionEvent.ACTION_CANCEL -> {
-                    playing_buzz = false
-                    soundPool!!.stop(buzz_id)
+                    upButton()
                     visual_feedback_container.up()
-                    refreshText()
                     v.performClick()
                     scroll_view.requestDisallowInterceptTouchEvent(false);
                 }
@@ -155,6 +149,34 @@ class TutorialActivity : AppCompatActivity() {
             R.raw.sound_clapping,
             1
         )
+
+
+    }
+
+    fun downButton(){
+        if(!playing_buzz) {
+            buzz_id = soundPool!!.play(sound_buzz, 1F, 1F, 0, -1, 1F);
+            playing_buzz = true
+        }
+        refreshText()
+    }
+
+    fun upButton(){
+        playing_buzz = false
+        soundPool!!.stop(buzz_id)
+        refreshText()
+    }
+
+    override fun onKey(pressed: Boolean) {
+        if(pressed){
+            downButton()
+        } else {
+            upButton()
+        }
+    }
+
+    override fun keyAddedOrRemoved() {
+
     }
 
     suspend fun nextTutorial() { // this: CoroutineScope
@@ -163,7 +185,7 @@ class TutorialActivity : AppCompatActivity() {
             load_next_test = false
             generateNewTest()
             tutorial_status_image.setImageResource(R.drawable.ic_baseline_check_circle_24)
-            tutorial_status_text.text = getString(R.string.so_far_so_good)
+            tutorial_status_text.text = getString(R.string.start_tapping)
         }
     }
 
@@ -261,9 +283,11 @@ class TutorialActivity : AppCompatActivity() {
         if(load_next_test){
             generateNewTest()
             tutorial_status_image.setImageResource(R.drawable.ic_baseline_check_circle_24)
-            tutorial_status_text.text = getString(R.string.so_far_so_good)
+            tutorial_status_text.text = getString(R.string.start_tapping)
             load_next_test = false
         }
+        MorseCodeService.getSharedInstance()?.dont_check_input = true
+        PhysicalButtonsService.getSharedInstance()?.addListener(this)
         super.onResume()
     }
 
@@ -271,6 +295,8 @@ class TutorialActivity : AppCompatActivity() {
         super.onPause()
         toggleTesting(false)
         cancelKorutina()
+        MorseCodeService.getSharedInstance()?.dont_check_input = false
+        PhysicalButtonsService.getSharedInstance()?.removeListener(this)
     }
 
     fun toggleTesting(testing:Boolean){

@@ -43,7 +43,7 @@ private val ALPHANUM:String = "abcdefghijklmnopqrstuvwxyz1234567890"
 class PhysicalButtonsService: AccessibilityService(){
 
     interface OnKeyListener {
-        fun onKey()
+        fun onKey(pressed: Boolean)
         fun keyAddedOrRemoved()
     }
     lateinit var korutina: Job
@@ -59,6 +59,7 @@ class PhysicalButtonsService: AccessibilityService(){
     var morseCodeService: MorseCodeService? = null
     var textView: TextView? = null
     var sufix: String = ""
+    private var listeners: MutableList<OnKeyListener> = mutableListOf()
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onServiceConnected() {
@@ -177,7 +178,7 @@ class PhysicalButtonsService: AccessibilityService(){
             return true
         } else if(physicalButtons.contains(event.keyCode)) {
             for(listener in listeners) {
-                listener.onKey()
+                listener.onKey(event.action == KeyEvent.ACTION_DOWN)
             }
             return true
         }
@@ -204,6 +205,13 @@ class PhysicalButtonsService: AccessibilityService(){
         Log.d("ingo", "service rebinded")
     }
 
+    fun addListener(l: OnKeyListener) {
+        if(!listeners.contains(l)) listeners.add(l)
+    }
+    fun removeListener(l: OnKeyListener) {
+        listeners.remove(l)
+    }
+
     companion object{
         // Funkcije u companion objektu u Kotlinu su isto kao static funkcije u Javi, znači mogu se pozvati bez instanciranja
         // U ovom slučaju koristimo funkciju getSharedInstance da bismo iz neke druge klase statičkom funkcijom uzeli instancu servisa (MorseCodeService). Ako servis nije pokrenut, dobit ćemo null.
@@ -214,13 +222,7 @@ class PhysicalButtonsService: AccessibilityService(){
             return serviceSharedInstance;
         }
 
-        private var listeners: MutableList<OnKeyListener> = mutableListOf()
-        fun addListener(l: OnKeyListener) {
-            if(!listeners.contains(l)) listeners.add(l)
-        }
-        fun removeListener(l: OnKeyListener) {
-            listeners.remove(l)
-        }
+
     }
 
     fun changeActionBarText(command: MorseCodeServiceCommands, sufix: String = ""){

@@ -5,9 +5,9 @@ import com.ingokodba.morsecode.models.*
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
-import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
@@ -32,8 +32,11 @@ private lateinit var apiMessagesService: MessagesApiService
 private lateinit var apiContactsService: ContactsApiService
 
 private fun okhttpClient(context: Context): OkHttpClient {
+    val interceptor = HttpLoggingInterceptor()
+    interceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
     return OkHttpClient.Builder()
         .addInterceptor(AuthInterceptor(context))
+        .addInterceptor(interceptor)
         .build()
 }
 
@@ -66,9 +69,8 @@ interface MessagesApiService {
     @POST("sendMessage.php")
     suspend fun sendMessage(@Field("to") to: Int, @Field("message") message: String): Long
 
-    @FormUrlEncoded
     @POST("getMessages.php")
-    suspend fun getMessages(@Field("contactId") contactId: Long): List<Message>
+    suspend fun getMessages(): List<Message>
 
     @POST("getContactsWithMessages.php")
     suspend fun getMessageContact(): List<ContactListResponse>

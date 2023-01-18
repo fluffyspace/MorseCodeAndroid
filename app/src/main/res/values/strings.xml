@@ -11,8 +11,8 @@
     <string name="channel_description">Shows when service is running</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="stopService">Stop service</string>
-    <string name="accesibilitySettings">Accesibility settings</string>
+    <string name="stopService">Ugasi</string>
+    <string name="accesibilitySettings">Postavke pristupačnosti</string>
     <string name="accessibility_service_description">Morse input with volume buttons</string>
     <string name="main_menu">Main menu</string>
     <string name="contacts">Kontakti</string>
@@ -61,7 +61,7 @@
     <string name="test_vibration">testiraj vibraciju</string>
     <string name="stop_vibration">zaustavi vibraciju</string>
     <string name="physical_buttons">Fizičke tipke</string>
-    <string name="registered_physical_keys_for_typing_morse_code">Registrirane fizičke tipke mobitela za unos Morseovog koda:</string>
+    <string name="registered_physical_keys_for_typing_morse_code">Registrirane fizičke tipke mobitela za unos morseovog koda: </string>
     <string name="add_key">Dodaj tipku</string>
     <string name="remove_key">Makni tipku</string>
     <string name="accesibility_service_has_to_be_enabled_to_use_this_feature_nto_add_a_physical_key_press_add_key_and_press_physical_button_on_device_or_connected_to_the_device_nto_remove_a_physical_key_press_remove_key_and_press_physical_button_you_wish_to_remove">Servis pristupačnosti mora biti uključen za korištenje ove funkcionalnosti.\nDa bi dodali fizičku tipku, pritisni \'DODAJ TIPKU\' i pritisni tipku na mobitelu ili tipku spojenu s mobitelom.\nDa bi maknuli fizičku tipku, pritisni \'MAKNI TIPKU\' i pritisni tipku koju želiš maknuti.</string>
@@ -73,7 +73,7 @@
     <string name="johndoe">ivica</string>
     <string name="username">Korisničko ime</string>
     <string name="tutorial">Lekcija</string>
-    <string name="tutorials">Učionica</string>
+    <string name="tutorials">Informacije</string>
     <string name="playground">Slušaonica</string>
     <string name="visualise_accesibility">Visualise accesibility</string>
     <string name="tap_hold">Drži i pusti</string>
@@ -91,6 +91,7 @@
     <string name="open_accessibility_settings">Otvori postavke pristupačnosti</string>
     <string name="sign_out">Odjavi se</string>
     <string name="so_far_so_good">super za sad</string>
+    <string name="start_tapping">Počni tipkati</string>
     <string name="wrong">krivo</string>
     <string name="tutorial_1_20">Lekcija: 1/20</string>
     <string name="sveukupno_pogodeno_rijeci">Sveukupno pogođeno riječi:</string>
@@ -98,4 +99,10 @@
     <string name="brzina_koda">Trajanje točke: </string>
     <string name="award_status">Interval nagrađivanja: </string>
     <string name="google_prijava">Google prijava</string>
+    <string name="accesibility_service_inactive">Usluga pristupačnosti isključena</string>
+    <string name="accesibility_service_inactive_bigtext">Usluga pristupačnosti isključena - ne možeš koristiti fizičke tipke za slanje morseovog koda</string>
+    <string name="accesibility_service_active">Usluga pristupačnosti uključena</string>
+    <string name="delete_messages">Izbriši poruke</string>
+    <string name="me">\"Ja: \"</string>
+    <string name="them">\"Oni: \"</string>
 </resources>

@@ -5,9 +5,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.media.AudioAttributes
 import android.media.SoundPool
-import android.os.Build
 import android.os.Bundle
-import android.os.VibrationEffect
 import android.os.Vibrator
 import android.text.format.DateFormat
 import android.util.Log
@@ -27,19 +25,15 @@ import com.ingokodba.morsecode.Adapters.ChatAdapter
 import com.ingokodba.morsecode.baza.AppDatabase
 import com.ingokodba.morsecode.baza.MessageDao
 import com.ingokodba.morsecode.models.Message
-import com.ingokodba.morsecode.network.ContactIdRequest
-import com.ingokodba.morsecode.network.SendMessageRequest
 import com.ingokodba.morsecode.network.getMessagesApiService
-import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
 import java.util.*
 
 
-class ChatActivity : AppCompatActivity() {
+class ChatActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListener {
 
     lateinit var tapButton: Button
     lateinit var sendButton: Button
@@ -121,8 +115,6 @@ class ChatActivity : AppCompatActivity() {
             .add(R.id.visual_feedback_container, visual_feedback_container, "main")
             .commitNow()
 
-
-        //getNewMessages()
         populateData(context, recyclerView, prefUserId, contactId)
 
         //message listeners
@@ -182,7 +174,6 @@ class ChatActivity : AppCompatActivity() {
                     visual_feedback_container.up()
                 } else if (tap == 3) {
                     visual_feedback_container.reset()
-                    //getNewMessages()
                     vibrateLastMessage(prefUserId, contactId)
                 } else if (tap == 4) {
                     onBackPressed()
@@ -214,6 +205,14 @@ class ChatActivity : AppCompatActivity() {
             R.raw.message_received,
             1
         )
+    }
+
+    override fun onKey(pressed: Boolean) {
+
+    }
+
+    override fun keyAddedOrRemoved() {
+
     }
 
     private fun vibrateLastMessage(prefUserId: Int, contactId: Int) {
@@ -320,33 +319,13 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
-    private fun getNewMessages() {
-        val ctx = this
-        lifecycleScope.launch(Dispatchers.Default) {
-            try {
-                val response: List<Message> = getMessagesApiService(ctx).getNewMessages()
-                if (response.isNotEmpty()) {
-
-                    for (message in response) {
-                        withContext(Dispatchers.Main) {
-                            saveMessage(message)
-                        }
-                    }
-                }
-
-            } catch (e: Exception) {
-                Log.e("stjepan", "greska getNewMessages " + e.stackTraceToString() + e.message.toString())
-            }
-        }
-    }
-
     fun deleteMessages(){
         val ctx: Context = this
         lifecycleScope.launch(Dispatchers.Default) {
             try {
                 val db = AppDatabase.getInstance(ctx)
                 val messageDao: MessageDao = db.messageDao()
-                messageDao.deleteAll()
+                messageDao.deleteMessagesWith(contactId, prefUserId)
                 withContext(Dispatchers.Main){
                     chatAdapter?.list = listOf()
                     chatAdapter?.notifyDataSetChanged()
@@ -450,14 +429,16 @@ class ChatActivity : AppCompatActivity() {
         if (handsFreeOnChat) {
             turnHandsFreeOn()
         }
-        MorseCodeService.getSharedInstance()?.in_chat = true
+        MorseCodeService.getSharedInstance()?.dont_check_input = true
+        PhysicalButtonsService.getSharedInstance()?.addListener(this)
         super.onResume()
     }
 
     override fun onPause() {
         gyroscope.unregister()
         accelerometer.unregister()
-        MorseCodeService.getSharedInstance()?.in_chat = false
+        MorseCodeService.getSharedInstance()?.dont_check_input = false
+        PhysicalButtonsService.getSharedInstance()?.removeListener(this)
         super.onPause()
     }
 

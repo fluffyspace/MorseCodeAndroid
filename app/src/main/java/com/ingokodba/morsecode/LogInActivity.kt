@@ -146,6 +146,7 @@ class LogInActivity : AppCompatActivity() {
                             editor.commit()
 
                             val intent = Intent(this@LogInActivity, MainActivity::class.java)
+                            intent.putExtra("logged_in", true)
                             startActivity(intent)
                         } else {
                             withContext(Dispatchers.Main){
@@ -219,9 +220,11 @@ class LogInActivity : AppCompatActivity() {
                                         val editor = sharedPreferences.edit()
                                         editor.putString(USER_HASH, user.hash)
                                         editor.putString(USER_NAME, user.username)
+                                        user.id?.let { it1 -> editor.putInt(USER_ID, it1) }
                                         editor.apply()
 
                                         val intent = Intent(this@LogInActivity, MainActivity::class.java)
+                                        intent.putExtra("logged_in", true)
                                         startActivity(intent)
                                     } else {
                                         withContext(Dispatchers.Main) {

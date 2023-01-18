@@ -59,6 +59,8 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment-ktx:2.3.3'
     implementation 'androidx.navigation:navigation-ui-ktx:2.3.3'
 
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.10.0'
+
     // Moshi
     implementation 'com.squareup.moshi:moshi-kotlin:1.9.3'
 
