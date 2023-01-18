@@ -73,7 +73,7 @@
         <activity
             android:name=".PlaygroundActivity"
             android:exported="true"
-            android:label="Igraonica"
+            android:label="Slušaonica"
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".TutorialActivity"

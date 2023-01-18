@@ -21,4 +21,4 @@
     android:canPerformGestures="true"
     android:canRetrieveWindowContent="true"
     android:canRequestFilterKeyEvents="true"
-    android:settingsActivity="com.example.android.accessibility.ServiceSettingsActivity"/>
+    android:settingsActivity="com.ingokodba.android.accessibility.ServiceSettingsActivity"/>

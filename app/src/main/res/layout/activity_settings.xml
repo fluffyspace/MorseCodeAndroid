@@ -155,7 +155,8 @@
             android:layout_width="match_parent"
             android:layout_height="70dp"
             android:orientation="horizontal"
-            android:layout_marginVertical="10dp">
+            android:layout_marginVertical="10dp"
+            android:visibility="gone">
             <Button
                 android:id="@+id/save_settings"
                 android:layout_gravity="center"
@@ -172,10 +173,10 @@
                 android:text="@string/reset_settings"
                 android:layout_marginLeft="10dp"/>
         </LinearLayout>
-        <View
+        <!--<View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/obrub"/>
+            android:background="@color/obrub"/>-->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -231,6 +232,41 @@
                 android:layout_marginLeft="10dp"/>
             </LinearLayout>
 
+        </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/obrub"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:orientation="horizontal"
+            android:background="@drawable/obrub"
+            android:layout_marginVertical="20dp">
+            <TextView
+                android:id="@+id/award_status"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="wrap_content"
+                android:text="@string/otu"
+                android:textSize="20sp"
+                android:padding="10dp"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+            <ImageButton
+                android:id="@+id/award_up"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_keyboard_arrow_up_24"
+                android:scaleType="fitCenter"/>
+            <ImageButton
+                android:id="@+id/award_down"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_keyboard_arrow_down_24"
+                android:scaleType="fitCenter" />
         </LinearLayout>
         <View
             android:layout_width="match_parent"

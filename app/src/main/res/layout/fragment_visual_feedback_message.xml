@@ -25,7 +25,7 @@
             android:padding="1dp"
             android:background="@drawable/obrub">
 
-            <com.example.morsecode.CustomProgressBarView
+            <com.ingokodba.morsecode.CustomProgressBarView
                 android:id="@+id/custom_progress_down"
                 android:layout_width="match_parent"
                 android:layout_height="15dp"
@@ -33,8 +33,8 @@
                 app:second_threshold="200"
                 app:bar_color="down"
                 app:progress="0"
-                app:first_text="dot"
-                app:second_text="dash"/>
+                app:first_text="točka"
+                app:second_text="crta"/>
         </LinearLayout>
 
         <TextView
@@ -48,7 +48,7 @@
             android:orientation="vertical"
             android:padding="1dp"
             android:background="@drawable/obrub">
-            <com.example.morsecode.CustomProgressBarView
+            <com.ingokodba.morsecode.CustomProgressBarView
                 android:id="@+id/custom_progress_up"
                 android:layout_width="match_parent"
                 android:layout_height="15dp"
@@ -56,9 +56,9 @@
                 app:second_threshold="800"
                 app:third_threshold="2000"
                 app:bar_color="up"
-                app:first_text="new character"
-                app:second_text="space"
-                app:third_text="message sent"/>
+                app:first_text="novo slovo"
+                app:second_text="razmak"
+                app:third_text="poruka poslana"/>
         </LinearLayout>
 
         <TextView

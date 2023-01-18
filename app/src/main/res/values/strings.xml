@@ -46,7 +46,7 @@
     <string name="skip_sentence">Skip sentence</string>
     <string name="go_back">GO BACK</string>
     <string name="repeat">REPEAT</string>
-    <string name="default_web_client_id">"574627640431-cuq9989e3mkf71nhep0n98gk8d01dq30.apps.googleusercontent.com"</string>
+    <string name="default_web_client_id">574627640431-cuq9989e3mkf71nhep0n98gk8d01dq30.apps.googleusercontent.com</string>
     <string name="vibration_configuration">Postavke vibracije:</string>
     <string name="increase_pwm_on">increase PWM on</string>
     <string name="decrease_pwm_on">decrease PWM on</string>
@@ -96,4 +96,6 @@
     <string name="sveukupno_pogodeno_rijeci">Sveukupno pogođeno riječi:</string>
     <string name="broj_slova">Broj slova: </string>
     <string name="brzina_koda">Trajanje točke: </string>
+    <string name="award_status">Interval nagrađivanja: </string>
+    <string name="google_prijava">Google prijava</string>
 </resources>
