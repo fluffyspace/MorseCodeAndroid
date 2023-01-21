@@ -8,7 +8,6 @@ import android.graphics.Color
 import android.os.*
 import android.provider.Settings
 import android.util.Log
-import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
@@ -52,7 +51,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
     lateinit var sharedPreferences: SharedPreferences
     lateinit var mSocket: Socket
     var will_stop_vibrating: Long = -1
-    var showOverlay: Boolean = true
+    var showOverlay: Boolean = false
     var dont_check_input: Boolean = false
 
     var current_menu: MorseCodeServiceMenus = MorseCodeServiceMenus.MENU_MAIN
@@ -68,6 +67,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
     var current_message_index: Int = -1
     var last_command_issued: MorseCodeServiceCommands = MorseCodeServiceCommands.MAIN
     var luck_follows_me: Boolean = true
+    var loggedIn: Boolean = false
 
     var testMode = false
     val ONGOING_NOTIFICATION_ID = 1
@@ -80,6 +80,9 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
     var search_query: String = ""
 
     var last_checked_for_new_messages: Long = -1
+
+    // implementing detecting physical key without physicalbuttonsservice on
+    var physicalButtonsServiceOn: Boolean = false
 
     private var coroutineJob: Job = Job()
     override val coroutineContext: CoroutineContext
@@ -141,7 +144,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
         will_stop_vibrating = -1
     }
 
-    fun onKeyEvent(event: KeyEvent) {
+    /*fun onKeyEvent(event: KeyEvent) {
         /*
             KEYCODE_HEADSETHOOK = middle button on phone headset
             KEYCODE_VOLUME_UP = volume up button on phone
@@ -179,7 +182,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
                 onKeyPressed()
             }
         }
-    }
+    }*/
 
     // ovo pozivati kod upisivanja morseovog koda, ovo popunjava buttonHistory s vremenskim razlikama
     fun onKeyPressed(){
@@ -284,7 +287,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
         }
     }
 
-    fun createNotification(title: String, text: String, color: Int, bigText: String): Notification {
+    fun createNotification(title: String, text: String, color: Int, bigText: String?): Notification {
         val pendingIntent: PendingIntent =
             Intent(this, MainActivity::class.java).let { notificationIntent ->
                 PendingIntent.getActivity(
@@ -318,8 +321,8 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
                 .setContentIntent(pendingIntent)
                 .addAction(R.drawable.ic_baseline_cancel_24, getString(R.string.stopService),
                     stopServicePendingIntent)
-                .addAction(R.drawable.ic_baseline_play_arrow_24, getString(R.string.accesibilitySettings),
-                    accesibilitySettingsPendingIntent)
+                /*.addAction(R.drawable.ic_baseline_play_arrow_24, getString(R.string.accesibilitySettings),
+                    accesibilitySettingsPendingIntent)*/
                 .setOnlyAlertOnce(true)
                 .build()
         } else {
@@ -332,8 +335,8 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
                 .setContentIntent(pendingIntent)
                 .addAction(R.drawable.ic_baseline_cancel_24, getString(R.string.stopService),
                     stopServicePendingIntent)
-                .addAction(R.drawable.ic_baseline_play_arrow_24, getString(R.string.accesibilitySettings),
-                    accesibilitySettingsPendingIntent)
+                /*.addAction(R.drawable.ic_baseline_play_arrow_24, getString(R.string.accesibilitySettings),
+                    accesibilitySettingsPendingIntent)*/
                 .setOnlyAlertOnce(true)
                 .build()
         }
@@ -359,6 +362,10 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("ingo", "service started")
+        if(intent != null && intent.extras != null){
+            loggedIn = intent.extras!!.getBoolean("loggedIn", false)
+            Log.d("ingo", "loggedIn: $loggedIn")
+        }
         setup()
         return super.onStartCommand(intent, flags, startId)
     }
@@ -387,29 +394,33 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
 
         serviceSharedInstance = this
 
-        if(PhysicalButtonsService.getSharedInstance() != null)
+        /*if(PhysicalButtonsService.getSharedInstance() != null)
         {
             notifyAccesibilityActive()
         } else {
             notifyAccesibilitInactive()
-        }
+        }*/
+        val notification = createNotification("MorseTalk", getString(R.string.listeningToNewMessages), Color.GREEN, null)
+        startForeground(ONGOING_NOTIFICATION_ID, notification)
 
-        try {
-            mSocket = IO.socket(servicePostavke.socketioIp);
-            Log.d("connect0", "not error");
-        } catch (e: URISyntaxException) {
-            Log.e("connect0", "error");
-        }
-        mSocket.on("new message", onNewMessage);
-        mSocket.on(Socket.EVENT_CONNECT) { Log.d("ingo", "socket connected") }
-        mSocket.on(Socket.EVENT_DISCONNECT) { Log.d("ingo", "socket disconnected") }
-        mSocket.on(Socket.EVENT_CONNECT_ERROR, onError)
-        mSocket.disconnect().connect()
+        if(loggedIn) {
+            try {
+                mSocket = IO.socket(servicePostavke.socketioIp);
+                Log.d("connect0", "not error");
+            } catch (e: URISyntaxException) {
+                Log.e("connect0", "error");
+            }
+            mSocket.on("new message", onNewMessage);
+            mSocket.on(Socket.EVENT_CONNECT) { Log.d("ingo", "socket connected") }
+            mSocket.on(Socket.EVENT_DISCONNECT) { Log.d("ingo", "socket disconnected") }
+            mSocket.on(Socket.EVENT_CONNECT_ERROR, onError)
+            mSocket.disconnect().connect()
 
-        getContacts()
-        getFiles()
-        getNewMessages()
-        last_checked_for_new_messages = System.currentTimeMillis()
+            getContacts()
+            getFiles()
+            getNewMessages()
+            last_checked_for_new_messages = System.currentTimeMillis()
+        }
 
         korutina = scope.launch {
             // New coroutine that can call suspend functions
@@ -443,6 +454,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
     }
 
     fun getContacts(){
+        if(!loggedIn) return
         scope.launch {
             try {
                 val kontakti: List<Contact> =
@@ -473,6 +485,8 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
     }
 
     private fun getNewMessages(vibrate_if_new: Boolean = false) {
+        Log.d("ingo", "logged_in: $loggedIn")
+        if(!loggedIn) return
         scope.launch(Dispatchers.Default) {
             try {
                 val response: List<Message> = getMessagesApiService(this@MorseCodeService).getNewMessages()
@@ -520,6 +534,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
     }
 
     fun sendMessage2(text: String){
+        if(!loggedIn) return
         scope.launch(Dispatchers.Default) {
             try {
                 val id = getMessagesApiService(this@MorseCodeService).sendMessage(
@@ -956,6 +971,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
         while(true) {
             delay(servicePostavke.oneTimeUnit) // non-blocking delay for one dot duration (default time unit is ms)
             regularInputsCheck()
+            if(!loggedIn) return
             if(!mSocket.connected()){
                 val current_time = System.currentTimeMillis()
                 if(last_checked_for_new_messages+POLLING_WAIT_TIME < current_time){
@@ -1001,8 +1017,6 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
         return sb.toString()
     }
 
-
-
     fun setMessageFeedback(callback: KFunction0<Unit>?){
         messageReceiveCallback = callback
     }
@@ -1020,8 +1034,6 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
         val currentTimeMillis:Long = System.currentTimeMillis()
         return (currentTimeMillis-lastTimeMillis).toInt()
     }
-
-
 
     fun getMessage():String{
         var message:StringBuilder = StringBuilder()
@@ -1070,7 +1082,7 @@ class MorseCodeService: Service(), CoroutineScope, PhysicalButtonsService.OnKeyL
                 if(it == '.'){
                     sb.append('•')
                 } else if(it == '-'){
-                    sb.append('–')
+                    sb.append('-')
                 } else {
                     sb.append(' ')
                 }

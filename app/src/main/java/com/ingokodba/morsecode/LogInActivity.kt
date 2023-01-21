@@ -25,6 +25,7 @@ import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.ingokodba.morsecode.Constants.Companion.GOOGLE_LOGIN
+import com.ingokodba.morsecode.Constants.Companion.GUEST_LOGIN
 import com.ingokodba.morsecode.network.GoogleLoginResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -48,6 +49,7 @@ class LogInActivity : AppCompatActivity() {
     val TAG = "googletag"
     val REQ_ONE_TAP = 156435
     private var showOneTapUI = true
+    private var guestLogin = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,7 +59,11 @@ class LogInActivity : AppCompatActivity() {
                 or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
         window.statusBarColor = Color.TRANSPARENT
 
+        supportActionBar?.hide()
+
         loadingIcon = findViewById(R.id.loadingIcon)
+
+
 
         oneTapClient = Identity.getSignInClient(this)
         signInRequest = BeginSignInRequest.builder()
@@ -91,7 +97,14 @@ class LogInActivity : AppCompatActivity() {
         sharedPassword = sharedPreferences.getString(USER_PASSWORD, "").toString()
         sharedId = sharedPreferences.getInt(USER_ID, -1)
         showOneTapUI = sharedPreferences.getBoolean(GOOGLE_LOGIN, true)
+        guestLogin = sharedPreferences.getBoolean(GUEST_LOGIN, false)
         sharedHash = sharedPreferences.getString(USER_HASH, "").toString()
+
+        if(guestLogin) loginAsGuest()
+
+        findViewById<Button>(R.id.withoutLogin).setOnClickListener {
+            loginAsGuest()
+        }
 
         val userNameEditText = findViewById<EditText>(R.id.editTextName)
         val userPasswordEditTet = findViewById<EditText>(R.id.editTextPassword)
@@ -146,7 +159,8 @@ class LogInActivity : AppCompatActivity() {
                             editor.commit()
 
                             val intent = Intent(this@LogInActivity, MainActivity::class.java)
-                            intent.putExtra("logged_in", true)
+                            intent.putExtra("loggedInForFirstTime", true)
+                            intent.putExtra("loggedIn", true)
                             startActivity(intent)
                         } else {
                             withContext(Dispatchers.Main){
@@ -178,6 +192,18 @@ class LogInActivity : AppCompatActivity() {
             }
             Toast.makeText(this, "Username or password missing", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    fun loginAsGuest(){
+        val editor = sharedPreferences.edit()
+        editor.putBoolean(GUEST_LOGIN, true)
+        editor.apply()
+        editor.commit()
+
+        val intent = Intent(this@LogInActivity, MainActivity::class.java)
+        intent.putExtra("loggedInForFirstTime", true)
+        intent.putExtra("loggedIn", false)
+        startActivity(intent)
     }
 
     fun beginGoogleSignIn(){
@@ -224,7 +250,8 @@ class LogInActivity : AppCompatActivity() {
                                         editor.apply()
 
                                         val intent = Intent(this@LogInActivity, MainActivity::class.java)
-                                        intent.putExtra("logged_in", true)
+                                        intent.putExtra("loggedInForFirstTime", true)
+                                        intent.putExtra("loggedIn", true)
                                         startActivity(intent)
                                     } else {
                                         withContext(Dispatchers.Main) {
@@ -291,7 +318,7 @@ class LogInActivity : AppCompatActivity() {
     fun loginWithHash(){
         lifecycleScope.launch(Dispatchers.Default) {
             try {
-                var user: LogInResponse = getContactsApiService(this@LogInActivity).logInUser(
+                val user: LogInResponse = getContactsApiService(this@LogInActivity).logInUser(
                     sharedUsername, "", sharedHash
                 )
                 Log.e("stjepan", "${user.hash} ${user.error}")
@@ -303,6 +330,7 @@ class LogInActivity : AppCompatActivity() {
                     editor.commit()
 
                     val intent = Intent(this@LogInActivity, MainActivity::class.java)
+                    intent.putExtra("loggedIn", true)
                     startActivity(intent)
                 } else {
                     withContext(Dispatchers.Main) {
@@ -365,6 +393,7 @@ class LogInActivity : AppCompatActivity() {
                 editor.commit()
 
                 val intent = Intent(this@LogInActivity, MainActivity::class.java)
+                intent.putExtra("loggedIn", true)
                 startActivity(intent)
 
             } catch (e: Exception) {

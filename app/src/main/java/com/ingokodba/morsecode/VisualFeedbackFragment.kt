@@ -23,20 +23,23 @@ private const val ARG_PARAM2 = "param2"
  * create an instance of this fragment.
  */
 class VisualFeedbackFragment : Fragment(), PhysicalButtonsService.OnKeyListener{
-    // TODO: Rename and change types of parameters
+
     private var param1: String? = null
     private var param2: String? = null
     lateinit var progressbar_down:CustomProgressBarView
     lateinit var progressbar_up:CustomProgressBarView
     lateinit var playground_text: TextView
     lateinit var timer_text: TextView
+    lateinit var novi_znak_razmak_ili_zavrsi_poruku: TextView
     lateinit var all_timers_text: TextView
     lateinit var korutina: Job
     var mAccessibilityService:MorseCodeService? = null
     var oneTimeUnit: Int = 0
     var up_or_down:Boolean = false
     var testing: Boolean = true
-    var layout1: Boolean = false
+    var smaller: Boolean = false
+    var gameMode: Boolean = false
+    var maxProgressUp = 0
 
     interface Listener {
         fun onTranslation(changeText: String)
@@ -61,20 +64,44 @@ class VisualFeedbackFragment : Fragment(), PhysicalButtonsService.OnKeyListener{
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        var view = inflater.inflate(R.layout.fragment_visual_feedback_message,container,false)
-
-        if (layout1){
-            view = inflater.inflate(R.layout.fragment_visual_feedback_message,container,false)
-        }
+        var view = inflater.inflate(R.layout.fragment_visual_feedback,container,false)
 
         progressbar_down = view.findViewById<CustomProgressBarView>(R.id.custom_progress_down)
         progressbar_up = view.findViewById<CustomProgressBarView>(R.id.custom_progress_up)
+        novi_znak_razmak_ili_zavrsi_poruku = view.findViewById<TextView>(R.id.novi_znak_razmak_ili_zavrsi_poruku)
+
+        checkService()
+
+        if(gameMode){
+            progressbar_up.updateThings(0, 100, -1)
+            progressbar_up.firstText = "isto slovo"
+            progressbar_up.secondText = "drugo slovo"
+            maxProgressUp = oneTimeUnit
+            novi_znak_razmak_ili_zavrsi_poruku.setText("Isto ili drugo slovo?")
+        } else {
+            maxProgressUp = oneTimeUnit * 7
+        }
+
         playground_text = view.findViewById(R.id.playground_text)
         timer_text = view.findViewById(R.id.timer)
         all_timers_text = view.findViewById(R.id.all_timers_text)
-        checkService()
 
-        PhysicalButtonsService.getSharedInstance()?.addListener(this)
+        if (smaller){
+            playground_text.textSize = 15f
+            timer_text.textSize = 10f
+            all_timers_text.textSize = 15f
+            var params = progressbar_down.layoutParams
+            params.height = 100
+            progressbar_down.layoutParams = params
+            params = progressbar_up.layoutParams
+            params.height = 100
+            progressbar_up.layoutParams = params
+            //progressbar_down. = 15
+            //progressbar_up.height = 15
+        }
+
+
+        //PhysicalButtonsService.getSharedInstance()?.addListener(this)
         // Inflate the layout for this fragment
         return view
     }
@@ -96,7 +123,7 @@ class VisualFeedbackFragment : Fragment(), PhysicalButtonsService.OnKeyListener{
         mAccessibilityService?.onKeyPressed()
         refreshText()
         up_or_down = false
-        progressbar_down.setNewProgress(0)
+        progressbar_down.setNewProgress(0f)
         updateGraphics(0)
         cancelKorutina()
         korutina = lifecycleScope.launch(Dispatchers.Default){
@@ -109,7 +136,7 @@ class VisualFeedbackFragment : Fragment(), PhysicalButtonsService.OnKeyListener{
         mAccessibilityService?.onKeyPressed()
         refreshText()
         up_or_down = true
-        progressbar_up.setNewProgress(0)
+        progressbar_up.setNewProgress(0f)
         cancelKorutina()
         korutina = lifecycleScope.launch(Dispatchers.Default){
             petlja()
@@ -120,13 +147,13 @@ class VisualFeedbackFragment : Fragment(), PhysicalButtonsService.OnKeyListener{
         mAccessibilityService = MorseCodeService.getSharedInstance()
         val (_, _, oneTimeUnitLong) = mAccessibilityService?.getPostavke() ?: Postavke(-1, -1, -1)
         oneTimeUnit = oneTimeUnitLong.toInt()
-        progressbar_down.updateThings(0, oneTimeUnit, -1)
-        progressbar_up.updateThings(oneTimeUnit, oneTimeUnit*3, oneTimeUnit*7)
+        //progressbar_down.updateThings(0, oneTimeUnit, -1)
+        //progressbar_up.updateThings(oneTimeUnit, oneTimeUnit*3, oneTimeUnit*7)
     }
 
     fun refreshText(){
         if(mAccessibilityService?.buttonHistory?.size!! >= 2) {
-            playground_text.text = "Text: " + mAccessibilityService?.getMessage()
+            playground_text.text = "Tekst: " + mAccessibilityService?.getMessage()
             if (listener != null){
                 mAccessibilityService?.getMessage()?.let { listener!!.onTranslation(it) }
             }
@@ -141,16 +168,16 @@ class VisualFeedbackFragment : Fragment(), PhysicalButtonsService.OnKeyListener{
         return playground_text.text.toString()
     }
 
-    fun updateGraphics(progress: Int){
-        timer_text.text = progress.toString() + " ms"
+    fun updateGraphics(timePassed: Long){
+        timer_text.text = timePassed.toString() + " ms"
         all_timers_text.text = "Morse: " + mAccessibilityService?.getMorse()
         if(up_or_down){
             // down
-            progressbar_down.setNewProgress(progress)
-            if(progress > oneTimeUnit*7){
+            progressbar_down.setNewProgress(timePassed/oneTimeUnit.toFloat())
+            if(timePassed >= oneTimeUnit){
                 cancelKorutina()
                 if(testing) {
-                    mAccessibilityService?.buttonHistory?.clear()
+                    //mAccessibilityService?.buttonHistory?.clear()
                     if (listener != null){
                         listener!!.finish(false)
                     }
@@ -160,11 +187,11 @@ class VisualFeedbackFragment : Fragment(), PhysicalButtonsService.OnKeyListener{
             }
         } else {
             // up
-            progressbar_up.setNewProgress(progress)
-            if(progress > oneTimeUnit*7){
+            progressbar_up.setNewProgress(timePassed/maxProgressUp.toFloat())
+            if(timePassed >= maxProgressUp){
                 cancelKorutina()
                 if(testing) {
-                    mAccessibilityService?.buttonHistory?.clear()
+                    //mAccessibilityService?.buttonHistory?.clear()
                     if (listener != null){
                         listener!!.finish(true)
                     }
@@ -177,13 +204,14 @@ class VisualFeedbackFragment : Fragment(), PhysicalButtonsService.OnKeyListener{
 
     suspend fun petlja() { // this: CoroutineScope
         //korutina = launch { // launch a new coroutine and continue
-        var counter = 0
+        var started_at = System.currentTimeMillis()
+        var now = started_at
         val interval = 20
         while(true) {
             //Log.d("ingo", "test")
-            counter += interval
+            now = System.currentTimeMillis() - started_at
             withContext(Dispatchers.Main){
-                updateGraphics(counter)
+                updateGraphics(now)
             }
             delay(interval.toLong()) // non-blocking delay for 1 second (default time unit is ms)
             //Log.d("ingo", "counter " + counter)
@@ -215,8 +243,8 @@ class VisualFeedbackFragment : Fragment(), PhysicalButtonsService.OnKeyListener{
 
     fun reset() {
         cancelKorutina()
-        progressbar_down.setNewProgress(0)
-        progressbar_up.setNewProgress(0)
+        progressbar_down.setNewProgress(0f)
+        progressbar_up.setNewProgress(0f)
         if(testing) mAccessibilityService?.buttonHistory?.clear()
         refreshText()
         all_timers_text.text = "Morse: "
@@ -231,7 +259,7 @@ class VisualFeedbackFragment : Fragment(), PhysicalButtonsService.OnKeyListener{
     override fun onPause() {
         super.onPause()
         cancelKorutina()
-        PhysicalButtonsService.getSharedInstance()?.removeListener(this)
+        //PhysicalButtonsService.getSharedInstance()?.removeListener(this)
     }
 
     override fun onKey(pressed: Boolean) {

@@ -3,6 +3,7 @@ package com.ingokodba.morsecode
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import java.util.Collections.max
 
@@ -11,12 +12,19 @@ class CustomProgressBarView(context: Context, attrs: AttributeSet) : View(contex
     var firstThreshold:Int = -1
     var secondThreshold:Int = -1
     var thirdThreshold:Int = -1
+
+    var firstThresholdInput:Int = -1
+    var secondThresholdInput:Int = -1
+    var thirdThresholdInput:Int = -1
+
     var firstText:String = ""
     var secondText:String = ""
     var thirdText:String = ""
-    var biggestThresholdValue = -1
+
+    var oneTimeUnit: Int = 0
     var barColor = -1
-    var progress = 0
+    var progress: Float = 0f
+    var TEXT_SIZE: Float = 80f
 
     init {
         context.theme.obtainStyledAttributes(
@@ -25,17 +33,16 @@ class CustomProgressBarView(context: Context, attrs: AttributeSet) : View(contex
             0, 0).apply {
 
             try {
-                firstThreshold = getInteger(R.styleable.CustomProgressBarView_first_threshold, -1)
-                secondThreshold = getInteger(R.styleable.CustomProgressBarView_second_threshold, -1)
-                thirdThreshold = getInteger(R.styleable.CustomProgressBarView_third_threshold, -1)
-                biggestThresholdValue = max(listOf(firstThreshold, secondThreshold, thirdThreshold))
+                firstThresholdInput = getInteger(R.styleable.CustomProgressBarView_first_threshold, -1)
+                secondThresholdInput = getInteger(R.styleable.CustomProgressBarView_second_threshold, -1)
+                thirdThresholdInput = getInteger(R.styleable.CustomProgressBarView_third_threshold, -1)
 
                 firstText = getString(R.styleable.CustomProgressBarView_first_text).toString()
                 secondText = getString(R.styleable.CustomProgressBarView_second_text).toString()
                 thirdText = getString(R.styleable.CustomProgressBarView_third_text).toString()
 
                 barColor = getInteger(R.styleable.CustomProgressBarView_bar_color, 0)
-                progress = getInteger(R.styleable.CustomProgressBarView_progress, 0)
+                progress = getFloat(R.styleable.CustomProgressBarView_progress, 0f)
             } finally {
                 recycle()
             }
@@ -57,6 +64,9 @@ class CustomProgressBarView(context: Context, attrs: AttributeSet) : View(contex
         )
 
         setMeasuredDimension(w, h)
+        if(firstThresholdInput != -1) firstThreshold = (firstThresholdInput*0.01*w).toInt()
+        if(secondThresholdInput != -1) secondThreshold = (secondThresholdInput*0.01*w).toInt()
+        if(thirdThresholdInput != -1) thirdThreshold = (thirdThresholdInput*0.01*w).toInt()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -64,40 +74,40 @@ class CustomProgressBarView(context: Context, attrs: AttributeSet) : View(contex
 
         canvas.apply {
             drawRect(Rect(0, 0, width, height), whitePaint)
-            val unit:Float = (width.toFloat()/biggestThresholdValue)
-            // Down paint
-            drawRect(Rect(0, 0, (unit*progress).toInt(), height), backgroundPaint)
+
+            drawRect(Rect(0, 0, (progress*width).toInt(), height), backgroundPaint)
 
             if(firstThreshold != -1) {
-                var first_at = (unit*firstThreshold).toInt()
-                drawRect(Rect(first_at-10, 0, first_at+10, height), indicatorPaint)
+                drawRect(Rect(firstThreshold-10, 0, firstThreshold+10, height), indicatorPaint)
             }
             if(secondThreshold != -1) {
-                var second_at = (unit*secondThreshold).toInt()
-                drawRect(Rect(second_at-10, 0, second_at+10, height), indicatorPaint)
+                drawRect(Rect(secondThreshold-10, 0, secondThreshold+10, height), indicatorPaint)
+            }
+            if(thirdThreshold != -1) {
+                drawRect(Rect(thirdThreshold-10, 0, thirdThreshold+10, height), indicatorPaint)
             }
             var text = ""
-            if(thirdThreshold != -1 && progress > thirdThreshold) {
+            if(thirdThreshold != -1 && progress*100 > thirdThresholdInput) {
                 text = thirdText
-            } else if(secondThreshold != -1 && progress > secondThreshold) {
+            } else if(secondThreshold != -1 && progress*100 > secondThresholdInput) {
                 text = secondText
-            } else if(firstThreshold != -1 && progress > firstThreshold) {
+            } else if(firstThreshold != -1 && progress*100 > firstThresholdInput) {
                 text = firstText
             }
-            drawText(text, (width / 2).toFloat(), (height / 2).toFloat() + 15, textPaint)
+            drawText(text, (width / 2).toFloat(), (height / 2).toFloat() + 25, shadowPaint)
+            drawText(text, (width / 2).toFloat(), (height / 2).toFloat() + 25, textPaint)
         }
     }
 
     fun updateThings(first: Int, second: Int, third: Int) {
-        this.firstThreshold = first
-        this.secondThreshold = second
-        this.thirdThreshold = third
-        biggestThresholdValue = max(listOf(first, second, third))
+        this.firstThresholdInput = first
+        this.secondThresholdInput = second
+        this.thirdThresholdInput = third
         invalidate()
         requestLayout()
     }
 
-    fun setNewProgress(progress: Int){
+    fun setNewProgress(progress: Float){
         this.progress = progress
         invalidate()
         requestLayout()
@@ -107,7 +117,7 @@ class CustomProgressBarView(context: Context, attrs: AttributeSet) : View(contex
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         textAlign = Paint.Align.CENTER
-        textSize = 40f
+        textSize = TEXT_SIZE
         color = Color.BLACK
     }
 
@@ -127,7 +137,10 @@ class CustomProgressBarView(context: Context, attrs: AttributeSet) : View(contex
     }
 
     private val shadowPaint = Paint(0).apply {
-        color = 0x101010
+        style = Paint.Style.FILL
+        textAlign = Paint.Align.CENTER
+        textSize = TEXT_SIZE
+        color = Color.WHITE
         maskFilter = BlurMaskFilter(8f, BlurMaskFilter.Blur.NORMAL)
     }
 }

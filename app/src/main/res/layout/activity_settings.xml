@@ -86,11 +86,18 @@
                 android:scaleType="fitCenter"
                 android:contentDescription="@string/decrease_pwm_off" />
         </LinearLayout>
+        <Button
+            android:id="@+id/speed_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:text="Brzina točke"/>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:orientation="horizontal"
-            android:background="@drawable/obrub">
+            android:background="@drawable/obrub"
+            android:visibility="gone">
             <TextView
                 android:id="@+id/otu_status"
                 android:layout_width="0dp"
@@ -122,8 +129,9 @@
             android:layout_height="wrap_content"
             tools:text="Timing:"
             android:gravity="left"
-            android:textSize="15sp"
-            android:padding="10dp"/>
+            android:textSize="20sp"
+            android:padding="10dp"
+            android:visibility="gone"/>
         <Button
             android:id="@+id/foot_calibration"
             android:layout_width="wrap_content"
@@ -164,15 +172,16 @@
                 android:layout_weight="1"
                 android:layout_height="match_parent"
                 android:text="@string/save_settings"/>
-            <Button
+            <!--<Button
                 android:id="@+id/reset_settings"
                 android:layout_gravity="center"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
                 android:text="@string/reset_settings"
-                android:layout_marginLeft="10dp"/>
+                android:layout_marginLeft="10dp"/>-->
         </LinearLayout>
+
         <!--<View
             android:layout_width="match_parent"
             android:layout_height="1dp"
@@ -236,19 +245,27 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/obrub"/>
+            android:background="@color/obrub"
+            android:layout_marginVertical="10dp"/>
+        <Button
+            android:id="@+id/award_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:text="Interval nagrađivanja"/>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:orientation="horizontal"
             android:background="@drawable/obrub"
-            android:layout_marginVertical="20dp">
+            android:layout_marginVertical="20dp"
+            android:visibility="gone">
             <TextView
                 android:id="@+id/award_status"
                 android:layout_width="0dp"
                 android:layout_weight="2"
                 android:layout_height="wrap_content"
-                android:text="@string/otu"
+                android:text="Interval nagrađivanja"
                 android:textSize="20sp"
                 android:padding="10dp"
                 android:gravity="center"
@@ -271,7 +288,8 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/obrub"/>
+            android:background="@color/obrub"
+            android:layout_marginVertical="10dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -312,7 +330,19 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="18sp"
-            android:text="@string/accesibility_service_has_to_be_enabled_to_use_this_feature_nto_add_a_physical_key_press_add_key_and_press_physical_button_on_device_or_connected_to_the_device_nto_remove_a_physical_key_press_remove_key_and_press_physical_button_you_wish_to_remove"/>
+            android:text="@string/add_remove_key_instruction"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/obrub"
+            android:layout_marginVertical="10dp"/>
+        <Button
+            android:id="@+id/reset_settings"
+            android:layout_gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/reset_settings"
+            android:padding="15dp"/>
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>

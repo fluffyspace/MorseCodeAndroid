@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/settings_button"
+        android:title="@string/settings"
+        android:icon="@drawable/ic_baseline_settings_24"
+        app:showAsAction="always" />
+    <!--<item
+        android:id="@+id/open_accessibility_settings"
+        android:title="@string/open_accessibility_settings" />-->
+    <!--<item
+        android:id="@+id/accelerometer_controls"
+        android:title="Hands-free controls"/>-->
+    <item
+        android:id="@+id/log_out"
+        android:title="@string/sign_in"/>
+</menu>

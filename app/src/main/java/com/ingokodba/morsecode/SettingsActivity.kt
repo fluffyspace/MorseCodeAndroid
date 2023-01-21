@@ -11,6 +11,7 @@ import android.util.Log
 import android.view.KeyEvent
 import android.widget.*
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.lifecycle.lifecycleScope
 import com.ingokodba.morsecode.baza.AppDatabase
@@ -32,6 +33,8 @@ class SettingsActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
     var award_interval:Int = 20
     var oneTimeUnit:Long = 0
     var device_uuid:String = ""
+    lateinit var speedButton: Button
+    lateinit var awardIntervalButton: Button
     lateinit var awardStatus:TextView
     lateinit var pwmOnStatus:TextView
     lateinit var socketioip:EditText
@@ -43,6 +46,9 @@ class SettingsActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
     var physicalButtonsService:PhysicalButtonsService? = null
     lateinit var sharedPreferences: SharedPreferences
 
+    var physicalKeyAdding:Boolean = false
+    var physicalKeyRemoving:Boolean = false
+
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,7 +59,7 @@ class SettingsActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
 
         aaa = sharedPreferences.getLong("pwm_on", 5)
         sss = sharedPreferences.getLong("pwm_off", 1)
-        oneTimeUnit = sharedPreferences.getLong("oneTimeUnit", 400)
+        oneTimeUnit = sharedPreferences.getLong("oneTimeUnit", PhysicalButtonsService.DEFAULT_ONE_TIME_UNIT)
         award_interval = sharedPreferences.getInt(Constants.AWARD_INTERVAL, 20)
         val socketioipPref = sharedPreferences.getString(Constants.SOCKETIO_IP, Constants.DEFAULT_SOCKETIO_IP).toString()
         device_uuid = sharedPreferences.getString("device_uuid", "").toString()
@@ -67,23 +73,26 @@ class SettingsActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
         oneTimeUnitStatus = findViewById<TextView>(R.id.otu_status)
         awardStatus = findViewById<TextView>(R.id.award_status)
         timing_status = findViewById(R.id.morse_timing)
-        physicalKeys = findViewById<TextView>(R.id.registered_physical_keys)
+        physicalKeys = findViewById(R.id.registered_physical_keys)
         findViewById<Button>(R.id.add_physical_key).setOnClickListener {
-            physicalButtonsService = PhysicalButtonsService.getSharedInstance()
+            physicalKeyAdding = true
+           /* physicalButtonsService = PhysicalButtonsService.getSharedInstance()
             PhysicalButtonsService.getSharedInstance()?.addListener(this)
             physicalButtonsService?.detectingNewPhysicalKey = true
-            physicalButtonsService?.physicalKeyAdding = true
+            physicalButtonsService?.physicalKeyAdding = true*/
             Log.d("ingo", "adding new key")
-            Log.d("ingo", physicalButtonsService?.physicalButtons.toString())
+            Log.d("ingo", mAccessibilityService?.servicePostavke?.physicalButtons.toString())
         }
         findViewById<Button>(R.id.remove_physical_key).setOnClickListener {
-            physicalButtonsService = PhysicalButtonsService.getSharedInstance()
+            physicalKeyRemoving = true
+            /*physicalButtonsService = PhysicalButtonsService.getSharedInstance()
             PhysicalButtonsService.getSharedInstance()?.addListener(this)
             physicalButtonsService?.detectingNewPhysicalKey = true
-            physicalButtonsService?.physicalKeyAdding = false
+            physicalButtonsService?.physicalKeyAdding = false*/
+            Log.d("ingo", "removing a key")
+            Log.d("ingo", mAccessibilityService?.servicePostavke?.physicalButtons.toString())
         }
         keyAddedOrRemoved()
-
 
         findViewById<Button>(R.id.foot_calibration)?.setOnClickListener() {
             val intent = Intent(this, TestActivity::class.java)
@@ -94,15 +103,29 @@ class SettingsActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
         socketioip.setText(socketioipPref)
         val text = findViewById<EditText>(R.id.vibrate_letters)
         findViewById<Button>(R.id.save_settings).setOnClickListener{
-
-
             Toast.makeText(this, "Settings saved.", Toast.LENGTH_SHORT).show()
             //finish()
+        }
+        speedButton = findViewById(R.id.speed_button)
+        //speedButton.setText("Brzina točke = ${oneTimeUnit}")
+        speedButton.setOnClickListener {
+            alertDialogWithMultipleOptions("Odaberi brzinu koda", arrayOf("Jako brzo", "Brzo", "Normalno", "Sporo", "Jako sporo")) { index ->
+                oneTimeUnit = (index+1)*200L
+                refreshStatus()
+            }
+        }
+        awardIntervalButton = findViewById(R.id.award_button)
+        awardIntervalButton.setOnClickListener {
+            val awardIntervals = arrayOf("1", "2", "3", "4", "5", "10", "15", "20", "50")
+            alertDialogWithMultipleOptions("Odaberi interval nagrađivanja koda", awardIntervals) { index ->
+                award_interval = awardIntervals[index].toInt()
+                refreshStatus()
+            }
         }
         findViewById<Button>(R.id.reset_settings).setOnClickListener{
             aaa = 10
             sss = 2
-            oneTimeUnit = 400
+            oneTimeUnit = PhysicalButtonsService.DEFAULT_ONE_TIME_UNIT
             setPostavke(Postavke(aaa, sss, oneTimeUnit, socketioip.text.toString()))
             Toast.makeText(this, "Settings reset.", Toast.LENGTH_SHORT).show()
             refreshStatus()
@@ -152,7 +175,24 @@ class SettingsActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
             refreshStatus()
         }
 
+        var tipkice = mAccessibilityService?.servicePostavke?.physicalButtons!!.map{ keycodeInt -> KeyEvent.keyCodeToString(keycodeInt)}
+        if(tipkice.isNotEmpty()){
+            physicalKeys.setText(getString(R.string.registered_physical_keys_for_typing_morse_code) + tipkice)
+        } else {
+            physicalKeys.setText(getString(R.string.no_registered_physical_keys))
+        }
+
         refreshStatus()
+    }
+
+    fun alertDialogWithMultipleOptions(title: String, options: Array<String>, callback: (Int) -> Unit) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle(title)
+        builder.setItems(options) { dialog, which ->
+            callback(which)
+            dialog.dismiss()
+        }
+        builder.show()
     }
 
     fun generateToken(token_view:EditText){
@@ -173,13 +213,46 @@ class SettingsActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
     override fun onKey(pressed: Boolean) {
     }
 
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if(physicalKeyAdding || physicalKeyRemoving){
+            if(event!!.action == KeyEvent.ACTION_DOWN){
+                if(physicalKeyAdding){
+                    if(!mAccessibilityService!!.servicePostavke.physicalButtons.contains(keyCode)){
+                        mAccessibilityService!!.servicePostavke.physicalButtons.add(keyCode)
+                    }
+                    physicalKeyAdding = false
+                    Log.d("ingo", "added key: " + event.keyCode)
+                }
+                if(physicalKeyRemoving){
+                    mAccessibilityService?.servicePostavke?.physicalButtons?.remove(event.keyCode)
+                    physicalKeyRemoving = false
+                    Log.d("ingo", "removing key: " + event.keyCode)
+                }
+                Log.d("ingo", "something happened ${event.keyCode}")
+                mAccessibilityService?.savePostavke()
+                val tipkice = mAccessibilityService?.servicePostavke?.physicalButtons!!.map{ keycodeInt -> KeyEvent.keyCodeToString(keycodeInt)}
+                if(tipkice.isNotEmpty()){
+                    physicalKeys.setText(getString(R.string.registered_physical_keys_for_typing_morse_code) + tipkice)
+                } else {
+                    physicalKeys.setText(getString(R.string.no_registered_physical_keys))
+                }
+            }
+            Log.d("ingo", mAccessibilityService?.servicePostavke?.physicalButtons.toString())
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
     override fun keyAddedOrRemoved() {
         Log.d("ingo", "keyAddedOrRemoved")
         lifecycleScope.launch {
             withContext(Dispatchers.Main) {
                 var tipkice = mAccessibilityService?.servicePostavke?.physicalButtons!!.map{ keycodeInt -> KeyEvent.keyCodeToString(keycodeInt)}
-                physicalKeys.setText(getString(R.string.registered_physical_keys_for_typing_morse_code) + tipkice)
-
+                if(tipkice.isNotEmpty()){
+                    physicalKeys.setText(getString(R.string.registered_physical_keys_for_typing_morse_code) + tipkice)
+                } else {
+                    physicalKeys.setText(getString(R.string.no_registered_physical_keys))
+                }
             }
         }
     }
@@ -229,8 +302,8 @@ class SettingsActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
                 "Word space (the gap between two words): from 3 units up (>" + (oneTimeUnit * 3).toString() + " ms)"*/
         timing_status.text = "Točka: < " + (oneTimeUnit).toString() + " ms\n" +
                 "Crta: > " + (oneTimeUnit).toString() + " ms\n" +
-                "Razmak između znakova u slovu: < " + (oneTimeUnit).toString() + " ms\n" +
-                "Razmak između slova u riječi: " + (oneTimeUnit).toString() + " - " + (oneTimeUnit * 3).toString() + " ms\n" +
+                "Pauza između znakova u slovu: < " + (oneTimeUnit).toString() + " ms\n" +
+                "Pauza između slova u riječi: " + (oneTimeUnit).toString() + " - " + (oneTimeUnit * 3).toString() + " ms\n" +
                 "Razmak između riječi: >" + (oneTimeUnit * 3).toString() + " ms"
     }
 }

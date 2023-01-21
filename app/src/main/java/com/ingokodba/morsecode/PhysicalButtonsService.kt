@@ -38,9 +38,11 @@ import kotlin.reflect.KFunction0
 private val VIBRATE_PATTERN: List<Long> = listOf(500, 500)
 private val MORSE = arrayOf(".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..", ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----.", "-----")
 private val ALPHANUM:String = "abcdefghijklmnopqrstuvwxyz1234567890"
+
 // ABCDEFGHIJKLMNOPQRSTUVWXYZ
 
 class PhysicalButtonsService: AccessibilityService(){
+
 
     interface OnKeyListener {
         fun onKey(pressed: Boolean)
@@ -101,6 +103,8 @@ class PhysicalButtonsService: AccessibilityService(){
         if(morseCodeService?.showOverlay == true){
             createOverlay()
         }
+
+        morseCodeService?.physicalButtonsServiceOn = true
 
         morseCodeService = MorseCodeService.getSharedInstance()
         morseCodeService?.accesibilityServiceOn()
@@ -177,6 +181,7 @@ class PhysicalButtonsService: AccessibilityService(){
             }
             return true
         } else if(physicalButtons.contains(event.keyCode)) {
+            Log.d("ingo", "onKeyEvent ${event.keyCode}")
             for(listener in listeners) {
                 listener.onKey(event.action == KeyEvent.ACTION_DOWN)
             }
@@ -189,6 +194,7 @@ class PhysicalButtonsService: AccessibilityService(){
     override fun onDestroy() {
         Log.d("ingo", "oncancel")
         korutina.cancel()
+        morseCodeService?.physicalButtonsServiceOn = false
         super.onDestroy()
     }
 
@@ -221,6 +227,8 @@ class PhysicalButtonsService: AccessibilityService(){
         fun getSharedInstance():PhysicalButtonsService?{
             return serviceSharedInstance;
         }
+
+        var DEFAULT_ONE_TIME_UNIT: Long = 1000
 
 
     }

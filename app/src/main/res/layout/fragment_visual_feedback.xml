@@ -15,7 +15,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/dot_or_dash"
-        android:gravity="center"/>
+        android:gravity="center"
+        android:textSize="16sp"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -28,18 +29,20 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             app:first_threshold="0"
-            app:second_threshold="200"
+            app:second_threshold="100"
             app:bar_color="down"
-            app:progress="0"
             app:first_text="točka"
-            app:second_text="crta"/>
+            app:second_text="crta"
+            app:third_text="lol"/>
     </LinearLayout>
 
     <TextView
+        android:id="@+id/novi_znak_razmak_ili_zavrsi_poruku"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/new_character_space_or_send_message"
-        android:gravity="center"/>
+        android:gravity="center"
+        android:textSize="16sp"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -50,20 +53,20 @@
             android:id="@+id/custom_progress_up"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            app:first_threshold="400"
-            app:second_threshold="800"
-            app:third_threshold="2000"
+            app:first_threshold="0"
+            app:second_threshold="20"
+            app:third_threshold="40"
             app:bar_color="up"
-            app:first_text="novo slovo"
-            app:second_text="razmak"
-            app:third_text="poruka završena"/>
+            app:first_text="isto slovo"
+            app:second_text="novo slovo"
+            app:third_text="razmak"/>
     </LinearLayout>
 
     <TextView
         android:id="@+id/timer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="30sp"
+        android:textSize="15sp"
         android:text="0 ms"
         android:gravity="center"/>
     <TextView
@@ -72,7 +75,8 @@
         android:layout_height="wrap_content"
         android:textSize="25sp"
         tools:text="Text extracted from morse"
-        android:text="@string/text"/>
+        android:text="@string/text"
+        android:visibility="gone"/>
     <TextView
         android:id="@+id/all_timers_text"
         android:layout_width="match_parent"

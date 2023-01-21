@@ -26,17 +26,24 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var sharedPreferences: SharedPreferences
     private val sharedPreferencesFile = "MyPrefs"
+    var loggedIn: Boolean = false
+    var justLoggedOut: Boolean = false
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        if(intent.extras != null && intent.extras!!.getBoolean("logged_in")){
-            getMessages()
+        if(intent.extras != null){
+            loggedIn = intent.extras!!.getBoolean("loggedIn", true)
+            if(intent.extras!!.getBoolean("loggedInForFirstTime")) {
+                if(loggedIn) getMessages()
+            }
+            invalidateOptionsMenu()
         }
 
         val intent = Intent(this, MorseCodeService::class.java) // Build the intent for the service
+        intent.putExtra("loggedIn", loggedIn)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             applicationContext.startForegroundService(intent)
         } else {
@@ -46,13 +53,13 @@ class MainActivity : AppCompatActivity() {
         mAccessibilityService = MorseCodeService.getSharedInstance();
         Log.d("ingo", mAccessibilityService.toString())
 
-        mAccessibilityService = MorseCodeService.getSharedInstance();
-
-        findViewById<CardView>(R.id.contacts).setOnClickListener {
-            val intent = Intent(this, ContactsActivity::class.java)
-            startActivity(intent)
+        findViewById<CardView>(R.id.contacts).apply {
+            setOnClickListener {
+                val intent = Intent(this@MainActivity, ContactsActivity::class.java)
+                startActivity(intent)
+            }
+            visibility = if(loggedIn) View.VISIBLE else View.GONE
         }
-
 
         findViewById<Button>(R.id.visualise_accesibility).setOnClickListener {
             val intent = Intent(this, MorseServiceVisualised::class.java)
@@ -79,7 +86,11 @@ class MainActivity : AppCompatActivity() {
         val userHash = sharedPreferences.getString(Constants.USER_HASH, "")
         val prefUserId = sharedPreferences.getInt(Constants.USER_ID, 0)
         val autoLogIn = sharedPreferences.getBoolean(Constants.AUTO_LOGIN, false)
-        findViewById<TextView>(R.id.welcome_message).text = StringBuilder("${getString(R.string.welcome)}, ${sharedName}!").toString()
+        if(loggedIn) {
+            findViewById<TextView>(R.id.welcome_message).text = StringBuilder("${getString(R.string.welcome)}, ${sharedName}!").toString()
+        } else {
+            findViewById<TextView>(R.id.welcome_message).text = StringBuilder("${getString(R.string.welcome)}, ${getString(R.string.guest)}.").toString()
+        }
         /*findViewById<LinearLayout>(R.id.morse_in_action).setOnClickListener(){
             val intent = Intent(this, SendMorseActivity::class.java)
             startActivity(intent)
@@ -105,6 +116,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getMessages() {
+        if(!loggedIn) return
         val db = AppDatabase.getInstance(this)
         val messageDao: MessageDao = db.messageDao()
         lifecycleScope.launch(Dispatchers.Default) {
@@ -136,7 +148,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater: MenuInflater = menuInflater
-        inflater.inflate(R.menu.menu, menu)
+        if(loggedIn) {
+            inflater.inflate(R.menu.menu, menu)
+        } else {
+            inflater.inflate(R.menu.menu_guest, menu)
+        }
         return true
     }
 
@@ -148,12 +164,12 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
                 true
             }
-            R.id.open_accessibility_settings -> {
+            /*R.id.open_accessibility_settings -> {
                 val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 startActivity(intent)
                 true
-            }
+            }*/
             /*R.id.accelerometer_controls -> {
                 sharedPreferences =
                     this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
@@ -170,15 +186,21 @@ class MainActivity : AppCompatActivity() {
                 val messageDao: MessageDao = db.messageDao()
                 messageDao.deleteAll()
 
+                justLoggedOut = true
+
                 val intent = Intent(this, LogInActivity::class.java)
                 intent.putExtra("logout", true)
                 startActivity(intent)
-                finish()
                 true
             }
 
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if(justLoggedOut) finish()
     }
 
 }

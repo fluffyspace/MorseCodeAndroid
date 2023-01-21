@@ -1,6 +1,5 @@
 package com.ingokodba.morsecode
 
-import android.app.Activity
 import android.app.Dialog
 import android.content.ContentResolver
 import android.content.Context
@@ -10,7 +9,6 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
@@ -18,17 +16,14 @@ import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentContainerView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.ingokodba.morsecode.Adapters.OnLongClickListener
 import com.ingokodba.morsecode.Adapters.OpenedFilesAdapterClickListener
 import com.ingokodba.morsecode.Adapters.PreviouslyOpenedFilesAdapter
 import com.ingokodba.morsecode.baza.AppDatabase
-import com.ingokodba.morsecode.baza.LegProfileDao
 import com.ingokodba.morsecode.baza.PreviouslyOpenedFilesDao
 import com.ingokodba.morsecode.models.OpenedFile
 import com.itextpdf.text.pdf.PdfReader
@@ -129,7 +124,7 @@ class ReadFilesActivity : AppCompatActivity(), OpenedFilesAdapterClickListener {
 
         visual_feedback_container = VisualFeedbackFragment()
         visual_feedback_container.testing = true
-        visual_feedback_container.layout1 = true
+        visual_feedback_container.smaller = true
         supportFragmentManager
             .beginTransaction()
             .add(R.id.visual_feedback_container, visual_feedback_container, "main")

@@ -9,6 +9,8 @@ import android.media.AudioManager
 import android.media.SoundPool
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.widget.Button
 import android.widget.ImageView
@@ -52,6 +54,7 @@ class TutorialActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
     var load_next_test = false
     var award_interval: Int = 0
     var award_sound: Int = 0
+    var keyIsDown: Boolean = false
 
     companion object{
         var text_samples:MutableList<String> = mutableListOf("bok","sunce","trava","livada","ljubav","snijeg","more","brod","auto","voda","sat","papir","ptica","drvo","pjesma","krov","pas","konj","glazba","stol","planina","brijeg","kamion","motor","mobitel","kompjuter","novine","prozor", "baterija","terasa","balkon","truba","vatra","led","mir","smijeh","nebo","zvijezda","svemir","planet","struja","poruka","poziv","internet","broj","jezik","cipela","tepih","jakna","cesta","piknik","mraz","brat","sestra","otac","majka","deda","baka","gitara","violina","svjetlo","ples","sport","nogomet","karate","judo","gimnastika","gluma","pjevanje","avion","jedrilica","sok","krema","pita","prijatelj","vjetar","put","hvala","molim","oprosti","stablo","ogledalo","kupaona","kuhinja","hodnik","vrata","radijator","okno","zid","kabel","spavanje","krevet","kupka","stup","beba","dijete","tanjur","vilica","kruh","mlijeko","jabuka", "laptop", "program", "zaslon", "kvaka", "sol", "papar", "maslac", "pizza")
@@ -68,7 +71,13 @@ class TutorialActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
         tutorial_number_view = findViewById(R.id.tutorial_number_view)
         scroll_view = findViewById<NestedScrollView>(R.id.scrollView)
 
+        findViewById<Button>(R.id.upute).setOnClickListener {
+            startActivity(Intent(this, TutorialInstructions::class.java))
+        }
+
         visual_feedback_container = VisualFeedbackFragment()
+        visual_feedback_container.gameMode = true
+        visual_feedback_container.smaller = false
         supportFragmentManager
             .beginTransaction()
             .add(R.id.visual_feedback_container, visual_feedback_container, "main")
@@ -81,7 +90,7 @@ class TutorialActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
         sharedPreferences =
             this.getSharedPreferences(sharedPreferencesFile, Context.MODE_PRIVATE)
         user_wins = sharedPreferences.getInt(Constants.USER_WINS, 0)
-        award_interval = sharedPreferences.getInt(Constants.AWARD_INTERVAL, 20)
+        award_interval = sharedPreferences.getInt(Constants.AWARD_INTERVAL, 5)
         wins_label = findViewById(R.id.wins_label)
         wins_label.text = java.lang.StringBuilder("${getString(R.string.sveukupno_pogodeno_rijeci)} ${user_wins}").toString()
 
@@ -104,30 +113,20 @@ class TutorialActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
         }
         generateNewTest()
 
-        soundPool = if (Build.VERSION.SDK_INT
-            >= Build.VERSION_CODES.LOLLIPOP
-        ) {
-            val audioAttributes = AudioAttributes.Builder()
-                .setUsage(
-                    AudioAttributes.USAGE_ASSISTANCE_SONIFICATION
-                )
-                .setContentType(
-                    AudioAttributes.CONTENT_TYPE_SONIFICATION
-                )
-                .build()
-            SoundPool.Builder()
-                .setMaxStreams(3)
-                .setAudioAttributes(
-                    audioAttributes
-                )
-                .build()
-        } else {
-            SoundPool(
-                4,
-                AudioManager.STREAM_MUSIC,
-                0
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(
+                AudioAttributes.USAGE_GAME
             )
-        }
+            .setContentType(
+                AudioAttributes.CONTENT_TYPE_SONIFICATION
+            )
+            .build()
+        soundPool = SoundPool.Builder()
+            .setMaxStreams(4)
+            .setAudioAttributes(
+                audioAttributes
+            )
+            .build()
         sound_correct = soundPool!!.load(
                 this,
                 R.raw.sound_correct,
@@ -297,6 +296,37 @@ class TutorialActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListen
         cancelKorutina()
         MorseCodeService.getSharedInstance()?.dont_check_input = false
         PhysicalButtonsService.getSharedInstance()?.removeListener(this)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        soundPool?.release();
+        soundPool = null;
+        Log.d("ingo", "playground activity ondestroy")
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if(mAccessibilityService?.servicePostavke?.physicalButtons?.contains(keyCode) == true){
+            if(!keyIsDown) {
+                keyIsDown = true
+                downButton()
+                visual_feedback_container.down()
+            }
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if(mAccessibilityService?.servicePostavke?.physicalButtons?.contains(keyCode) == true){
+            if(keyIsDown) {
+                keyIsDown = false
+                upButton()
+                visual_feedback_container.up()
+            }
+            return true
+        }
+        return super.onKeyUp(keyCode, event)
     }
 
     fun toggleTesting(testing:Boolean){

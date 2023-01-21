@@ -4,22 +4,19 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.res.ColorStateList
-import android.graphics.Color
 import android.media.AudioAttributes
-import android.media.AudioManager
 import android.media.SoundPool
-import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintSet.Motion
-import androidx.core.graphics.toColor
 import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.lifecycleScope
 import com.ingokodba.morsecode.Constants.Companion.sharedPreferencesFile
@@ -53,7 +50,7 @@ class PlaygroundActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyList
     lateinit var korutina_next_tutorial: Job
     lateinit var korutina_refresh_text: Job
     lateinit var korutina_play: Job
-    var number_of_letters = 1
+    var numberOfLetters = 1
 
     var soundPool: SoundPool? = null
     var sound_correct = 0
@@ -71,6 +68,8 @@ class PlaygroundActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyList
     var speed: Long = 0
     var award_interval: Int = 0
     var award_sound: Int = 0
+
+    var keyIsDown = false
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -93,16 +92,16 @@ class PlaygroundActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyList
 
         mAccessibilityService = MorseCodeService.getSharedInstance();
 
-        number_of_letters_label.text = getString(R.string.broj_slova) + number_of_letters
+        number_of_letters_label.text = getString(R.string.broj_slova) + numberOfLetters
 
         letters_up.setOnClickListener {
-            number_of_letters++
-            number_of_letters_label.text = getString(R.string.broj_slova) + number_of_letters
+            numberOfLetters++
+            number_of_letters_label.text = getString(R.string.broj_slova) + numberOfLetters
             nextTutorial()
         }
         letters_down.setOnClickListener {
-            if(number_of_letters > 1) number_of_letters--
-            number_of_letters_label.text = getString(R.string.broj_slova) + number_of_letters
+            if(numberOfLetters > 1) numberOfLetters--
+            number_of_letters_label.text = getString(R.string.broj_slova) + numberOfLetters
             nextTutorial()
         }
         speed = mAccessibilityService!!.servicePostavke.oneTimeUnit
@@ -117,7 +116,13 @@ class PlaygroundActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyList
             speed_label.text = getString(R.string.brzina_koda) + speed
         }
 
+        findViewById<Button>(R.id.upute).setOnClickListener {
+            startActivity(Intent(this, PlaygroundInstructions::class.java))
+        }
+
         visual_feedback_container = VisualFeedbackFragment()
+        visual_feedback_container.gameMode = true
+        visual_feedback_container.smaller = false
         supportFragmentManager
             .beginTransaction()
             .add(R.id.visual_feedback_container, visual_feedback_container, "main")
@@ -132,37 +137,57 @@ class PlaygroundActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyList
         user_wins = sharedPreferences.getInt(Constants.USER_WINS, 0)
         award_interval = sharedPreferences.getInt(Constants.AWARD_INTERVAL, 20)
 
+        findViewById<Button>(R.id.btn_broj_slova).setOnClickListener {
+            // ovdje otvoriti alert dialog za unos broja slova
+            alertDialogWithMultipleOptions("Odaberi maksimalan broj slova", arrayOf("1", "2", "3", "4", "5", "6", "7")) { index ->
+                numberOfLetters = index + 1
+                number_of_letters_label.text = getString(R.string.broj_slova) + numberOfLetters
+                nextTutorial()
+            }
+        }
+
+        findViewById<Button>(R.id.btn_trajanje_tocke).setOnClickListener {
+            // ovdje otvoriti alert dialog za trajanje tocke
+            alertDialogWithMultipleOptions("Odaberi brzinu primanja koda", arrayOf("Jako brzo", "Brzo", "Normalno", "Sporo", "Jako sporo")) { index ->
+                speed = (index+1)*200L
+                speed_label.text = getString(R.string.brzina_koda) + speed
+                nextTutorial()
+            }
+        }
+
         speaker.imageTintList = getColorStateList(R.color.obrub)
         speaker.setOnClickListener {
             //speaker.setImageDrawable(getDrawable(R.drawable.volume_up_svg_yellow))
-            speaker.imageTintList = getColorStateList(R.color.orange)
             if(::korutina_play.isInitialized && korutina_play.isActive) {
                 korutina_play.cancel()
                 soundPool!!.stop(buzz_id2)
-            }
-            korutina_play = lifecycleScope.launch(Dispatchers.Default){
-                tutorial_text.forEach{ slovo ->
-                    val index:Int = ALPHANUM.indexOfFirst { it == slovo }
-                    val morse:String = MorseCodeService.MORSE.get(index)
-                    for(i: Int in morse.indices) {
-                        withContext(Dispatchers.Main){
-                            buzz_id2 = soundPool!!.play(sound_buzz, 1F, 1F, 0, -1, 1F)
-                        }
-                        if(morse[i] == '.'){
+                speaker.imageTintList = getColorStateList(R.color.obrub)
+            } else {
+                speaker.imageTintList = getColorStateList(R.color.orange)
+                korutina_play = lifecycleScope.launch(Dispatchers.Default) {
+                    tutorial_text.forEach { slovo ->
+                        val index: Int = ALPHANUM.indexOfFirst { it == slovo }
+                        val morse: String = MorseCodeService.MORSE.get(index)
+                        for (i: Int in morse.indices) {
+                            withContext(Dispatchers.Main) {
+                                buzz_id2 = soundPool!!.play(sound_buzz, 1F, 1F, 0, -1, 1F)
+                            }
+                            if (morse[i] == '.') {
+                                delay(speed)
+                            } else if (morse[i] == '-') {
+                                delay(speed * 3)
+                            }
+                            withContext(Dispatchers.Main) {
+                                soundPool!!.stop(buzz_id2)
+                            }
                             delay(speed)
-                        } else if(morse[i] == '-'){
-                            delay(speed*3)
                         }
-                        withContext(Dispatchers.Main){
-                            soundPool!!.stop(buzz_id2)
-                        }
-                        delay(speed)
+                        delay(speed * 2)
                     }
-                    delay(speed*2)
-                }
-                withContext(Dispatchers.Main){
-                    //speaker.setImageDrawable(getDrawable(R.drawable.volume_up_svg))
-                    speaker.imageTintList = getColorStateList(R.color.obrub)
+                    withContext(Dispatchers.Main) {
+                        //speaker.setImageDrawable(getDrawable(R.drawable.volume_up_svg))
+                        speaker.imageTintList = getColorStateList(R.color.obrub)
+                    }
                 }
             }
         }
@@ -171,7 +196,6 @@ class PlaygroundActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyList
             it.visibility = View.GONE
             rjesenje_label.visibility = View.VISIBLE
         }
-
 
         tap_button.setOnTouchListener { v, event ->
             when (event?.action) {
@@ -191,30 +215,20 @@ class PlaygroundActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyList
         }
         generateNewTest()
 
-        soundPool = if (Build.VERSION.SDK_INT
-            >= Build.VERSION_CODES.LOLLIPOP
-        ) {
-            val audioAttributes = AudioAttributes.Builder()
-                .setUsage(
-                    AudioAttributes.USAGE_ASSISTANCE_SONIFICATION
-                )
-                .setContentType(
-                    AudioAttributes.CONTENT_TYPE_SONIFICATION
-                )
-                .build()
-            SoundPool.Builder()
-                .setMaxStreams(3)
-                .setAudioAttributes(
-                    audioAttributes
-                )
-                .build()
-        } else {
-            SoundPool(
-                4,
-                AudioManager.STREAM_MUSIC,
-                0
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(
+                AudioAttributes.USAGE_GAME
             )
-        }
+            .setContentType(
+                AudioAttributes.CONTENT_TYPE_SONIFICATION
+            )
+            .build()
+        soundPool = SoundPool.Builder()
+                    .setMaxStreams(4)
+                    .setAudioAttributes(
+                        audioAttributes
+                    )
+                    .build()
         sound_correct = soundPool!!.load(
                 this,
                 R.raw.sound_correct,
@@ -229,7 +243,7 @@ class PlaygroundActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyList
         sound_buzz = soundPool!!.load(
             this,
             R.raw.sound_morse,
-            1
+            2
         )
         sound_clapping = soundPool!!.load(
             this,
@@ -240,7 +254,7 @@ class PlaygroundActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyList
 
     fun downButton(){
         if(!playing_buzz) {
-            buzz_id = soundPool!!.play(sound_buzz, 1F, 1F, 0, -1, 1F);
+            buzz_id = soundPool!!.play(sound_buzz, 1F, 1F, 1, -1, 1F);
             playing_buzz = true
         }
         refreshText()
@@ -262,6 +276,21 @@ class PlaygroundActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyList
 
     override fun keyAddedOrRemoved() {
 
+    }
+
+    fun chooseNumberOfLetters(number: Int){
+        numberOfLetters = number
+        generateNewTest()
+    }
+
+    fun alertDialogWithMultipleOptions(title: String, options: Array<String>, callback: (Int) -> Unit) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle(title)
+        builder.setItems(options) { dialog, which ->
+            callback(which)
+            dialog.dismiss()
+        }
+        builder.show()
     }
 
     fun nextTutorial() { // this: CoroutineScope
@@ -344,11 +373,11 @@ class PlaygroundActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyList
         rjesenje_label.visibility = View.GONE
         tutorial_number++
         val random_sample_text_index = Random.nextInt(0, text_samples.size)
-        tutorial_text = text_samples[random_sample_text_index].lowercase().take(number_of_letters)
+        tutorial_text = text_samples[random_sample_text_index].lowercase().take(numberOfLetters)
         text_samples.removeAt(random_sample_text_index)
 
         tutorial_number_view.text = "${getString(R.string.tutorial)}: " + (user_wins+1)
-        rjesenje_label.text = "Rjesenje: ${stringToMorse(tutorial_text)} (${tutorial_text})"
+        rjesenje_label.text = "${prettifyMorse(stringToMorse(tutorial_text))} (${tutorial_text})"
     }
 
     fun cancelKorutina(){
@@ -387,6 +416,37 @@ class PlaygroundActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyList
         PhysicalButtonsService.getSharedInstance()?.removeListener(this)
         MorseCodeService.getSharedInstance()?.dont_check_input = false
         cancelKorutina()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        soundPool?.release();
+        soundPool = null;
+        Log.d("ingo", "playground activity ondestroy")
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if(mAccessibilityService?.servicePostavke?.physicalButtons?.contains(keyCode) == true){
+            if(!keyIsDown) {
+                keyIsDown = true
+                downButton()
+                visual_feedback_container.down()
+            }
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if(mAccessibilityService?.servicePostavke?.physicalButtons?.contains(keyCode) == true){
+            if(keyIsDown) {
+                keyIsDown = false
+                upButton()
+                visual_feedback_container.up()
+            }
+            return true
+        }
+        return super.onKeyUp(keyCode, event)
     }
 
     fun toggleTesting(testing:Boolean){

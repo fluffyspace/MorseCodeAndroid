@@ -109,7 +109,7 @@ class ChatActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListener {
 
         visual_feedback_container = VisualFeedbackFragment()
         visual_feedback_container.testing = true
-        visual_feedback_container.layout1 = true
+        visual_feedback_container.smaller = true
         supportFragmentManager
             .beginTransaction()
             .add(R.id.visual_feedback_container, visual_feedback_container, "main")
@@ -443,7 +443,7 @@ class ChatActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListener {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+        if(mAccessibilityService?.servicePostavke?.physicalButtons?.contains(keyCode) == true){
             Log.d("ingo", "key pressed")
             if(lastPosition == HandsFree.UP) return true
             lastPosition = HandsFree.UP
@@ -454,7 +454,7 @@ class ChatActivity : AppCompatActivity(), PhysicalButtonsService.OnKeyListener {
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+        if(mAccessibilityService?.servicePostavke?.physicalButtons?.contains(keyCode) == true){
             Log.d("ingo", "key released")
             if(lastPosition == HandsFree.DOWN) return true
             lastPosition = HandsFree.DOWN

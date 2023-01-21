@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    android:id="@+id/scrollView"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="4sp"
+            android:paddingBottom="10dp"
+            android:text="Slušajte slova i pokušajte ih odgonetnuti. Morseov kod se najbolje uči tako da se sluša i ponavlja! Vrlo je teško slušno koristiti morseov kod ako se prvo vizualno nauči."
+            android:textAllCaps="false" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="4sp"
+            android:paddingBottom="10dp"
+            android:text="Ispod možeš ubrzati morseov kod koji ti dolazi kroz zvučnik, no ako želiš ubzrati brzinu upisa svog koda, to možeš učiniti pod glavnim postavkama."
+            android:textAllCaps="false" />
+        <Button
+            android:id="@+id/close"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Zatvori"
+            android:padding="20dp"/>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

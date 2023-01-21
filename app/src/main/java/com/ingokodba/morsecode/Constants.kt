@@ -8,6 +8,7 @@ class Constants{
         val USER_PASSWORD = "password"
         val AWARD_INTERVAL = "award_interval"
         val GOOGLE_LOGIN = "no_google"
+        val GUEST_LOGIN = "guest_login"
         val USER_HASH = "logInHash"
         val AUTO_LOGIN = "autoLogIn"
         val SOCKETIO_IP = "socketioip"
